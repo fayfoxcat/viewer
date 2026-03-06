@@ -3,7 +3,7 @@ name: Release Build
 on:
   push:
     tags:
-      - 'v*'  # 仅在推送 v* 标签时触发，例如 v0.0.1
+      - '*'  # 仅在推送 v* 标签时触发，例如 v0.0.1
 
 permissions:
   contents: write  # 允许创建 Release 和上传文件
