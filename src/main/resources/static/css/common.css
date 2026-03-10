@@ -645,3 +645,139 @@ html, body {
 .small {
     font-size: 12px;
 }
+/* 现代化刷新按钮样式 */
+.refresh-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s var(--ant-ease-in-out);
+    border-color: var(--ant-primary-color);
+    color: var(--ant-primary-color);
+}
+
+.refresh-btn:hover {
+    background: var(--ant-primary-1);
+    border-color: var(--ant-primary-5);
+    color: var(--ant-primary-5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+}
+
+.refresh-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(24, 144, 255, 0.15);
+}
+
+.refresh-btn.refreshing {
+    background: var(--ant-primary-color);
+    border-color: var(--ant-primary-color);
+    color: var(--ant-text-color-inverse);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.refresh-btn.refreshing:hover {
+    background: var(--ant-primary-5);
+    border-color: var(--ant-primary-5);
+    color: var(--ant-text-color-inverse);
+    transform: none;
+}
+
+.refresh-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s var(--ant-ease-in-out);
+}
+
+.refresh-btn-text {
+    margin-left: 4px;
+    transition: opacity 0.2s var(--ant-ease-in-out);
+}
+
+.refresh-btn-loading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+}
+
+.refresh-icon {
+    fill: currentColor;
+    transition: transform 0.3s var(--ant-ease-in-out);
+}
+
+.refresh-btn:hover .refresh-icon {
+    transform: rotate(180deg);
+}
+
+.refresh-btn.refreshing .refresh-icon {
+    animation: refresh-spin 1s linear infinite;
+}
+
+.loading-icon {
+    fill: currentColor;
+    animation: refresh-spin 1s linear infinite;
+}
+
+@keyframes refresh-spin {
+    0% { 
+        transform: rotate(0deg); 
+    }
+    100% { 
+        transform: rotate(360deg); 
+    }
+}
+
+/* 刷新按钮状态指示器 */
+.refresh-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.refresh-btn.refreshing::after {
+    animation: refresh-shimmer 2s infinite;
+}
+
+@keyframes refresh-shimmer {
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .refresh-btn .refresh-btn-text {
+        display: none;
+    }
+    
+    .refresh-btn {
+        width: 36px;
+        padding: 0;
+    }
+    
+    .refresh-btn-loading {
+        margin-left: 0;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    .refresh-btn:hover {
+        background: rgba(24, 144, 255, 0.1);
+    }
+    
+    .refresh-btn::after {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+}

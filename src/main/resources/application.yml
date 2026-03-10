@@ -21,4 +21,5 @@ logs:
     enable-auth: false
     secret-key:
     paths:
-      - ./
+      - C:/Users/root/Desktop/logs
+      - C:/Users/root/Documents/项目/github/logs/test-logs/

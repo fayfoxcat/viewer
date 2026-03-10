@@ -43,7 +43,9 @@ $(document).ready(function () {
 
     // 文件加载失败回调
     function onFileLoadError(message) {
+        window.LogViewerContentRenderer.hideLoading();
         $("#log-content-actual").html(`<div class="text-center text-danger p-5">${message}</div>`);
+        $("#log-content-actual").show();
     }
 
     // 执行内容搜索
@@ -67,7 +69,7 @@ $(document).ready(function () {
     }
 
     // 页面跳转处理
-    function handlePageChange(targetPage, lineNumber) {
+    function handlePageChange(targetPage, lineNumber, scrollPosition) {
         const newPage = window.LogViewerPagination.goToPage(targetPage);
         
         // 重新执行搜索以生成高亮
@@ -83,10 +85,21 @@ $(document).ready(function () {
         
         window.LogViewerPagination.updatePagination(currentContentLines.length);
         
-        if (lineNumber) {
+        if (scrollPosition) {
+            window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
+        } else if (lineNumber) {
             setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
         }
     }
+
+    // 排序按钮事件
+    $(document).on("click", ".sort-btn", function() {
+        const sortBy = $(this).data("sort");
+        const sortOrder = $(this).data("order");
+        
+        window.LogViewerFileTree.setSortBy(sortBy, sortOrder);
+        window.LogViewerFileTree.renderRootTree(currentRootPath);
+    });
 
     // 左侧文件搜索
     let searchTimer = null;
@@ -129,6 +142,7 @@ $(document).ready(function () {
                               <span class="file-icon">${isArchive ? "📦" : "📄"}</span>
                               <span class="file-label">${window.LogViewerUtils.escapeHtml(f.name)}</span>
                             </div>
+                            <div class="file-col file-col-time">${window.LogViewerUtils.formatDateShort(f.lastModified)}</div>
                             <div class="file-col file-col-size">${window.LogViewerUtils.formatFileSize(f.size)}</div>
                           </div>
                         `);
@@ -258,6 +272,9 @@ $(document).ready(function () {
         $("#file-list li.file-node").removeClass("active");
         $li.addClass("active");
 
+        // 显示加载中
+        window.LogViewerContentRenderer.showLoading();
+
         if (isZipEntry) {
             window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
         } else {
@@ -344,34 +361,42 @@ $(document).ready(function () {
     // 分页按钮事件
     $("#page-first-btn").on("click", function () {
         if (!activeId || window.LogViewerPagination.getCurrentPage() <= 1) return;
+        
         const newPage = window.LogViewerPagination.goToPage(1);
         window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
         window.LogViewerPagination.updatePagination(currentContentLines.length);
+        window.LogViewerContentRenderer.showPageIndicator(newPage);
     });
 
     $("#page-prev-btn").on("click", function () {
         const currentPage = window.LogViewerPagination.getCurrentPage();
         if (!activeId || currentPage <= 1) return;
+        
         const newPage = window.LogViewerPagination.goToPage(currentPage - 1);
         window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
         window.LogViewerPagination.updatePagination(currentContentLines.length);
+        window.LogViewerContentRenderer.showPageIndicator(newPage);
     });
 
     $("#page-next-btn").on("click", function () {
         const currentPage = window.LogViewerPagination.getCurrentPage();
         const totalPages = window.LogViewerPagination.getTotalPages();
         if (!activeId || currentPage >= totalPages) return;
+        
         const newPage = window.LogViewerPagination.goToPage(currentPage + 1);
         window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
         window.LogViewerPagination.updatePagination(currentContentLines.length);
+        window.LogViewerContentRenderer.showPageIndicator(newPage);
     });
 
     $("#page-last-btn").on("click", function () {
         const totalPages = window.LogViewerPagination.getTotalPages();
         if (!activeId || window.LogViewerPagination.getCurrentPage() >= totalPages) return;
+        
         const newPage = window.LogViewerPagination.goToPage(totalPages);
         window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
         window.LogViewerPagination.updatePagination(currentContentLines.length);
+        window.LogViewerContentRenderer.showPageIndicator(newPage);
     });
 
     $("#page-jump-input").on("keydown", function (e) {
@@ -381,6 +406,7 @@ $(document).ready(function () {
                 const newPage = window.LogViewerPagination.goToPage(page);
                 window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
                 window.LogViewerPagination.updatePagination(currentContentLines.length);
+                window.LogViewerContentRenderer.showPageIndicator(newPage);
             }
         }
     });
@@ -392,11 +418,21 @@ $(document).ready(function () {
 
     // 实时刷新
     $("#refresh-btn").on("click", function () {
+        const $btn = $(this);
+        const $icon = $btn.find('.refresh-btn-icon');
+        const $text = $btn.find('.refresh-btn-text');
+        const $loading = $btn.find('.refresh-btn-loading');
+        
         if (refreshTimer) {
+            // 停止刷新
             clearInterval(refreshTimer);
             refreshTimer = null;
-            $(this).removeClass("btn-danger").addClass("btn-outline-secondary");
-            $(this).html("<span id='refresh-icon'>🔄</span> 实时刷新");
+            
+            // 恢复按钮状态
+            $btn.removeClass("refreshing");
+            $icon.show();
+            $text.text("实时刷新");
+            $loading.hide();
             return;
         }
 
@@ -408,8 +444,11 @@ $(document).ready(function () {
         window.LogViewerPagination.updatePagination(currentContentLines.length);
         window.LogViewerContentRenderer.scrollToBottom();
 
-        $(this).removeClass("btn-outline-secondary").addClass("btn-danger");
-        $(this).html("<span id='refresh-icon'>⏸</span> 停止刷新");
+        // 设置刷新状态
+        $btn.addClass("refreshing");
+        $icon.hide();
+        $text.text("停止刷新");
+        $loading.show();
 
         refreshTimer = setInterval(function () {
             const $content = $("#log-content-actual");
@@ -461,6 +500,7 @@ $(document).ready(function () {
         window.LogViewerPagination.reset();
         window.LogViewerUIState.setActiveFileName(null);
         window.LogViewerUIState.setEmptyHintVisible(true);
+        window.LogViewerContentRenderer.hideLoading();
         $("#file-search").val("");
         $("#pagination-controls").hide();
         window.LogViewerFileTree.renderRootTree(currentRootPath);

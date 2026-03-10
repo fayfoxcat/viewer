@@ -4,33 +4,63 @@
 window.LogViewerContentRenderer = (function() {
     'use strict';
 
-    const LINES_PER_PAGE = 500;
+    const LINES_PER_PAGE = 1000;
+    let currentLines = [];
+    let currentHighlightMap = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    let pageIndicatorTimer = null;
+
+    /**
+     * 显示加载中
+     */
+    function showLoading() {
+        $("#loading-overlay").show();
+        $("#log-content-empty").hide();
+        $("#log-content-actual").hide();
+    }
+
+    /**
+     * 隐藏加载中
+     */
+    function hideLoading() {
+        $("#loading-overlay").hide();
+    }
 
     /**
      * 渲染日志内容
      */
     function renderLogContent(lines, highlightInfo, page) {
-        const currentPage = page || 1;
-        const startLine = (currentPage - 1) * LINES_PER_PAGE + 1;
-        const endLine = Math.min(startLine + LINES_PER_PAGE - 1, lines.length);
+        currentLines = lines;
+        currentHighlightMap = highlightInfo;
+        currentPage = page || 1;
+        totalPages = Math.max(1, Math.ceil(lines.length / LINES_PER_PAGE));
         
-        const map = highlightInfo || new Map();
+        renderPageContent(page);
+        hideLoading();
+    }
+
+    /**
+     * 渲染指定页面内容
+     */
+    function renderPageContent(page) {
+        const startLine = (page - 1) * LINES_PER_PAGE + 1;
+        const endLine = Math.min(startLine + LINES_PER_PAGE - 1, currentLines.length);
+        
+        const map = currentHighlightMap || new Map();
         let html = `<div class="log-lines">`;
         
-        for (let i = startLine - 1; i < endLine && i < lines.length; i++) {
+        for (let i = startLine - 1; i < endLine && i < currentLines.length; i++) {
             const ln = i + 1;
-            const raw = lines[i] ?? "";
+            const raw = currentLines[i] ?? "";
             const ranges = map.get(ln) || [];
             
             let textHtml;
             if (ranges.length && window.LogHighlighter) {
-                // 有搜索高亮：先应用语法高亮，再叠加搜索高亮
                 textHtml = applySyntaxAndSearchHighlight(raw, ranges);
             } else if (window.LogHighlighter) {
-                // 仅语法高亮
                 textHtml = window.LogHighlighter.highlightLine(raw);
             } else {
-                // 降级方案
                 textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.LogViewerUtils.escapeHtml(raw);
             }
             
@@ -169,12 +199,81 @@ window.LogViewerContentRenderer = (function() {
         $container.stop(true).animate({ scrollTop: el.scrollHeight }, 150);
     }
 
+    /**
+     * 滚动到页面指定位置
+     */
+    function scrollToPosition(position) {
+        const $container = $("#log-content-actual");
+        const container = $container[0];
+        if (!container) return;
+        
+        setTimeout(() => {
+            if (position === 'top') {
+                $container.scrollTop(0);
+            } else if (position === 'bottom') {
+                $container.scrollTop(container.scrollHeight);
+            }
+        }, 50);
+    }
+
+    /**
+     * 显示页码提示框
+     */
+    function showPageIndicator(page) {
+        const $indicator = $("#page-indicator");
+        const $text = $("#page-indicator-text");
+        
+        // 清除之前的定时器
+        if (pageIndicatorTimer) {
+            clearTimeout(pageIndicatorTimer);
+        }
+        
+        // 更新页码文本
+        $text.text(`第 ${page} 页`);
+        
+        // 显示提示框
+        $indicator.removeClass('hide').addClass('show').show();
+        
+        // 0.5秒后自动隐藏
+        pageIndicatorTimer = setTimeout(() => {
+            $indicator.removeClass('show').addClass('hide');
+            setTimeout(() => {
+                $indicator.hide();
+            }, 200); // 等待淡出动画完成
+        }, 500);
+    }
+
+    /**
+     * 跳转到指定页面
+     */
+    function jumpToPage(page) {
+        currentPage = Math.max(1, Math.min(totalPages, page));
+        renderPageContent(currentPage);
+        
+        // 更新分页控件
+        window.LogViewerPagination.setCurrentPage(currentPage);
+        window.LogViewerPagination.updatePagination(currentLines.length);
+        
+        // 显示页码提示
+        showPageIndicator(currentPage);
+        
+        // 滚动到顶部
+        setTimeout(() => {
+            $("#log-content-actual").scrollTop(0);
+        }, 50);
+    }
+
     // 公开接口
     return {
         renderLogContent,
         scrollToLine,
         scrollToTop,
         scrollToBottom,
+        scrollToPosition,
+        jumpToPage,
+        showPageIndicator,
+        showLoading,
+        hideLoading,
         LINES_PER_PAGE
     };
 })();

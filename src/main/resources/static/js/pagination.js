@@ -6,7 +6,7 @@ window.LogViewerPagination = (function() {
 
     let currentPage = 1;
     let totalPages = 1;
-    const LINES_PER_PAGE = 500;
+    const LINES_PER_PAGE = 1000;
 
     /**
      * 更新分页控件

@@ -8,6 +8,8 @@ window.LogViewerFileTree = (function() {
     let selectedIds = new Set();
     let expandedPaths = new Set();
     let expandedZipPaths = new Set();
+    let currentSortBy = 'name';
+    let currentSortOrder = 'asc';
 
     /**
      * 构建文件行HTML
@@ -26,9 +28,36 @@ window.LogViewerFileTree = (function() {
               <span class="file-icon">${opts.icon || ""}</span>
               <span class="file-label" title="${window.LogViewerUtils.escapeHtml(opts.mtime || "-")}">${window.LogViewerUtils.escapeHtml(opts.name)}</span>
             </div>
+            <div class="file-col file-col-time" title="${window.LogViewerUtils.escapeHtml(opts.mtime || "-")}">${window.LogViewerUtils.escapeHtml(opts.mtimeShort || "-")}</div>
             <div class="file-col file-col-size" title="${window.LogViewerUtils.escapeHtml(opts.size || "-")}">${window.LogViewerUtils.escapeHtml(opts.size || "-")}</div>
           </div>
         `;
+    }
+
+    /**
+     * 排序文件列表
+     */
+    function sortFileList(list, sortBy, sortOrder) {
+        return list.slice().sort(function (a, b) {
+            // 目录优先
+            if (a.directory && !b.directory) return -1;
+            if (!a.directory && b.directory) return 1;
+            
+            let result = 0;
+            if (sortBy === 'name') {
+                result = String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+            } else if (sortBy === 'size') {
+                const sizeA = a.directory ? 0 : (a.size || 0);
+                const sizeB = b.directory ? 0 : (b.size || 0);
+                result = sizeA - sizeB;
+            } else if (sortBy === 'time') {
+                const timeA = a.lastModified || 0;
+                const timeB = b.lastModified || 0;
+                result = timeA - timeB;
+            }
+            
+            return sortOrder === 'desc' ? -result : result;
+        });
     }
 
     /**
@@ -49,18 +78,14 @@ window.LogViewerFileTree = (function() {
      */
     function renderDirectoryChildren($ul, children, depth, expandedPathsSet, expandedZipPathsSet) {
         const list = Array.isArray(children) ? children.slice() : [];
-        list.sort(function (a, b) {
-            if (a.directory && !b.directory) return -1;
-            if (!a.directory && b.directory) return 1;
-            return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
-        });
+        const sortedList = sortFileList(list, currentSortBy, currentSortOrder);
 
-        if (list.length === 0 && $ul.is("#file-list")) {
+        if (sortedList.length === 0 && $ul.is("#file-list")) {
             $ul.append(`<li class="text-center text-muted">空目录</li>`);
             return;
         }
 
-        list.forEach(function (f) {
+        sortedList.forEach(function (f) {
             const isDir = !!f.directory;
             const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(f.name);
 
@@ -87,6 +112,7 @@ window.LogViewerFileTree = (function() {
                 name: f.name,
                 size: isDir ? "-" : window.LogViewerUtils.formatFileSize(f.size),
                 mtime: window.LogViewerUtils.formatDate(f.lastModified),
+                mtimeShort: window.LogViewerUtils.formatDateShort(f.lastModified),
                 tooltip: isDir ? "目录" : ("修改时间: " + window.LogViewerUtils.formatDate(f.lastModified)),
                 depth,
                 expander: isDir || isArchive,
@@ -214,18 +240,14 @@ window.LogViewerFileTree = (function() {
      */
     function renderZipChildren($ul, zipPath, prefix, children, depth) {
         const list = Array.isArray(children) ? children.slice() : [];
-        list.sort(function (a, b) {
-            if (a.directory && !b.directory) return -1;
-            if (!a.directory && b.directory) return 1;
-            return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
-        });
+        const sortedList = sortFileList(list, currentSortBy, currentSortOrder);
 
-        if (list.length === 0) {
+        if (sortedList.length === 0) {
             $ul.append(`<li class="text-center text-muted">空</li>`);
             return;
         }
 
-        list.forEach(function (f) {
+        sortedList.forEach(function (f) {
             const isDir = !!f.directory;
             const entryName = (f.entryName || "").replace(/\\/g, "/");
             const id = f.path; // zipPath!entryName
@@ -249,6 +271,7 @@ window.LogViewerFileTree = (function() {
                 name: f.name,
                 size: isDir ? "-" : window.LogViewerUtils.formatFileSize(f.size),
                 mtime: window.LogViewerUtils.formatDate(f.lastModified),
+                mtimeShort: window.LogViewerUtils.formatDateShort(f.lastModified),
                 tooltip: isDir ? "目录" : ("修改时间: " + window.LogViewerUtils.formatDate(f.lastModified)),
                 depth,
                 expander: isDir,
@@ -295,6 +318,18 @@ window.LogViewerFileTree = (function() {
     }
 
     /**
+     * 设置排序方式
+     */
+    function setSortBy(sortBy, sortOrder) {
+        currentSortBy = sortBy;
+        currentSortOrder = sortOrder;
+        
+        // 更新排序按钮状态
+        $('.sort-btn').removeClass('active');
+        $(`.sort-btn[data-sort="${sortBy}"][data-order="${sortOrder}"]`).addClass('active');
+    }
+
+    /**
      * 初始化模块
      */
     function init(apiBasePath, selectedIdsRef) {
@@ -325,6 +360,7 @@ window.LogViewerFileTree = (function() {
         expandDirectoryNode,
         expandArchiveNode,
         expandZipDirNode,
-        clearExpandedState
+        clearExpandedState,
+        setSortBy
     };
 })();

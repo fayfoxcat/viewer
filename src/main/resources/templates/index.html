@@ -67,8 +67,27 @@
                 </div>
                 <div class="sidebar-content">
                     <div class="file-list-header">
-                        <div class="file-col file-col-name">名称</div>
-                        <div class="file-col file-col-size">大小</div>
+                        <div class="file-col file-col-name">
+                            <span>名称</span>
+                            <div class="sort-buttons">
+                                <button id="sort-name-asc" class="sort-btn" title="按名称升序" data-sort="name" data-order="asc">↑</button>
+                                <button id="sort-name-desc" class="sort-btn" title="按名称降序" data-sort="name" data-order="desc">↓</button>
+                            </div>
+                        </div>
+                        <div class="file-col file-col-time">
+                            <span>时间</span>
+                            <div class="sort-buttons">
+                                <button id="sort-time-asc" class="sort-btn" title="按时间升序" data-sort="time" data-order="asc">↑</button>
+                                <button id="sort-time-desc" class="sort-btn" title="按时间降序" data-sort="time" data-order="desc">↓</button>
+                            </div>
+                        </div>
+                        <div class="file-col file-col-size">
+                            <span>大小</span>
+                            <div class="sort-buttons">
+                                <button id="sort-size-asc" class="sort-btn" title="按大小升序" data-sort="size" data-order="asc">↑</button>
+                                <button id="sort-size-desc" class="sort-btn" title="按大小降序" data-sort="size" data-order="desc">↓</button>
+                            </div>
+                        </div>
                     </div>
                     <ul id="file-list" class="file-list"></ul>
                 </div>
@@ -108,8 +127,18 @@
                         <button id="scroll-bottom-btn" class="ant-btn ant-btn-sm">底部</button>
                     </div>
                     <div class="d-flex align-items-center ms-auto">
-                        <button id="refresh-btn" class="ant-btn ant-btn-sm">
-                            <span id="refresh-icon">🔄</span> 实时刷新
+                        <button id="refresh-btn" class="ant-btn ant-btn-sm refresh-btn">
+                            <span class="refresh-btn-icon">
+                                <svg class="refresh-icon" viewBox="0 0 1024 1024" width="14" height="14">
+                                    <path d="M909.1 209.3l-56.4 44.1C775.8 155.1 656.2 92 521.9 92 290 92 102.3 279.5 102 511.5 101.7 743.7 289.8 932 521.9 932c181.3 0 335.8-115 394.6-276.1 1.5-4.2-.7-8.9-4.9-10.3l-41.6-15.3c-4.2-1.5-8.9.7-10.3 4.9C823.1 776.4 682.2 870 521.9 870c-192.9 0-349.9-157.3-349.2-350.4.7-191.2 156.1-349.3 347.2-349.3 121.8 0 235.5 49.3 314.6 139.3L785 361.3c-2.5 2.1-2.7 5.8-.5 8.2l64.2 69.2c1.9 2.1 5.2 2.3 7.3.4L972.7 355c2.1-1.9 2.3-5.2.4-7.3L909.1 209.3z"/>
+                                </svg>
+                            </span>
+                            <span class="refresh-btn-text">实时刷新</span>
+                            <span class="refresh-btn-loading" style="display: none;">
+                                <svg class="loading-icon" viewBox="0 0 1024 1024" width="14" height="14">
+                                    <path d="M988 548c-19.9 0-36-16.1-36-36 0-59.4-11.6-117-34.6-171.3a440.45 440.45 0 00-94.3-139.9 437.71 437.71 0 00-139.9-94.3C637 83.6 579.4 72 520 72s-117 11.6-171.3 34.6a440.45 440.45 0 00-139.9 94.3 437.71 437.71 0 00-94.3 139.9C91.6 395 80 452.6 80 512s11.6 117 34.6 171.3a440.45 440.45 0 0094.3 139.9 437.71 437.71 0 00139.9 94.3C395 940.4 452.6 952 512 952c59.4 0 117-11.6 171.3-34.6a440.45 440.45 0 00139.9-94.3 437.71 437.71 0 0094.3-139.9C940.4 629 952 571.4 952 512c0-19.9 16.1-36 36-36s36 16.1 36 36c0 141.4-55.1 274.4-155.1 374.4S653.4 1042 512 1042 237.6 986.9 137.6 886.9 -18 653.4 -18 512s55.1-274.4 155.1-374.4S370.6-18 512-18s274.4 55.1 374.4 155.1S1042 370.6 1042 512c0 19.9-16.1 36-36 36z"/>
+                                </svg>
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -128,6 +157,17 @@
                         </p>
                     </div>
                     <div id="log-content-actual" style="display: none; height: 100%; overflow: auto;">
+                    </div>
+                    <!-- 加载中提示 -->
+                    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+                        <div class="loading-content">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">加载中...</div>
+                        </div>
+                    </div>
+                    <!-- 页码提示框 -->
+                    <div id="page-indicator" class="page-indicator" style="display: none;">
+                        <span id="page-indicator-text">第 1 页</span>
                     </div>
                 </div>
             </div>
