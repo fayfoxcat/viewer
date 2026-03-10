@@ -48,20 +48,7 @@ logs:
 logs:
   viewer:
     enable-auth: true
-    auth-key: your-secret-key  # 固定密钥（可选，不配置则自动生成临时密钥）
-    endpoint: /logs
-    paths:
-      - /var/log/app
-```
-
-作为依赖时使用Token认证：
-
-```yaml
-logs:
-  viewer:
-    enable-auth: true
-    token-get-expression: sessionStorage.getItem("token")  # 从前端获取token
-    token-header-name: access-token  # 请求头名称
+    secret-key: your-secret-key  # 固定密钥（可选，不配置则自动生成临时密钥）
     endpoint: /logs
     paths:
       - /var/log/app
@@ -86,8 +73,6 @@ logs:
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `logs.viewer.auth-key` | String | null | 认证密钥（可选） |
-| `logs.viewer.token-get-expression` | String | null | Token获取表达式（作为依赖时使用） |
-| `logs.viewer.token-header-name` | String | null | Token请求头名称（作为依赖时使用） |
 
 ### 认证方式
 
@@ -107,35 +92,12 @@ logs:
 logs:
   viewer:
     enable-auth: true
-    auth-key: my-secret-password
+    secret-key: my-secret-password
 ```
 
 **使用临时密钥：**
 
 不配置 `auth-key`，系统会在启动时生成临时密钥并打印到日志：
-
-```
-Using generated security password: a1b2c3d4e5f6g7h8
-```
-
-#### 3. Token认证（作为依赖时）
-
-当作为依赖集成到其他应用时，可以复用主应用的认证体系：
-
-```yaml
-logs:
-  viewer:
-    enable-auth: true
-    token-get-expression: sessionStorage.getItem("token")
-    token-header-name: access-token
-```
-
-支持的token获取方式：
-- `sessionStorage.getItem("token")`
-- `localStorage.getItem("authToken")`
-- `document.cookie.match(/token=([^;]+)/)?.[1]`
-
-详细说明请参考：[认证配置指南](docs/AUTH_GUIDE.md)
 
 ## 开发
 
