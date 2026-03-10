@@ -7,48 +7,13 @@ $(document).ready(function () {
     // 认证相关配置
     const authEnabled = $('body').attr('data-auth-enabled') === 'true';
     const authenticated = $('body').attr('data-authenticated') === 'true';
-    const tokenGetExpression = $('body').attr('data-token-get');
-    const tokenHeaderName = $('body').attr('data-token-header');
     
     // API 基础路径：页面本身就是在 /{endpoint} 下访问（考虑 context-path）
     const apiBase = window.location.pathname.replace(/\/$/, "");
     
-    // 检查是否有token（作为依赖时）
-    let hasToken = false;
-    if (tokenHeaderName && tokenGetExpression && tokenGetExpression !== 'null') {
-        try {
-            // 执行token获取表达式
-            const token = eval(tokenGetExpression);
-            if (token && token.trim()) {
-                hasToken = true;
-                console.log('检测到token，将在请求中自动添加');
-            }
-        } catch (e) {
-            console.warn('获取token失败:', e);
-        }
-    }
-    
-    // 如果配置了token请求头，设置全局AJAX拦截器
-    if (tokenHeaderName && tokenGetExpression && tokenGetExpression !== 'null') {
-        $.ajaxSetup({
-            beforeSend: function(xhr) {
-                try {
-                    // 执行token获取表达式
-                    const token = eval(tokenGetExpression);
-                    if (token && token.trim()) {
-                        xhr.setRequestHeader(tokenHeaderName, token);
-                        console.log('已添加token到请求头:', tokenHeaderName);
-                    }
-                } catch (e) {
-                    console.warn('获取token失败:', e);
-                }
-            }
-        });
-    }
-    
     // 检查是否需要显示登录界面
-    // 如果启用认证 且 未通过session认证 且 没有token，则显示登录页
-    if (authEnabled && !authenticated && !hasToken) {
+    // 如果启用认证 且 未通过session认证，则显示登录页
+    if (authEnabled && !authenticated) {
         $('#login-overlay').show();
         
         // 登录按钮点击事件
@@ -91,7 +56,7 @@ $(document).ready(function () {
             }, 3000);
         }
         
-        // 如果启用了认证且没有token，阻止后续初始化
+        // 如果启用了认证，阻止后续初始化
         return;
     }
 

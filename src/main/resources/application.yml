@@ -14,14 +14,6 @@ logs:
   viewer:
     endpoint: /logs
     enable-auth: true
-    # 认证密钥（可选）
-    # 如果配置了此密钥，登录时需要输入此密钥
-    # 如果未配置，系统会生成临时密钥并打印到日志：Using generated security password: xxx
     # auth-key: your-secret-key
-
-    # 作为依赖时的token配置（可选）
-    token-get-expression: sessionStorage.getItem("token")  # 从前端存储获取token的表达式
-    token-header-name: access-token  # 请求头中token的名称
-    
     paths:
       - ./

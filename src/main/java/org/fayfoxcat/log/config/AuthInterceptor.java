@@ -50,16 +50,6 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
         
-        // 检查token请求头（作为依赖时使用）
-        String tokenHeaderName = authService.getTokenHeaderName();
-        if (tokenHeaderName != null && !tokenHeaderName.trim().isEmpty()) {
-            String token = request.getHeader(tokenHeaderName);
-            if (token != null && !token.trim().isEmpty()) {
-                // token存在，允许访问（具体的token验证由主应用处理）
-                return true;
-            }
-        }
-        
         // 未认证，返回401
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");

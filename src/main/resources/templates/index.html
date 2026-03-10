@@ -12,7 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/search-panel.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
-<body th:attr="data-endpoint=${endpoint},data-auth-enabled=${authEnabled},data-authenticated=${authenticated},data-token-get=${tokenGetExpression != null ? tokenGetExpression : 'null'},data-token-header=${tokenHeaderName != null ? tokenHeaderName : 'null'}">
+<body th:attr="data-endpoint=${endpoint},data-auth-enabled=${authEnabled},data-authenticated=${authenticated}">
     <!-- 登录遮罩层 -->
     <div id="login-overlay" class="login-overlay" style="display: none;">
         <div class="login-box">

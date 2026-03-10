@@ -107,19 +107,7 @@ public class AuthService {
         }
     }
     
-    /**
-     * 获取token获取表达式
-     */
-    public String getTokenGetExpression() {
-        return properties.getTokenGetExpression();
-    }
-    
-    /**
-     * 获取token请求头名称
-     */
-    public String getTokenHeaderName() {
-        return properties.getTokenHeaderName();
-    }
+
     
     /**
      * 是否启用认证

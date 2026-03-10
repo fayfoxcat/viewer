@@ -48,15 +48,11 @@ public class LogViewerController {
     @GetMapping
     public String index(Model model, HttpSession session) {
         boolean isAuthenticated = authService.isAuthenticated(session);
-        String tokenGetExpr = authService.getTokenGetExpression();
-        String tokenHeader = authService.getTokenHeaderName();
 
         model.addAttribute("paths", properties.getEffectivePaths());
         model.addAttribute("endpoint", properties.getEndpoint());
         model.addAttribute("authEnabled", authService.isAuthEnabled());
         model.addAttribute("authenticated", isAuthenticated);
-        model.addAttribute("tokenGetExpression", tokenGetExpr);
-        model.addAttribute("tokenHeaderName", tokenHeader);
         
         return "index";
     }
