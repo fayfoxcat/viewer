@@ -15,5 +15,4 @@ logs:
     endpoint: /logs
     enable-auth: false
     paths:
-      - C:/Users/root/Desktop/module/web/
-      - C:/Users/root/Desktop/module/
+      - ./

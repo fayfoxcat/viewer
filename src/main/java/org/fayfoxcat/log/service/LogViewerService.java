@@ -31,7 +31,7 @@ public class LogViewerService {
 
     public boolean isPathAllowedForViewer(String requestedPath) {
         if (requestedPath == null || requestedPath.trim().isEmpty()) return false;
-        List<String> roots = properties.getPaths();
+        List<String> roots = properties.getEffectivePaths();
         if (roots == null || roots.isEmpty()) return false;
 
         String req;

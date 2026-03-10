@@ -42,7 +42,7 @@ public class LogViewerController {
      */
     @GetMapping
     public String index(Model model) {
-        model.addAttribute("paths", properties.getPaths());
+        model.addAttribute("paths", properties.getEffectivePaths());
         model.addAttribute("endpoint", properties.getEndpoint());
         return "index";
     }
