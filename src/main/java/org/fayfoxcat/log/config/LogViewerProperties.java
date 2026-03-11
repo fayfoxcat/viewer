@@ -44,6 +44,20 @@ public class LogViewerProperties {
      */
     private String secretKey;
     
+    /**
+     * 大文件阈值（单位：MB）
+     * 超过此大小的文件将只显示尾部内容
+     * 默认为 10MB
+     */
+    private int maxFileSizeMb = 10;
+    
+    /**
+     * 大文件显示行数
+     * 当文件超过大文件阈值时，显示的尾部行数
+     * 默认为 10000 行
+     */
+    private int tailLines = 10000;
+    
 
 
     public List<String> getPaths() {
@@ -76,6 +90,22 @@ public class LogViewerProperties {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
+    }
+    
+    public int getMaxFileSizeMb() {
+        return maxFileSizeMb;
+    }
+
+    public void setMaxFileSizeMb(int maxFileSizeMb) {
+        this.maxFileSizeMb = maxFileSizeMb;
+    }
+
+    public int getTailLines() {
+        return tailLines;
+    }
+
+    public void setTailLines(int tailLines) {
+        this.tailLines = tailLines;
     }
 
 

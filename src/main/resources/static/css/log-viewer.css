@@ -112,6 +112,8 @@
     line-height: 1.6;
     height: 100%;
     overflow: auto;
+    position: relative;
+    min-height: 200px;
 }
 
 /* 日志语法高亮 */
@@ -393,19 +395,19 @@ mark.log-hit.log-hit-current {
 .page-indicator.hide {
     opacity: 0;
 }
-/* 加载中遮罩层 */
+/* 加载中遮罩层 - 仅覆盖日志显示区域 */
 .loading-overlay {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(43, 43, 43, 0.85);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
 }
 
 .loading-content {
@@ -413,143 +415,54 @@ mark.log-hit.log-hit-current {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    width: 120px;
-    height: 120px;
-    background: var(--ant-bg-color);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    border: 1px solid var(--ant-border-color);
-    position: relative;
-    overflow: hidden;
+    gap: 16px;
 }
 
-.loading-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, 
-        rgba(24, 144, 255, 0.05) 0%, 
-        rgba(24, 144, 255, 0.02) 50%, 
-        rgba(24, 144, 255, 0.05) 100%);
-    pointer-events: none;
-}
-
+/* Ant Design 风格的圆形加载动画 */
 .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid var(--ant-border-color-split);
-    border-top: 3px solid var(--ant-primary-color);
-    border-radius: 50%;
-    animation: spin 1.2s linear infinite;
+    width: 48px;
+    height: 48px;
     position: relative;
-    z-index: 1;
 }
 
-/* 内容区域专用加载样式 - 透明遮罩 */
-.content-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent; /* 完全透明的遮罩 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    pointer-events: none; /* 允许点击穿透 */
+.loading-circle {
+    width: 100%;
+    height: 100%;
+    animation: rotate 2s linear infinite;
 }
 
-.content-loading-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 20px 24px;
-    background: var(--ant-bg-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--ant-border-color);
-    position: relative;
-    pointer-events: auto; /* 恢复loading内容的点击事件 */
-    backdrop-filter: blur(2px);
+.loading-path {
+    stroke: var(--ant-primary-color);
+    stroke-linecap: round;
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: 0;
+    animation: dash 1.5s ease-in-out infinite;
 }
 
-.content-loading-spinner {
-    width: 32px;
-    height: 32px;
-    border: 2px solid var(--ant-border-color-split);
-    border-top: 2px solid var(--ant-primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
-.content-loading-text {
-    font-size: 14px;
-    color: var(--ant-text-color-secondary);
-    font-weight: 500;
-    margin: 0;
-}
-
-.loading-spinner::after {
-    content: '';
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    right: 6px;
-    bottom: 6px;
-    border: 2px solid transparent;
-    border-top: 2px solid var(--ant-primary-3);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite reverse;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes dash {
+    0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+    }
+    100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+    }
 }
 
 .loading-text {
-    color: var(--ant-text-color);
-    font-size: 13px;
+    color: #e0e0e0;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.5px;
-    position: relative;
-    z-index: 1;
-}
-
-/* 深色主题下的加载遮罩 */
-.content-body .loading-overlay {
-    background: rgba(43, 43, 43, 0.95);
-}
-
-.content-body .loading-content {
-    background: #2b2b2b;
-    border-color: #404040;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-}
-
-.content-body .loading-content::before {
-    background: linear-gradient(135deg, 
-        rgba(24, 144, 255, 0.08) 0%, 
-        rgba(24, 144, 255, 0.03) 50%, 
-        rgba(24, 144, 255, 0.08) 100%);
-}
-
-.content-body .loading-spinner {
-    border-color: #404040;
-    border-top-color: #1890ff;
-}
-
-.content-body .loading-spinner::after {
-    border-top-color: #40a9ff;
-}
-
-.content-body .loading-text {
-    color: #e0e0e0;
 }

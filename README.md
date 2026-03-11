@@ -84,6 +84,8 @@ logs:
 | `logs.viewer.enable-auth` | Boolean | `true` | 是否启用认证保护 |
 | `logs.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
 | `logs.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
+| `logs.viewer.max-file-size-mb` | Integer | `10` | 大文件阈值（MB），超过此大小只显示尾部 |
+| `logs.viewer.tail-lines` | Integer | `10000` | 大文件显示的尾部行数 |
 
 ### 认证配置详解
 

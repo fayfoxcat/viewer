@@ -170,9 +170,10 @@ public class LogViewerService {
         }
         File file = new File(filePath);
         
-        // 文件大小限制（10MB）
-        if (file.length() > 10 * 1024 * 1024) {
-            return readFileTail(filePath, 5000);
+        // 使用配置的文件大小限制
+        long maxFileSize = properties.getMaxFileSizeMb() * 1024L * 1024L;
+        if (file.length() > maxFileSize) {
+            return readFileTail(filePath, properties.getTailLines());
         }
         
         StringBuilder content = new StringBuilder();
@@ -411,9 +412,10 @@ public class LogViewerService {
     private String readGzipFile(String gzipPath) throws IOException {
         File file = new File(gzipPath);
         
-        // 文件大小限制（压缩后10MB）
-        if (file.length() > 10 * 1024 * 1024) {
-            return readGzipFileTail(gzipPath, 5000);
+        // 使用配置的文件大小限制（压缩后）
+        long maxFileSize = properties.getMaxFileSizeMb() * 1024L * 1024L;
+        if (file.length() > maxFileSize) {
+            return readGzipFileTail(gzipPath, properties.getTailLines());
         }
         
         StringBuilder content = new StringBuilder();

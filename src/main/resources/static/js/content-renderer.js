@@ -15,16 +15,36 @@ window.LogViewerContentRenderer = (function() {
      * 显示加载中
      */
     function showLoading() {
-        $("#loading-overlay").show();
         $("#log-content-empty").hide();
-        $("#log-content-actual").hide();
+        const $actual = $("#log-content-actual");
+        $actual.show();
+        // 清空内容，只显示loading
+        $actual.html('');
+        const $loading = $actual.find("#loading-overlay");
+        if ($loading.length === 0) {
+            // 如果loading元素不存在，重新创建
+            $actual.append(`
+                <div id="loading-overlay" class="loading-overlay" style="display: flex;">
+                    <div class="loading-content">
+                        <div class="loading-spinner">
+                            <svg class="loading-circle" viewBox="0 0 50 50">
+                                <circle class="loading-path" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
+                            </svg>
+                        </div>
+                        <div class="loading-text">加载中...</div>
+                    </div>
+                </div>
+            `);
+        } else {
+            $loading.show();
+        }
     }
 
     /**
      * 隐藏加载中
      */
     function hideLoading() {
-        $("#loading-overlay").hide();
+        $("#log-content-actual").find("#loading-overlay").remove();
     }
 
     /**
