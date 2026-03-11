@@ -36,14 +36,12 @@ public class FileIndexCache {
         long lastModified;
         long fileSize;
         int totalLines;
-        List<Long> lineOffsets; // 每1000行的字节偏移量
         long cacheTime;
         
         public FileIndex(String filePath, long lastModified, long fileSize) {
             this.filePath = filePath;
             this.lastModified = lastModified;
             this.fileSize = fileSize;
-            this.lineOffsets = new ArrayList<>();
             this.cacheTime = System.currentTimeMillis();
         }
     }
@@ -86,24 +84,10 @@ public class FileIndexCache {
         
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
-            
-            long offset = 0;
             int lineCount = 0;
-            String line;
-            
-            // 记录第一行的偏移量（0）
-            index.lineOffsets.add(0L);
-            
-            while ((line = reader.readLine()) != null) {
+            while (reader.readLine() != null) {
                 lineCount++;
-                offset += line.getBytes(StandardCharsets.UTF_8).length + 1; // +1 for newline
-                
-                // 每1000行记录一个偏移量
-                if (lineCount % INDEX_GRANULARITY == 0) {
-                    index.lineOffsets.add(offset);
-                }
             }
-            
             index.totalLines = lineCount;
         }
         
@@ -124,29 +108,21 @@ public class FileIndexCache {
         
         List<String> lines = new ArrayList<>();
         
-        // 计算起始偏移量
-        int indexPoint = (startLine - 1) / INDEX_GRANULARITY;
-        long startOffset = index.lineOffsets.get(Math.min(indexPoint, index.lineOffsets.size() - 1));
-        int skipLines = (startLine - 1) % INDEX_GRANULARITY;
-        
-        try (RandomAccessFile raf = new RandomAccessFile(filePath, "r")) {
-            raf.seek(startOffset);
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
             
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(raf.getFD()), StandardCharsets.UTF_8))) {
-                
-                // 跳过不需要的行
-                for (int i = 0; i < skipLines; i++) {
-                    reader.readLine();
-                }
-                
-                // 读取目标行
-                int currentLine = startLine;
-                String line;
-                while (currentLine <= endLine && (line = reader.readLine()) != null) {
-                    lines.add(line);
-                    currentLine++;
-                }
+            // 跳过不需要的行
+            int skipLines = startLine - 1;
+            for (int i = 0; i < skipLines; i++) {
+                reader.readLine();
+            }
+            
+            // 读取目标行
+            int currentLine = startLine;
+            String line;
+            while (currentLine <= endLine && (line = reader.readLine()) != null) {
+                lines.add(line);
+                currentLine++;
             }
         }
         

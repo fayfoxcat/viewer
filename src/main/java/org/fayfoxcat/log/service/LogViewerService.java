@@ -473,11 +473,17 @@ public class LogViewerService {
 
     /**
      * 获取文件元数据
-     * @param filePath 文件路径
+     * @param filePath 文件路径（支持压缩包格式：zipPath!entryName）
      * @return 文件元数据
      * @throws IOException IO异常
      */
     public Map<String, Object> getFileMetadata(String filePath) throws IOException {
+        // 检查是否为压缩包内的文件
+        if (filePath.contains("!")) {
+            return getZipEntryMetadata(filePath);
+        }
+        
+        // 普通文件处理
         if (!isPathAllowedForViewer(filePath)) {
             throw new FileNotFoundException("Not allowed");
         }
@@ -503,19 +509,80 @@ public class LogViewerService {
         metadata.put("linesPerPage", linesPerPage);
         metadata.put("totalPages", totalPages);
         metadata.put("fileVersion", file.lastModified() + "-" + file.length());
+        metadata.put("isZipEntry", false);
+        
+        return metadata;
+    }
+    
+    /**
+     * 获取压缩包内文件的元数据
+     * @param zipEntryPath 压缩包文件路径（格式：zipPath!entryName）
+     * @return 文件元数据
+     * @throws IOException IO异常
+     */
+    private Map<String, Object> getZipEntryMetadata(String zipEntryPath) throws IOException {
+        int idx = zipEntryPath.indexOf('!');
+        String zipPath = zipEntryPath.substring(0, idx);
+        String entryName = zipEntryPath.substring(idx + 1);
+        
+        if (!isPathAllowedForViewer(zipPath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        File zipFile = new File(zipPath);
+        if (!zipFile.exists() || !zipFile.isFile()) {
+            throw new FileNotFoundException("Zip file not found: " + zipPath);
+        }
+        
+        // 读取压缩包内文件内容来计算行数
+        String content = readFileFromZip(zipPath, entryName);
+        String[] lines = content.split("\n");
+        int totalLines = lines.length;
+        
+        // 如果最后一行是空的，减去1
+        if (totalLines > 0 && lines[totalLines - 1].isEmpty()) {
+            totalLines--;
+        }
+        
+        int linesPerPage = 1000;
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalLines / linesPerPage));
+        
+        // 获取压缩包文件信息作为基准
+        long zipLastModified = zipFile.lastModified();
+        long zipSize = zipFile.length();
+        
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("filePath", zipEntryPath);
+        metadata.put("fileName", entryName.contains("/") ? entryName.substring(entryName.lastIndexOf("/") + 1) : entryName);
+        metadata.put("totalLines", totalLines);
+        metadata.put("fileSize", content.getBytes(StandardCharsets.UTF_8).length);
+        metadata.put("lastModified", zipLastModified);
+        metadata.put("encoding", "UTF-8");
+        metadata.put("linesPerPage", linesPerPage);
+        metadata.put("totalPages", totalPages);
+        metadata.put("fileVersion", zipLastModified + "-" + zipSize + "-" + entryName.hashCode());
+        metadata.put("isZipEntry", true);
+        metadata.put("zipPath", zipPath);
+        metadata.put("entryName", entryName);
         
         return metadata;
     }
     
     /**
      * 分页读取文件内容
-     * @param filePath 文件路径
+     * @param filePath 文件路径（支持压缩包格式：zipPath!entryName）
      * @param page 页码（从1开始）
      * @param pageSize 每页行数
      * @return 分页内容
      * @throws IOException IO异常
      */
     public Map<String, Object> readFileContentByPage(String filePath, int page, int pageSize) throws IOException {
+        // 检查是否为压缩包内的文件
+        if (filePath.contains("!")) {
+            return readZipEntryContentByPage(filePath, page, pageSize);
+        }
+        
+        // 普通文件处理
         if (!isPathAllowedForViewer(filePath)) {
             throw new FileNotFoundException("Not allowed");
         }
@@ -559,8 +626,74 @@ public class LogViewerService {
     }
     
     /**
+     * 分页读取压缩包内文件内容
+     * @param zipEntryPath 压缩包文件路径（格式：zipPath!entryName）
+     * @param page 页码（从1开始）
+     * @param pageSize 每页行数
+     * @return 分页内容
+     * @throws IOException IO异常
+     */
+    private Map<String, Object> readZipEntryContentByPage(String zipEntryPath, int page, int pageSize) throws IOException {
+        int idx = zipEntryPath.indexOf('!');
+        String zipPath = zipEntryPath.substring(0, idx);
+        String entryName = zipEntryPath.substring(idx + 1);
+        
+        if (!isPathAllowedForViewer(zipPath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        // 读取完整内容并分割成行
+        String content = readFileFromZip(zipPath, entryName);
+        String[] allLines = content.split("\n");
+        int totalLines = allLines.length;
+        
+        // 如果最后一行是空的，减去1
+        if (totalLines > 0 && allLines[totalLines - 1].isEmpty()) {
+            totalLines--;
+        }
+        
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalLines / pageSize));
+        
+        // 校验页码
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        
+        // 计算行范围
+        int startLine = (page - 1) * pageSize + 1;
+        int endLine = Math.min(startLine + pageSize - 1, totalLines);
+        
+        // 提取指定页的行
+        List<String> lines = new ArrayList<>();
+        for (int i = startLine - 1; i < endLine && i < totalLines; i++) {
+            lines.add(allLines[i]);
+        }
+        
+        // 获取压缩包文件信息
+        File zipFile = new File(zipPath);
+        long zipLastModified = zipFile.lastModified();
+        long zipSize = zipFile.length();
+        
+        // 构建响应
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        result.put("totalPages", totalPages);
+        result.put("totalLines", totalLines);
+        result.put("startLine", startLine);
+        result.put("endLine", endLine);
+        result.put("lines", lines);
+        result.put("hasNext", page < totalPages);
+        result.put("hasPrev", page > 1);
+        result.put("fileVersion", zipLastModified + "-" + zipSize + "-" + entryName.hashCode());
+        result.put("isZipEntry", true);
+        
+        return result;
+    }
+    
+    /**
      * 服务端搜索文件内容（增强版）
-     * @param filePath 文件路径
+     * @param filePath 文件路径（支持压缩包格式：zipPath!entryName）
      * @param keyword 搜索关键词
      * @param useRegex 是否使用正则表达式
      * @param caseSensitive 是否区分大小写
@@ -574,6 +707,12 @@ public class LogViewerService {
                                                          boolean useRegex, boolean caseSensitive,
                                                          int contextLines, int maxResults,
                                                          String patternName) throws IOException {
+        // 检查是否为压缩包内的文件
+        if (filePath.contains("!")) {
+            return searchZipEntryContentAdvanced(filePath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName);
+        }
+        
+        // 普通文件处理
         if (!isPathAllowedForViewer(filePath)) {
             throw new FileNotFoundException("Not allowed");
         }
@@ -583,6 +722,78 @@ public class LogViewerService {
             throw new FileNotFoundException("File not found: " + filePath);
         }
         
+        return performSearch(filePath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName, 
+                           () -> {
+                               List<String> allLines = new ArrayList<>();
+                               try (BufferedReader reader = new BufferedReader(
+                                       new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
+                                   String line;
+                                   while ((line = reader.readLine()) != null) {
+                                       allLines.add(line);
+                                   }
+                               }
+                               return allLines;
+                           },
+                           file.lastModified() + "-" + file.length());
+    }
+    
+    /**
+     * 搜索压缩包内文件内容（增强版）
+     * @param zipEntryPath 压缩包文件路径（格式：zipPath!entryName）
+     * @param keyword 搜索关键词
+     * @param useRegex 是否使用正则表达式
+     * @param caseSensitive 是否区分大小写
+     * @param contextLines 上下文行数
+     * @param maxResults 最大结果数
+     * @param patternName 预定义模式名称
+     * @return 搜索结果
+     * @throws IOException IO异常
+     */
+    private Map<String, Object> searchZipEntryContentAdvanced(String zipEntryPath, String keyword, 
+                                                            boolean useRegex, boolean caseSensitive,
+                                                            int contextLines, int maxResults,
+                                                            String patternName) throws IOException {
+        int idx = zipEntryPath.indexOf('!');
+        String zipPath = zipEntryPath.substring(0, idx);
+        String entryName = zipEntryPath.substring(idx + 1);
+        
+        if (!isPathAllowedForViewer(zipPath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        File zipFile = new File(zipPath);
+        String fileVersion = zipFile.lastModified() + "-" + zipFile.length() + "-" + entryName.hashCode();
+        
+        return performSearch(zipEntryPath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName,
+                           () -> {
+                               String content = readFileFromZip(zipPath, entryName);
+                               String[] lines = content.split("\n");
+                               List<String> allLines = new ArrayList<>();
+                               for (String line : lines) {
+                                   allLines.add(line);
+                               }
+                               return allLines;
+                           },
+                           fileVersion);
+    }
+    
+    /**
+     * 执行搜索的通用方法
+     * @param filePath 文件路径
+     * @param keyword 搜索关键词
+     * @param useRegex 是否使用正则表达式
+     * @param caseSensitive 是否区分大小写
+     * @param contextLines 上下文行数
+     * @param maxResults 最大结果数
+     * @param patternName 预定义模式名称
+     * @param linesProvider 行内容提供者
+     * @param fileVersion 文件版本
+     * @return 搜索结果
+     * @throws IOException IO异常
+     */
+    private Map<String, Object> performSearch(String filePath, String keyword, boolean useRegex, boolean caseSensitive,
+                                            int contextLines, int maxResults, String patternName,
+                                            LinesProvider linesProvider, String fileVersion) throws IOException {
         long startTime = System.currentTimeMillis();
         
         // 如果指定了预定义模式，使用模式的正则
@@ -617,14 +828,7 @@ public class LogViewerService {
         }
         
         // 读取文件并搜索
-        List<String> allLines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                allLines.add(line);
-            }
-        }
+        List<String> allLines = linesProvider.getLines();
         
         // 搜索匹配行
         for (int i = 0; i < allLines.size() && matches.size() < maxResults; i++) {
@@ -700,9 +904,17 @@ public class LogViewerService {
         result.put("truncated", totalMatches > maxResults);
         result.put("searchTime", searchTime);
         result.put("matches", matches);
-        result.put("fileVersion", file.lastModified() + "-" + file.length());
+        result.put("fileVersion", fileVersion);
         
         return result;
+    }
+    
+    /**
+     * 行内容提供者接口
+     */
+    @FunctionalInterface
+    private interface LinesProvider {
+        List<String> getLines() throws IOException;
     }
     
     /**

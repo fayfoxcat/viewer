@@ -576,8 +576,10 @@ $(document).ready(function () {
                 const shouldUsePagination = fileSizeMB > 10 || metadata.totalLines > 10000;
                 
                 if (shouldUsePagination) {
+                    console.log(`[App] Using pagination mode for ${metadata.isZipEntry ? 'zip entry' : 'file'} (${fileSizeMB.toFixed(2)}MB, ${metadata.totalLines} lines)`);
                     await onFileLoadSuccessPaginated(metadata, filePath);
                 } else {
+                    console.log(`[App] Using traditional mode for ${metadata.isZipEntry ? 'zip entry' : 'file'} (${fileSizeMB.toFixed(2)}MB, ${metadata.totalLines} lines)`);
                     // 使用传统模式加载
                     if (isZipEntry) {
                         window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
@@ -587,11 +589,29 @@ $(document).ready(function () {
                 }
             },
             error: function(xhr, status, error) {
-                // 元数据获取失败，回退到传统模式
+                console.warn(`[App] Metadata fetch failed for ${filePath}:`, error);
+                
+                // 显示错误信息
+                let errorMessage = '获取文件信息失败';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 500) {
+                    errorMessage = '服务器内部错误';
+                } else if (xhr.status === 404) {
+                    errorMessage = '文件未找到';
+                }
+                
+                // 对于压缩包文件，尝试回退到传统模式
                 if (isZipEntry) {
-                    window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
+                    console.log(`[App] Falling back to traditional mode for zip entry: ${entryName}`);
+                    window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, function(fallbackError) {
+                        onFileLoadError(`${errorMessage}，传统模式加载也失败: ${fallbackError}`);
+                    });
                 } else {
-                    window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, onFileLoadError);
+                    console.log(`[App] Falling back to traditional mode for file: ${node.path}`);
+                    window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, function(fallbackError) {
+                        onFileLoadError(`${errorMessage}，传统模式加载也失败: ${fallbackError}`);
+                    });
                 }
             }
         });
