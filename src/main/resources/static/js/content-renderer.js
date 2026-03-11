@@ -12,21 +12,18 @@ window.LogViewerContentRenderer = (function() {
     let pageIndicatorTimer = null;
 
     /**
-     * 显示加载中
+     * 显示加载动画
      */
     function showLoading() {
         $("#log-content-empty").hide();
         const $actual = $("#log-content-actual");
-        $actual.show();
-        // 清空内容，只显示loading
-        $actual.html('');
+        $actual.show().html('');
         const $loading = $actual.find("#loading-overlay");
         if ($loading.length === 0) {
-            // 如果loading元素不存在，重新创建
             $actual.append(`
                 <div id="loading-overlay" class="loading-overlay" style="display: flex;">
                     <div class="loading-content">
-                        <div class="loading-spinner">
+                        <div class="loading-spinner large">
                             <svg class="loading-circle" viewBox="0 0 50 50">
                                 <circle class="loading-path" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
                             </svg>
@@ -41,7 +38,7 @@ window.LogViewerContentRenderer = (function() {
     }
 
     /**
-     * 隐藏加载中
+     * 隐藏加载动画
      */
     function hideLoading() {
         $("#log-content-actual").find("#loading-overlay").remove();
@@ -105,6 +102,9 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 应用语法高亮和搜索高亮
+     * @param {string} text 原始文本
+     * @param {Array} searchRanges 搜索匹配范围
+     * @returns {string} 高亮后的HTML
      */
     function applySyntaxAndSearchHighlight(text, searchRanges) {
         // 先应用语法高亮
@@ -123,6 +123,9 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 在DOM中高亮指定范围
+     * @param {Element} container 容器元素
+     * @param {number} start 开始位置
+     * @param {number} end 结束位置
      */
     function highlightRangeInDom(container, start, end) {
         let charCount = 0;
@@ -178,6 +181,9 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 应用范围高亮到文本
+     * @param {string} text 原始文本
+     * @param {Array} ranges 高亮范围数组
+     * @returns {string} 高亮后的HTML
      */
     function applyRangesToText(text, ranges) {
         const t = String(text ?? "");
@@ -198,6 +204,7 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 滚动到指定行
+     * @param {number} lineNumber 行号
      */
     function scrollToLine(lineNumber) {
         const $container = $("#log-content-actual");
@@ -219,6 +226,7 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 滚动到底部
+     * @param {boolean} immediate 是否立即滚动（不使用动画）
      */
     function scrollToBottom(immediate = false) {
         const $container = $("#log-content-actual");
@@ -243,6 +251,7 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 滚动到页面指定位置
+     * @param {string} position 位置（top/bottom）
      */
     function scrollToPosition(position) {
         const $container = $("#log-content-actual");
@@ -260,6 +269,7 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 显示页码提示框
+     * @param {number} page 页码
      */
     function showPageIndicator(page) {
         const $indicator = $("#page-indicator");
@@ -287,6 +297,7 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 跳转到指定页面
+     * @param {number} page 页码
      */
     function jumpToPage(page) {
         currentPage = Math.max(1, Math.min(totalPages, page));

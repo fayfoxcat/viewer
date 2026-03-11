@@ -20,6 +20,13 @@ window.LogViewerNotification = (function() {
 
     /**
      * 显示通知
+     * @param {Object} options 通知选项
+     * @param {string} options.icon 图标
+     * @param {string} options.message 消息内容
+     * @param {string} options.type 通知类型
+     * @param {number} options.duration 显示时长
+     * @param {Array} options.actions 操作按钮数组
+     * @returns {number} 通知ID
      */
     function show(options) {
         init();
@@ -85,6 +92,7 @@ window.LogViewerNotification = (function() {
 
     /**
      * 关闭通知
+     * @param {number} id 通知ID
      */
     function close(id) {
         const $notification = notificationContainer.find(`[data-id="${id}"]`);
@@ -96,6 +104,8 @@ window.LogViewerNotification = (function() {
 
     /**
      * 显示文件追加通知
+     * @param {number} newLines 新增行数
+     * @returns {number} 通知ID
      */
     function showFileAppend(newLines) {
         return show({
@@ -120,6 +130,8 @@ window.LogViewerNotification = (function() {
 
     /**
      * 显示跳转询问
+     * @param {Function} onConfirm 确认回调函数
+     * @returns {number} 通知ID
      */
     function showJumpToLatest(onConfirm) {
         return show({

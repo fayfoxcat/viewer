@@ -1,51 +1,37 @@
 /**
  * 页面缓存管理器
- * 实现智能缓存、预加载和文件变化检测
  */
 window.LogViewerPageCache = (function() {
     'use strict';
 
-    // 缓存配置
     const CONFIG = {
-        MAX_CACHE_PAGES: 10,      // 最多缓存10页
-        PRELOAD_RANGE: 1,         // 预加载前后各1页
-        PRELOAD_DELAY: 500,       // 预加载延迟（毫秒）
-        CHECK_INTERVAL: 3000      // 文件变化检测间隔（毫秒）
+        MAX_CACHE_PAGES: 10,
+        PRELOAD_RANGE: 1,
+        PRELOAD_DELAY: 500,
+        CHECK_INTERVAL: 3000
     };
 
-    // 缓存状态
     let cache = {
         fileId: null,
         fileVersion: null,
         metadata: null,
         pages: new Map(),
         currentPage: 1,
-        mode: 'auto' // auto | history | realtime
+        mode: 'auto'
     };
 
-    // 预加载定时器
     let preloadTimer = null;
-    
-    // 文件变化检测定时器
     let checkTimer = null;
-    
-    // 请求取消控制器
     let abortControllers = new Map();
 
-    /**
-     * 初始化缓存
-     */
     function init(fileId, metadata) {
         cache.fileId = fileId;
         cache.fileVersion = metadata.fileVersion;
         cache.metadata = metadata;
         cache.pages.clear();
         cache.currentPage = 1;
-        
-        // 判断初始模式
         cache.mode = 'auto';
         
-        // 启动文件变化检测
         startFileChangeDetection();
     }
 

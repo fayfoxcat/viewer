@@ -506,20 +506,41 @@ html, body {
     box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
-/* 加载动画 */
+/* 加载动画 - 统一使用SVG圆形动画 */
 .loading-spinner {
     display: inline-block;
     width: 20px;
     height: 20px;
-    border: 3px solid var(--ant-border-color);
-    border-top: 3px solid var(--ant-primary-color);
-    border-radius: 50%;
-    animation: ant-spin 1s linear infinite;
+    position: relative;
 }
 
-@keyframes ant-spin {
-    0% { transform: rotate(0deg); }
+.loading-spinner.large {
+    width: 48px;
+    height: 48px;
+}
+
+.loading-circle {
+    width: 100%;
+    height: 100%;
+    animation: rotate 2s linear infinite;
+}
+
+.loading-path {
+    stroke: var(--ant-primary-color);
+    stroke-linecap: round;
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: 0;
+    animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
     100% { transform: rotate(360deg); }
+}
+
+@keyframes dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
 }
 
 /* 滚动条 - 优化尺寸和交互 */

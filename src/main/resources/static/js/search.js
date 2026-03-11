@@ -7,10 +7,12 @@ window.LogViewerSearch = (function() {
     let currentMatches = [];
     let currentMatchIndex = -1;
     let currentContentLines = [];
-    let serverSearchMode = false; // 是否使用服务端搜索结果
+    let serverSearchMode = false;
 
     /**
      * 设置服务端搜索结果
+     * @param {Object} result 搜索结果
+     * @param {boolean} isPaginationMode 是否为分页模式
      */
     function setServerSearchResults(result, isPaginationMode) {
         serverSearchMode = true;
@@ -21,15 +23,12 @@ window.LogViewerSearch = (function() {
             return;
         }
         
-        // 转换服务端结果为前端格式
         result.matches.forEach(match => {
             const line = match.content || "";
             const ranges = match.matchRanges || [];
             
-            // 生成预览HTML
             let previewHtml = window.LogViewerUtils.escapeHtml(line);
             
-            // 按倒序处理范围，避免索引偏移
             const sortedRanges = ranges.slice().sort((a, b) => b.start - a.start);
             sortedRanges.forEach(range => {
                 const before = previewHtml.substring(0, range.start);
@@ -49,6 +48,11 @@ window.LogViewerSearch = (function() {
 
     /**
      * 执行内容搜索
+     * @param {Array} lines 文件行数组
+     * @param {string} keyword 搜索关键词
+     * @param {boolean} useRegex 是否使用正则表达式
+     * @param {boolean} openPanel 是否打开搜索面板
+     * @returns {Object} 搜索结果对象
      */
     function runContentSearch(lines, keyword, useRegex, openPanel) {
         serverSearchMode = false;
@@ -126,6 +130,8 @@ window.LogViewerSearch = (function() {
 
     /**
      * 渲染搜索结果
+     * @param {string} keyword 搜索关键词
+     * @param {boolean} useRegex 是否使用正则表达式
      */
     function renderSearchResults(keyword, useRegex) {
         const $list = $("#search-results-list");
@@ -169,6 +175,9 @@ window.LogViewerSearch = (function() {
 
     /**
      * 聚焦到指定匹配项
+     * @param {number} idx 匹配项索引
+     * @param {number} currentPage 当前页码
+     * @param {Function} onPageChange 页面切换回调函数
      */
     function focusMatch(idx, currentPage, onPageChange) {
         if (!currentMatches.length) return;
@@ -212,6 +221,7 @@ window.LogViewerSearch = (function() {
 
     /**
      * 高亮当前匹配项
+     * @param {number} lineNumber 行号
      */
     function highlightCurrentMatch(lineNumber) {
         setTimeout(function() {
@@ -227,6 +237,7 @@ window.LogViewerSearch = (function() {
 
     /**
      * 获取下一个匹配项索引
+     * @returns {number} 下一个匹配项索引
      */
     function getNextMatchIndex() {
         if (!currentMatches.length) return -1;
@@ -235,6 +246,7 @@ window.LogViewerSearch = (function() {
 
     /**
      * 获取上一个匹配项索引
+     * @returns {number} 上一个匹配项索引
      */
     function getPrevMatchIndex() {
         if (!currentMatches.length) return -1;

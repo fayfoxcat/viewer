@@ -6,6 +6,7 @@ window.LogViewerUIState = (function() {
 
     /**
      * 设置空内容提示的可见性
+     * @param {boolean} visible 是否可见
      */
     function setEmptyHintVisible(visible) {
         if (visible) {
@@ -19,6 +20,7 @@ window.LogViewerUIState = (function() {
 
     /**
      * 设置当前活动文件名显示
+     * @param {string} name 文件名
      */
     function setActiveFileName(name) {
         const $pathValue = $("#current-file-path");
@@ -31,6 +33,7 @@ window.LogViewerUIState = (function() {
 
     /**
      * 更新下载按钮状态
+     * @param {Set} selectedIds 选中的文件ID集合
      */
     function updateDownloadButton(selectedIds) {
         $("#download-btn").prop("disabled", selectedIds.size === 0);

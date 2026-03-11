@@ -2,8 +2,6 @@ package org.fayfoxcat.log.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.fayfoxcat.log.config.LogViewerProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +29,6 @@ import java.util.zip.ZipFile;
 @Service
 public class LogViewerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogViewerService.class);
-
     private final LogViewerProperties properties;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -43,6 +39,11 @@ public class LogViewerService {
         this.properties = properties;
     }
 
+    /**
+     * 检查路径是否在允许访问的白名单内
+     * @param requestedPath 请求的路径
+     * @return 是否允许访问
+     */
     public boolean isPathAllowedForViewer(String requestedPath) {
         if (requestedPath == null || requestedPath.trim().isEmpty()) return false;
         List<String> roots = properties.getEffectivePaths();
@@ -373,6 +374,12 @@ public class LogViewerService {
         return files;
     }
 
+    /**
+     * 列出压缩文件中的文件（重载方法，使用空前缀）
+     * @param zipPath 压缩文件路径
+     * @return 压缩文件中的文件列表
+     * @throws IOException IO异常
+     */
     public List<FileInfo> listFilesInZip(String zipPath) throws IOException {
         return listFilesInZip(zipPath, "");
     }

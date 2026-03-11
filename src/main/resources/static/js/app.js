@@ -1,31 +1,22 @@
-/**
- * 主应用模块 - 日志查看器
- * 优化版本：减少代码重复，改进错误处理，增强用户体验
- */
 $(document).ready(function () {
     'use strict';
 
-    // API 基础路径
     const apiBase = window.location.pathname.replace(/\/$/, "");
     
-    // 检查认证
     if (!window.LogViewerAuth.init(apiBase)) {
-        return; // 需要认证，阻止后续初始化
+        return;
     }
 
-    // 应用状态
     let currentRootPath = $("#path-select").val();
     let activeId = null;
     let refreshTimer = null;
     let currentContentLines = [];
-    let usePaginationMode = false; // 是否使用分页模式
-    let currentFileMetadata = null; // 当前文件元数据
+    let usePaginationMode = false;
+    let currentFileMetadata = null;
 
-    // 初始化各模块
     window.LogViewerFileTree.init(apiBase);
     window.LogViewerFileOperations.init(apiBase);
 
-    // 暴露给其他模块的接口
     window.LogViewerApp = {
         onFileAppend: handleFileAppend,
         onFileModified: handleFileModified,
@@ -33,24 +24,26 @@ $(document).ready(function () {
         handlePageChange: handlePageChange
     };
 
-    // 文件追加处理
+    /**
+     * 处理文件追加事件
+     * @param {Object} info 追加信息
+     */
     function handleFileAppend(info) {
-        // 更新分页信息
         window.LogViewerPagination.updatePagination(info.newTotalPages * 1000);
     }
 
-    // 文件修改处理
+    /**
+     * 处理文件修改事件
+     * @param {Object} info 修改信息
+     */
     function handleFileModified(info) {
-        // 显示通知（文件被修改需要提醒用户，因为这可能导致数据不一致）
         window.LogViewerNotification.showFileModified();
-        
-        // 重新加载当前页
-        setTimeout(() => {
-            refreshCurrentPage();
-        }, 500);
+        setTimeout(() => refreshCurrentPage(), 500);
     }
 
-    // 刷新当前页
+    /**
+     * 刷新当前页面内容
+     */
     async function refreshCurrentPage() {
         if (!activeId || !usePaginationMode) return;
         
@@ -58,8 +51,6 @@ $(document).ready(function () {
             const currentPage = window.LogViewerPagination.getCurrentPage();
             const data = await window.LogViewerPageCache.getPage(currentPage);
             
-            // 分页模式下，data.lines 只包含当前页的数据，所以渲染时使用 page=1
-            // 但需要传入正确的起始行号 (data.startLine)
             window.LogViewerContentRenderer.renderLogContent(data.lines, null, 1, data.startLine);
             window.LogViewerPagination.updatePagination(data.totalLines);
             
@@ -68,22 +59,26 @@ $(document).ready(function () {
         }
     }
 
-    // 跳转到最后一页
+    /**
+     * 跳转到最后一页
+     */
     async function jumpToLastPage() {
         if (!usePaginationMode) return;
         
         try {
             const metadata = window.LogViewerPageCache.getStatus().metadata;
             const lastPage = metadata.totalPages;
-            
-            await loadPage(lastPage, true);  // 传入 scrollToBottom=true
-            
+            await loadPage(lastPage, true);
         } catch (error) {
             console.error('[App] Jump to last page error:', error);
         }
     }
 
-    // 加载指定页面（分页模式）
+    /**
+     * 加载指定页面内容
+     * @param {number} page 页码
+     * @param {boolean} autoScroll 是否自动滚动到底部
+     */
     async function loadPage(page, autoScroll = false) {
         try {
             window.LogViewerContentRenderer.showLoading();
@@ -93,24 +88,19 @@ $(document).ready(function () {
             window.LogViewerPagination.setCurrentPage(page);
             window.LogViewerPageCache.setCurrentPage(page);
             
-            // 检查是否有搜索结果需要高亮
             const matches = window.LogViewerSearch.getCurrentMatches();
             let highlightMap = null;
             
             if (matches.length > 0) {
-                // 构建当前页的高亮映射
                 highlightMap = new Map();
                 matches.forEach(match => {
                     if (match.page === page && match.ranges) {
-                        // 转换服务端的 start/end 格式为前端的 s/e 格式
                         const ranges = match.ranges.map(r => ({ s: r.start, e: r.end }));
                         highlightMap.set(match.lineNumber, ranges);
                     }
                 });
             }
             
-            // 分页模式下，data.lines 只包含当前页的数据，所以渲染时使用 page=1
-            // 但需要传入正确的起始行号 (data.startLine)
             window.LogViewerContentRenderer.renderLogContent(data.lines, highlightMap, 1, data.startLine);
             
             window.LogViewerPagination.updatePagination(data.totalLines);
@@ -118,7 +108,6 @@ $(document).ready(function () {
             
             window.LogViewerContentRenderer.hideLoading();
             
-            // 如果需要自动滚动到底部
             if (autoScroll) {
                 window.LogViewerContentRenderer.scrollToBottom(true);
             }
@@ -129,7 +118,11 @@ $(document).ready(function () {
         }
     }
 
-    // 文件加载成功回调（传统模式）
+    /**
+     * 文件加载成功回调（传统模式）
+     * @param {Array} lines 文件行数组
+     * @param {string} fileId 文件ID
+     */
     function onFileLoadSuccess(lines, fileId) {
         activeId = fileId;
         window.LogViewerUIState.setActiveFileName(fileId);
@@ -153,7 +146,11 @@ $(document).ready(function () {
         window.LogViewerUIState.setEmptyHintVisible(false);
     }
 
-    // 文件加载成功回调（分页模式）
+    /**
+     * 文件加载成功回调（分页模式）
+     * @param {Object} metadata 文件元数据
+     * @param {string} fileId 文件ID
+     */
     async function onFileLoadSuccessPaginated(metadata, fileId) {
         activeId = fileId;
         currentFileMetadata = metadata;
@@ -171,14 +168,21 @@ $(document).ready(function () {
         await loadPage(1);
     }
 
-    // 文件加载失败回调
+    /**
+     * 文件加载失败回调
+     * @param {string} message 错误消息
+     */
     function onFileLoadError(message) {
         window.LogViewerContentRenderer.hideLoading();
         $("#log-content-actual").html(`<div class="text-center text-danger p-5">${message}</div>`);
         $("#log-content-actual").show();
     }
 
-    // 执行内容搜索
+    /**
+     * 执行内容搜索
+     * @param {boolean} openPanel 是否打开搜索面板
+     * @returns {Promise<Object>} 搜索结果
+     */
     async function performContentSearch(openPanel = false) {
         const keyword = $("#content-search").val().trim();
         const useRegex = $("#use-regex").is(":checked");
@@ -252,7 +256,12 @@ $(document).ready(function () {
         }
     }
 
-    // 统一的页面跳转处理函数
+    /**
+     * 统一的页面跳转处理函数
+     * @param {number} targetPage 目标页码
+     * @param {number} lineNumber 行号（可选）
+     * @param {string} scrollPosition 滚动位置（可选）
+     */
     async function handlePageChange(targetPage, lineNumber, scrollPosition) {
         if (usePaginationMode) {
             // 分页模式
@@ -288,7 +297,10 @@ $(document).ready(function () {
         }
     }
 
-    // 统一的分页按钮处理函数
+    /**
+     * 统一的分页按钮处理函数
+     * @param {string} action 操作类型（first/prev/next/last）
+     */
     async function handlePaginationClick(action) {
         if (!activeId) return;
         
@@ -328,7 +340,10 @@ $(document).ready(function () {
         }
     }
 
-    // 统一的滚动处理函数
+    /**
+     * 统一的滚动处理函数
+     * @param {string} action 滚动操作（top/bottom）
+     */
     async function handleScrollAction(action) {
         if (!activeId) return;
         

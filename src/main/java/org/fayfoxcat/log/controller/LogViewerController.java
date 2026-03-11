@@ -21,10 +21,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.ZipOutputStream;
 
-/**
- * 日志查看器控制器
- * 处理日志查看相关的HTTP请求
- */
 @Controller
 @RequestMapping("${logs.viewer.endpoint:/logs}")
 public class LogViewerController {
@@ -47,13 +43,10 @@ public class LogViewerController {
      */
     @GetMapping
     public String index(Model model, HttpSession session) {
-        boolean isAuthenticated = authService.isAuthenticated(session);
-
         model.addAttribute("paths", properties.getEffectivePaths());
         model.addAttribute("endpoint", properties.getEndpoint());
         model.addAttribute("authEnabled", authService.isAuthEnabled());
-        model.addAttribute("authenticated", isAuthenticated);
-        
+        model.addAttribute("authenticated", authService.isAuthenticated(session));
         return "index";
     }
     
@@ -126,14 +119,14 @@ public class LogViewerController {
      */
     @GetMapping("/files/search")
     @ResponseBody
-    public List<LogViewerService.FileInfo> searchFiles(@RequestParam String rootPath,
-                                                       @RequestParam String keyword) {
+    public List<LogViewerService.FileInfo> searchFiles(@RequestParam String rootPath, @RequestParam String keyword) {
         return logViewerService.searchFiles(rootPath, keyword);
     }
 
     /**
      * 列出压缩文件中的文件
      * @param zipPath 压缩文件路径
+     * @param prefix 前缀过滤
      * @return 压缩文件中的文件列表
      * @throws IOException IO异常
      */
@@ -259,77 +252,103 @@ public class LogViewerController {
         }
 
         if (files.size() == 1) {
-            String id = files.get(0);
-            if (id == null || id.trim().isEmpty()) {
-                return ResponseEntity.badRequest().build();
-            }
+            return downloadSingleFile(files.get(0), response);
+        }
 
-            // 压缩包内文件：zipPath!entryName
-            if (id.contains("!")) {
-                int idx = id.indexOf('!');
-                String zipPath = id.substring(0, idx);
-                String entryName = id.substring(idx + 1).replace('\\', '/');
-                if (!logViewerService.isPathAllowedForViewer(zipPath)) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-                }
+        return downloadMultipleFiles(files, response);
+    }
 
-                String downloadName = entryName;
-                if (downloadName.contains("/")) {
-                    downloadName = downloadName.substring(downloadName.lastIndexOf("/") + 1);
-                }
-                if (downloadName.trim().isEmpty()) {
-                    downloadName = "download.log";
-                }
+    /**
+     * 下载单个文件
+     * @param id 文件ID
+     * @param response HTTP响应
+     * @return 响应实体
+     * @throws IOException IO异常
+     */
+    private ResponseEntity<?> downloadSingleFile(String id, HttpServletResponse response) throws IOException {
+        if (id == null || id.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-                response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-                response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + URLEncoder.encode(downloadName, StandardCharsets.UTF_8.name()));
+        if (id.contains("!")) {
+            return downloadZipEntry(id, response);
+        }
 
-                try (OutputStream os = response.getOutputStream()) {
-                    if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
-                        String content = logViewerService.readFileFromZip(zipPath, entryName);
-                        os.write(content.getBytes(StandardCharsets.UTF_8));
-                    } else {
-                        try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
-                            java.util.zip.ZipEntry entry = zipFile.getEntry(entryName);
-                            if (entry == null || entry.isDirectory()) {
-                                response.setStatus(HttpStatus.NOT_FOUND.value());
-                                return null;
-                            }
-                            try (InputStream is = zipFile.getInputStream(entry)) {
-                                byte[] buffer = new byte[8192];
-                                int len;
-                                while ((len = is.read(buffer)) > 0) {
-                                    os.write(buffer, 0, len);
-                                }
-                            }
-                        }
-                    }
-                    os.flush();
-                }
-                return null;
-            }
-
-            // 单个普通文件直接下载
-            File file = new File(id);
-            if (!logViewerService.isPathAllowedForViewer(id)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            if (file.exists() && file.isFile()) {
-                FileSystemResource resource = new FileSystemResource(file);
-                HttpHeaders headers = new HttpHeaders();
-                headers.add(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=" + URLEncoder.encode(file.getName(), StandardCharsets.UTF_8.name()));
-                return ResponseEntity.ok()
-                        .headers(headers)
-                        .contentLength(file.length())
-                        .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
-                        .body(resource);
-            }
+        File file = new File(id);
+        if (!logViewerService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        // 多个文件：zip 打包下载（Windows 更友好）
+        FileSystemResource resource = new FileSystemResource(file);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=" + URLEncoder.encode(file.getName(), StandardCharsets.UTF_8.name()));
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(file.length())
+                .contentType(MediaType.parseMediaType(MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .body(resource);
+    }
+
+    /**
+     * 下载压缩包内的文件
+     * @param id 文件ID（格式：zipPath!entryName）
+     * @param response HTTP响应
+     * @return 响应实体
+     * @throws IOException IO异常
+     */
+    private ResponseEntity<?> downloadZipEntry(String id, HttpServletResponse response) throws IOException {
+        int idx = id.indexOf('!');
+        String zipPath = id.substring(0, idx);
+        String entryName = id.substring(idx + 1).replace('\\', '/');
+        
+        if (!logViewerService.isPathAllowedForViewer(zipPath)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String downloadName = entryName.contains("/") ? 
+            entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
+        if (downloadName.trim().isEmpty()) {
+            downloadName = "download.log";
+        }
+
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=" + URLEncoder.encode(downloadName, StandardCharsets.UTF_8.name()));
+
+        try (OutputStream os = response.getOutputStream()) {
+            if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
+                String content = logViewerService.readFileFromZip(zipPath, entryName);
+                os.write(content.getBytes(StandardCharsets.UTF_8));
+            } else {
+                try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
+                    java.util.zip.ZipEntry entry = zipFile.getEntry(entryName);
+                    if (entry == null || entry.isDirectory()) {
+                        response.setStatus(HttpStatus.NOT_FOUND.value());
+                        return null;
+                    }
+                    try (InputStream is = zipFile.getInputStream(entry)) {
+                        byte[] buffer = new byte[8192];
+                        int len;
+                        while ((len = is.read(buffer)) > 0) {
+                            os.write(buffer, 0, len);
+                        }
+                    }
+                }
+            }
+            os.flush();
+        }
+        return null;
+    }
+
+    /**
+     * 下载多个文件（打包为ZIP）
+     * @param files 文件列表
+     * @param response HTTP响应
+     * @return 响应实体
+     * @throws IOException IO异常
+     */
+    private ResponseEntity<?> downloadMultipleFiles(List<String> files, HttpServletResponse response) throws IOException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HHmmss");
         String zipFileName = sdf.format(new Date()) + ".zip";
         response.setContentType("application/zip");
@@ -344,61 +363,86 @@ public class LogViewerController {
                 if (id == null || id.trim().isEmpty()) continue;
 
                 if (id.contains("!")) {
-                    int idx = id.indexOf('!');
-                    String zipPath = id.substring(0, idx);
-                    String entryName = id.substring(idx + 1).replace('\\', '/');
-                    if (!logViewerService.isPathAllowedForViewer(zipPath)) {
-                        continue;
-                    }
-                    String baseName = entryName.contains("/") 
-                        ? entryName.substring(entryName.lastIndexOf("/") + 1) 
-                        : entryName;
-                    if (baseName.trim().isEmpty()) {
-                        baseName = "download.log";
-                    }
-                    String finalName = dedupeName(baseName, nameCounter);
-
-                    zos.putNextEntry(new java.util.zip.ZipEntry(finalName));
-                    if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
-                        String content = logViewerService.readFileFromZip(zipPath, entryName);
-                        zos.write(content.getBytes(StandardCharsets.UTF_8));
-                    } else {
-                        try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
-                            java.util.zip.ZipEntry entry = zipFile.getEntry(entryName);
-                            if (entry != null && !entry.isDirectory()) {
-                                try (InputStream is = zipFile.getInputStream(entry)) {
-                                    int len;
-                                    while ((len = is.read(buffer)) > 0) {
-                                        zos.write(buffer, 0, len);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    zos.closeEntry();
+                    addZipEntryToArchive(id, zos, nameCounter, buffer);
                 } else {
-                    File file = new File(id);
-                    if (!logViewerService.isPathAllowedForViewer(id)) {
-                        continue;
-                    }
-                    if (!file.exists() || !file.isFile()) continue;
-                    String finalName = dedupeName(file.getName(), nameCounter);
-                    zos.putNextEntry(new java.util.zip.ZipEntry(finalName));
-                    try (InputStream is = new FileInputStream(file)) {
+                    addFileToArchive(id, zos, nameCounter, buffer);
+                }
+            }
+            zos.finish();
+        }
+        return null;
+    }
+
+    /**
+     * 将压缩包内的文件添加到归档
+     * @param id 文件ID
+     * @param zos ZIP输出流
+     * @param nameCounter 文件名计数器
+     * @param buffer 缓冲区
+     * @throws IOException IO异常
+     */
+    private void addZipEntryToArchive(String id, ZipOutputStream zos, Map<String, Integer> nameCounter, byte[] buffer) throws IOException {
+        int idx = id.indexOf('!');
+        String zipPath = id.substring(0, idx);
+        String entryName = id.substring(idx + 1).replace('\\', '/');
+        
+        if (!logViewerService.isPathAllowedForViewer(zipPath)) return;
+
+        String baseName = entryName.contains("/") ? 
+            entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
+        if (baseName.trim().isEmpty()) baseName = "download.log";
+        
+        String finalName = dedupeName(baseName, nameCounter);
+        zos.putNextEntry(new java.util.zip.ZipEntry(finalName));
+
+        if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
+            String content = logViewerService.readFileFromZip(zipPath, entryName);
+            zos.write(content.getBytes(StandardCharsets.UTF_8));
+        } else {
+            try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
+                java.util.zip.ZipEntry entry = zipFile.getEntry(entryName);
+                if (entry != null && !entry.isDirectory()) {
+                    try (InputStream is = zipFile.getInputStream(entry)) {
                         int len;
                         while ((len = is.read(buffer)) > 0) {
                             zos.write(buffer, 0, len);
                         }
                     }
-                    zos.closeEntry();
                 }
             }
-            zos.finish();
         }
-
-        return null;
+        zos.closeEntry();
     }
 
+    /**
+     * 将普通文件添加到归档
+     * @param id 文件ID
+     * @param zos ZIP输出流
+     * @param nameCounter 文件名计数器
+     * @param buffer 缓冲区
+     * @throws IOException IO异常
+     */
+    private void addFileToArchive(String id, ZipOutputStream zos, Map<String, Integer> nameCounter, byte[] buffer) throws IOException {
+        File file = new File(id);
+        if (!logViewerService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) return;
+
+        String finalName = dedupeName(file.getName(), nameCounter);
+        zos.putNextEntry(new java.util.zip.ZipEntry(finalName));
+        try (InputStream is = new FileInputStream(file)) {
+            int len;
+            while ((len = is.read(buffer)) > 0) {
+                zos.write(buffer, 0, len);
+            }
+        }
+        zos.closeEntry();
+    }
+
+    /**
+     * 生成去重的文件名
+     * @param baseName 基础文件名
+     * @param counter 计数器
+     * @return 去重后的文件名
+     */
     private static String dedupeName(String baseName, Map<String, Integer> counter) {
         String name = baseName;
         int n = counter.getOrDefault(name, 0);
