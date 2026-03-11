@@ -92,6 +92,13 @@ window.LogViewerUtils = (function() {
         return el.scrollHeight - $el.scrollTop() <= $el.outerHeight() + 50;
     }
 
+    /**
+     * 获取API端点路径
+     */
+    function getEndpoint() {
+        return window.location.pathname.replace(/\/$/, "");
+    }
+
     // 公开接口
     return {
         isArchiveFileName,
@@ -100,6 +107,7 @@ window.LogViewerUtils = (function() {
         formatDateShort,
         escapeHtml,
         escapeRegex,
-        isNearBottom
+        isNearBottom,
+        getEndpoint
     };
 })();

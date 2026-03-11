@@ -1,8 +1,10 @@
 package org.fayfoxcat.log.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.fayfoxcat.log.config.LogViewerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -31,6 +34,10 @@ public class LogViewerService {
     private static final Logger logger = LoggerFactory.getLogger(LogViewerService.class);
 
     private final LogViewerProperties properties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    // 正则配置缓存
+    private Map<String, Object> logPatternsCache = null;
 
     public LogViewerService(LogViewerProperties properties) {
         this.properties = properties;
@@ -455,6 +462,266 @@ public class LogViewerService {
             content.append(line).append("\n");
         }
         return content.toString();
+    }
+
+    /**
+     * 获取文件元数据
+     * @param filePath 文件路径
+     * @return 文件元数据
+     * @throws IOException IO异常
+     */
+    public Map<String, Object> getFileMetadata(String filePath) throws IOException {
+        if (!isPathAllowedForViewer(filePath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("File not found: " + filePath);
+        }
+        
+        Map<String, Object> metadata = new HashMap<>();
+        
+        // 使用索引缓存获取总行数
+        int totalLines = FileIndexCache.getTotalLines(filePath);
+        int linesPerPage = 1000;
+        int totalPages = (int) Math.ceil((double) totalLines / linesPerPage);
+        
+        metadata.put("filePath", filePath);
+        metadata.put("fileName", file.getName());
+        metadata.put("totalLines", totalLines);
+        metadata.put("fileSize", file.length());
+        metadata.put("lastModified", file.lastModified());
+        metadata.put("encoding", "UTF-8");
+        metadata.put("linesPerPage", linesPerPage);
+        metadata.put("totalPages", totalPages);
+        metadata.put("fileVersion", file.lastModified() + "-" + file.length());
+        
+        return metadata;
+    }
+    
+    /**
+     * 分页读取文件内容
+     * @param filePath 文件路径
+     * @param page 页码（从1开始）
+     * @param pageSize 每页行数
+     * @return 分页内容
+     * @throws IOException IO异常
+     */
+    public Map<String, Object> readFileContentByPage(String filePath, int page, int pageSize) throws IOException {
+        if (!isPathAllowedForViewer(filePath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("File not found: " + filePath);
+        }
+        
+        // 获取文件索引
+        FileIndexCache.FileIndex index = FileIndexCache.getOrBuildIndex(filePath);
+        int totalLines = index.totalLines;
+        int totalPages = (int) Math.ceil((double) totalLines / pageSize);
+        
+        // 校验页码
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+        
+        // 计算行范围
+        int startLine = (page - 1) * pageSize + 1;
+        int endLine = Math.min(startLine + pageSize - 1, totalLines);
+        
+        // 读取行内容
+        List<String> lines = FileIndexCache.readLines(filePath, startLine, endLine);
+        
+        // 构建响应
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("page", page);
+        result.put("pageSize", pageSize);
+        result.put("totalPages", totalPages);
+        result.put("totalLines", totalLines);
+        result.put("startLine", startLine);
+        result.put("endLine", endLine);
+        result.put("lines", lines);
+        result.put("hasNext", page < totalPages);
+        result.put("hasPrev", page > 1);
+        result.put("fileVersion", file.lastModified() + "-" + file.length());
+        
+        return result;
+    }
+    
+    /**
+     * 服务端搜索文件内容（增强版）
+     * @param filePath 文件路径
+     * @param keyword 搜索关键词
+     * @param useRegex 是否使用正则表达式
+     * @param caseSensitive 是否区分大小写
+     * @param contextLines 上下文行数
+     * @param maxResults 最大结果数
+     * @param patternName 预定义模式名称
+     * @return 搜索结果
+     * @throws IOException IO异常
+     */
+    public Map<String, Object> searchFileContentAdvanced(String filePath, String keyword, 
+                                                         boolean useRegex, boolean caseSensitive,
+                                                         int contextLines, int maxResults,
+                                                         String patternName) throws IOException {
+        if (!isPathAllowedForViewer(filePath)) {
+            throw new FileNotFoundException("Not allowed");
+        }
+        
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new FileNotFoundException("File not found: " + filePath);
+        }
+        
+        long startTime = System.currentTimeMillis();
+        
+        // 如果指定了预定义模式，使用模式的正则
+        if (patternName != null && !patternName.trim().isEmpty()) {
+            Map<String, Object> patterns = getLogPatterns();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> patternsMap = (Map<String, Object>) patterns.get("patterns");
+            if (patternsMap != null && patternsMap.containsKey(patternName)) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> pattern = (Map<String, Object>) patternsMap.get(patternName);
+                keyword = (String) pattern.get("regex");
+                useRegex = true;
+                caseSensitive = (Boolean) pattern.getOrDefault("caseSensitive", false);
+            }
+        }
+        
+        List<Map<String, Object>> matches = new ArrayList<>();
+        int totalMatches = 0;
+        int pageSize = 1000;
+        
+        Pattern pattern = null;
+        if (useRegex) {
+            try {
+                int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE;
+                pattern = Pattern.compile(keyword, flags);
+            } catch (Exception e) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("error", "Invalid regex pattern: " + e.getMessage());
+                return error;
+            }
+        }
+        
+        // 读取文件并搜索
+        List<String> allLines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                allLines.add(line);
+            }
+        }
+        
+        // 搜索匹配行
+        for (int i = 0; i < allLines.size() && matches.size() < maxResults; i++) {
+            String line = allLines.get(i);
+            boolean isMatch = false;
+            List<Map<String, Integer>> matchRanges = new ArrayList<>();
+            
+            if (useRegex && pattern != null) {
+                Matcher matcher = pattern.matcher(line);
+                while (matcher.find()) {
+                    isMatch = true;
+                    Map<String, Integer> range = new HashMap<>();
+                    range.put("start", matcher.start());
+                    range.put("end", matcher.end());
+                    matchRanges.add(range);
+                }
+            } else {
+                String searchLine = caseSensitive ? line : line.toLowerCase();
+                String searchKeyword = caseSensitive ? keyword : keyword.toLowerCase();
+                int index = searchLine.indexOf(searchKeyword);
+                if (index >= 0) {
+                    isMatch = true;
+                    while (index >= 0) {
+                        Map<String, Integer> range = new HashMap<>();
+                        range.put("start", index);
+                        range.put("end", index + keyword.length());
+                        matchRanges.add(range);
+                        index = searchLine.indexOf(searchKeyword, index + 1);
+                    }
+                }
+            }
+            
+            if (isMatch) {
+                totalMatches++;
+                
+                if (matches.size() < maxResults) {
+                    Map<String, Object> match = new HashMap<>();
+                    int lineNumber = i + 1;
+                    match.put("lineNumber", lineNumber);
+                    match.put("content", line);
+                    match.put("matchRanges", matchRanges);
+                    match.put("page", (int) Math.ceil((double) lineNumber / pageSize));
+                    
+                    // 添加上下文
+                    Map<String, Object> context = new HashMap<>();
+                    List<String> before = new ArrayList<>();
+                    List<String> after = new ArrayList<>();
+                    
+                    for (int j = Math.max(0, i - contextLines); j < i; j++) {
+                        before.add(allLines.get(j));
+                    }
+                    for (int j = i + 1; j < Math.min(allLines.size(), i + 1 + contextLines); j++) {
+                        after.add(allLines.get(j));
+                    }
+                    
+                    context.put("before", before);
+                    context.put("after", after);
+                    match.put("context", context);
+                    
+                    matches.add(match);
+                }
+            }
+        }
+        
+        long searchTime = System.currentTimeMillis() - startTime;
+        
+        // 构建响应
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("keyword", keyword);
+        result.put("totalMatches", totalMatches);
+        result.put("returnedMatches", matches.size());
+        result.put("truncated", totalMatches > maxResults);
+        result.put("searchTime", searchTime);
+        result.put("matches", matches);
+        result.put("fileVersion", file.lastModified() + "-" + file.length());
+        
+        return result;
+    }
+    
+    /**
+     * 获取正则表达式配置
+     * @return 正则表达式配置
+     * @throws IOException IO异常
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getLogPatterns() throws IOException {
+        if (logPatternsCache != null) {
+            return logPatternsCache;
+        }
+        
+        try {
+            ClassPathResource resource = new ClassPathResource("patterns.json");
+            InputStream inputStream = resource.getInputStream();
+            logPatternsCache = objectMapper.readValue(inputStream, Map.class);
+            return logPatternsCache;
+        } catch (Exception e) {
+            // 如果文件不存在，返回空配置
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("version", "1.0");
+            empty.put("patterns", new HashMap<>());
+            empty.put("presets", new HashMap<>());
+            return empty;
+        }
     }
 
     /**

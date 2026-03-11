@@ -1,0 +1,98 @@
+{
+  "version": "1.0",
+  "description": "日志正则表达式配置库",
+  "patterns": {
+    "error": {
+      "name": "错误日志",
+      "regex": "\\b(ERROR|FATAL|Exception|Error|exception|error)\\b",
+      "caseSensitive": false,
+      "highlightColor": "#f44336",
+      "description": "匹配错误级别日志"
+    },
+    "warning": {
+      "name": "警告日志",
+      "regex": "\\b(WARN|WARNING|warn|warning)\\b",
+      "caseSensitive": false,
+      "highlightColor": "#ff9800",
+      "description": "匹配警告级别日志"
+    },
+    "info": {
+      "name": "信息日志",
+      "regex": "\\b(INFO|info)\\b",
+      "caseSensitive": false,
+      "highlightColor": "#2196f3",
+      "description": "匹配信息级别日志"
+    },
+    "debug": {
+      "name": "调试日志",
+      "regex": "\\b(DEBUG|debug|TRACE|trace)\\b",
+      "caseSensitive": false,
+      "highlightColor": "#9c27b0",
+      "description": "匹配调试级别日志"
+    },
+    "ip": {
+      "name": "IP地址",
+      "regex": "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b",
+      "caseSensitive": false,
+      "highlightColor": "#ab47bc",
+      "description": "匹配IPv4地址"
+    },
+    "timestamp": {
+      "name": "时间戳",
+      "regex": "\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}:\\d{2}",
+      "caseSensitive": false,
+      "highlightColor": "#26a69a",
+      "description": "匹配ISO时间戳格式"
+    },
+    "url": {
+      "name": "URL",
+      "regex": "https?://[^\\s]+",
+      "caseSensitive": false,
+      "highlightColor": "#29b6f6",
+      "description": "匹配HTTP/HTTPS链接"
+    },
+    "email": {
+      "name": "邮箱地址",
+      "regex": "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "caseSensitive": false,
+      "highlightColor": "#66bb6a",
+      "description": "匹配邮箱地址"
+    },
+    "uuid": {
+      "name": "UUID",
+      "regex": "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+      "caseSensitive": false,
+      "highlightColor": "#42a5f5",
+      "description": "匹配UUID格式"
+    },
+    "sql": {
+      "name": "SQL语句",
+      "regex": "\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN|CREATE|DROP|ALTER)\\b",
+      "caseSensitive": false,
+      "highlightColor": "#ff5722",
+      "description": "匹配SQL关键字"
+    }
+  },
+  "presets": {
+    "java-exception": {
+      "name": "Java异常堆栈",
+      "patterns": ["error", "timestamp"],
+      "description": "Java异常日志组合"
+    },
+    "access-log": {
+      "name": "访问日志",
+      "patterns": ["ip", "timestamp", "url"],
+      "description": "Web访问日志组合"
+    },
+    "database-log": {
+      "name": "数据库日志",
+      "patterns": ["sql", "timestamp", "error"],
+      "description": "数据库操作日志组合"
+    },
+    "all-errors": {
+      "name": "所有错误",
+      "patterns": ["error", "warning"],
+      "description": "错误和警告日志组合"
+    }
+  }
+}

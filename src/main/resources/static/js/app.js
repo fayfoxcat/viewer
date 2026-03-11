@@ -18,17 +18,128 @@ $(document).ready(function () {
     let activeId = null;
     let refreshTimer = null;
     let currentContentLines = [];
+    let usePaginationMode = false; // 是否使用分页模式
+    let currentFileMetadata = null; // 当前文件元数据
 
     // 初始化各模块
     window.LogViewerFileTree.init(apiBase);
     window.LogViewerFileOperations.init(apiBase);
 
-    // 文件加载成功回调
+    // 暴露给其他模块的接口
+    window.LogViewerApp = {
+        onFileAppend: handleFileAppend,
+        onFileModified: handleFileModified,
+        refreshCurrentPage: refreshCurrentPage,
+        handlePageChange: handlePageChange
+    };
+
+    // 文件追加处理
+    function handleFileAppend(info) {
+        // 更新分页信息
+        window.LogViewerPagination.updatePagination(info.newTotalPages * 1000);
+    }
+
+    // 文件修改处理
+    function handleFileModified(info) {
+        // 显示通知（文件被修改需要提醒用户，因为这可能导致数据不一致）
+        window.LogViewerNotification.showFileModified();
+        
+        // 重新加载当前页
+        setTimeout(() => {
+            refreshCurrentPage();
+        }, 500);
+    }
+
+    // 刷新当前页
+    async function refreshCurrentPage() {
+        if (!activeId || !usePaginationMode) return;
+        
+        try {
+            const currentPage = window.LogViewerPagination.getCurrentPage();
+            const data = await window.LogViewerPageCache.getPage(currentPage);
+            
+            // 分页模式下，data.lines 只包含当前页的数据，所以渲染时使用 page=1
+            // 但需要传入正确的起始行号 (data.startLine)
+            window.LogViewerContentRenderer.renderLogContent(data.lines, null, 1, data.startLine);
+            window.LogViewerPagination.updatePagination(data.totalLines);
+            
+        } catch (error) {
+            console.error('[App] Refresh page error:', error);
+        }
+    }
+
+    // 跳转到最后一页
+    async function jumpToLastPage() {
+        if (!usePaginationMode) return;
+        
+        try {
+            const metadata = window.LogViewerPageCache.getStatus().metadata;
+            const lastPage = metadata.totalPages;
+            
+            await loadPage(lastPage, true);  // 传入 scrollToBottom=true
+            
+        } catch (error) {
+            console.error('[App] Jump to last page error:', error);
+        }
+    }
+
+    // 加载指定页面（分页模式）
+    async function loadPage(page, autoScroll = false) {
+        try {
+            window.LogViewerContentRenderer.showLoading();
+            
+            const data = await window.LogViewerPageCache.getPage(page);
+            
+            window.LogViewerPagination.setCurrentPage(page);
+            window.LogViewerPageCache.setCurrentPage(page);
+            
+            // 检查是否有搜索结果需要高亮
+            const matches = window.LogViewerSearch.getCurrentMatches();
+            let highlightMap = null;
+            
+            if (matches.length > 0) {
+                // 构建当前页的高亮映射
+                highlightMap = new Map();
+                matches.forEach(match => {
+                    if (match.page === page && match.ranges) {
+                        // 转换服务端的 start/end 格式为前端的 s/e 格式
+                        const ranges = match.ranges.map(r => ({ s: r.start, e: r.end }));
+                        highlightMap.set(match.lineNumber, ranges);
+                    }
+                });
+            }
+            
+            // 分页模式下，data.lines 只包含当前页的数据，所以渲染时使用 page=1
+            // 但需要传入正确的起始行号 (data.startLine)
+            window.LogViewerContentRenderer.renderLogContent(data.lines, highlightMap, 1, data.startLine);
+            
+            window.LogViewerPagination.updatePagination(data.totalLines);
+            window.LogViewerUIState.setEmptyHintVisible(false);
+            
+            window.LogViewerContentRenderer.hideLoading();
+            
+            // 如果需要自动滚动到底部
+            if (autoScroll) {
+                window.LogViewerContentRenderer.scrollToBottom(true);
+            }
+            
+        } catch (error) {
+            console.error('[App] Load page error:', error);
+            onFileLoadError('加载失败: ' + error.message);
+        }
+    }
+
+    // 文件加载成功回调（传统模式）
     function onFileLoadSuccess(lines, fileId) {
         activeId = fileId;
         window.LogViewerUIState.setActiveFileName(fileId);
         currentContentLines = lines;
+        usePaginationMode = false;
         window.LogViewerPagination.reset();
+        
+        // 清除之前的搜索（如果有）
+        window.LogViewerSearch.clearSearchResults();
+        $("#content-search").val("");
 
         const keyword = $("#content-search").val().trim();
         if (keyword) {
@@ -42,6 +153,24 @@ $(document).ready(function () {
         window.LogViewerUIState.setEmptyHintVisible(false);
     }
 
+    // 文件加载成功回调（分页模式）
+    async function onFileLoadSuccessPaginated(metadata, fileId) {
+        activeId = fileId;
+        currentFileMetadata = metadata;
+        usePaginationMode = true;
+        window.LogViewerUIState.setActiveFileName(fileId);
+        
+        // 清除搜索状态（分页模式不支持搜索）
+        window.LogViewerSearch.clearSearchResults();
+        $("#content-search").val("");
+        
+        // 初始化缓存
+        window.LogViewerPageCache.init(fileId, metadata);
+        
+        // 加载第一页
+        await loadPage(1);
+    }
+
     // 文件加载失败回调
     function onFileLoadError(message) {
         window.LogViewerContentRenderer.hideLoading();
@@ -50,51 +179,117 @@ $(document).ready(function () {
     }
 
     // 执行内容搜索
-    function performContentSearch(openPanel = false) {
+    async function performContentSearch(openPanel = false) {
         const keyword = $("#content-search").val().trim();
         const useRegex = $("#use-regex").is(":checked");
         
         if (!activeId || !keyword) {
             window.LogViewerSearch.clearSearchResults();
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
+            if (!usePaginationMode) {
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
+            }
             return;
         }
 
-        const result = window.LogViewerSearch.runContentSearch(currentContentLines, keyword, useRegex, openPanel);
-        
-        setTimeout(function() {
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, result.highlightMap, window.LogViewerPagination.getCurrentPage());
+        // 使用服务端搜索（支持分页模式和传统模式）
+        try {
+            // 在搜索结果面板显示搜索中提示，而不是清空主内容区
+            if (openPanel !== false) {
+                window.LogViewerUIState.openSearchPanel();
+                $("#search-results-list").html(`
+                    <div class="text-center p-3">
+                        <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 8px;"></div>
+                        <div>搜索中...</div>
+                    </div>
+                `);
+            }
+            
+            const response = await fetch(`${window.LogViewerUtils.getEndpoint()}/file/search/advanced`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    file: activeId,
+                    keyword: keyword,
+                    useRegex: useRegex,
+                    caseSensitive: false,
+                    contextLines: 0,
+                    maxResults: 10000
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || '搜索失败');
+            }
+            
+            // 处理搜索结果
+            window.LogViewerSearch.setServerSearchResults(result, usePaginationMode);
             window.LogViewerSearch.renderSearchResults(keyword, useRegex);
-            if (openPanel !== false) window.LogViewerUIState.openSearchPanel();
-        }, 0);
+            
+            if (openPanel !== false) {
+                window.LogViewerUIState.openSearchPanel();
+            }
+            
+            return result;
+            
+        } catch (error) {
+            console.error('搜索失败:', error);
+            // 在搜索结果面板显示错误，而不是弹框
+            $("#search-results-list").html(`
+                <div class="text-center text-danger p-3">
+                    <div>搜索失败</div>
+                    <div style="font-size: 12px; margin-top: 8px;">${error.message}</div>
+                </div>
+            `);
+            throw error;
+        }
     }
 
     // 统一的页面跳转处理函数
-    function handlePageChange(targetPage, lineNumber, scrollPosition) {
-        const newPage = window.LogViewerPagination.goToPage(targetPage);
-        
-        // 重新执行搜索以生成高亮
-        const keyword = $("#content-search").val().trim();
-        const useRegex = $("#use-regex").is(":checked");
-        
-        if (keyword) {
-            const result = window.LogViewerSearch.runContentSearch(currentContentLines, keyword, useRegex);
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, result.highlightMap, newPage);
+    async function handlePageChange(targetPage, lineNumber, scrollPosition) {
+        if (usePaginationMode) {
+            // 分页模式
+            await loadPage(targetPage);
+            
+            if (scrollPosition) {
+                window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
+            } else if (lineNumber) {
+                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
+            }
         } else {
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-        }
-        
-        window.LogViewerPagination.updatePagination(currentContentLines.length);
-        
-        if (scrollPosition) {
-            window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
-        } else if (lineNumber) {
-            setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
+            // 传统模式
+            const newPage = window.LogViewerPagination.goToPage(targetPage);
+            
+            // 重新执行搜索以生成高亮
+            const keyword = $("#content-search").val().trim();
+            const useRegex = $("#use-regex").is(":checked");
+            
+            if (keyword) {
+                const result = window.LogViewerSearch.runContentSearch(currentContentLines, keyword, useRegex);
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, result.highlightMap, newPage);
+            } else {
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
+            }
+            
+            window.LogViewerPagination.updatePagination(currentContentLines.length);
+            
+            if (scrollPosition) {
+                window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
+            } else if (lineNumber) {
+                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
+            }
         }
     }
 
     // 统一的分页按钮处理函数
-    function handlePaginationClick(action) {
+    async function handlePaginationClick(action) {
         if (!activeId) return;
         
         const currentPage = window.LogViewerPagination.getCurrentPage();
@@ -122,33 +317,52 @@ $(document).ready(function () {
                 return;
         }
         
-        const newPage = window.LogViewerPagination.goToPage(targetPage);
-        window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-        window.LogViewerPagination.updatePagination(currentContentLines.length);
-        window.LogViewerContentRenderer.showPageIndicator(newPage);
+        if (usePaginationMode) {
+            await loadPage(targetPage);
+            window.LogViewerContentRenderer.showPageIndicator(targetPage);
+        } else {
+            const newPage = window.LogViewerPagination.goToPage(targetPage);
+            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
+            window.LogViewerPagination.updatePagination(currentContentLines.length);
+            window.LogViewerContentRenderer.showPageIndicator(newPage);
+        }
     }
 
     // 统一的滚动处理函数
-    function handleScrollAction(action) {
+    async function handleScrollAction(action) {
         if (!activeId) return;
         
         const currentPage = window.LogViewerPagination.getCurrentPage();
         const totalPages = window.LogViewerPagination.getTotalPages();
         
         if (action === 'top') {
-            if (currentPage !== 1) {
-                const newPage = window.LogViewerPagination.goToPage(1);
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-                window.LogViewerPagination.updatePagination(currentContentLines.length);
+            if (usePaginationMode) {
+                if (currentPage !== 1) {
+                    await loadPage(1);
+                }
+                window.LogViewerContentRenderer.scrollToTop();
+            } else {
+                if (currentPage !== 1) {
+                    const newPage = window.LogViewerPagination.goToPage(1);
+                    window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
+                    window.LogViewerPagination.updatePagination(currentContentLines.length);
+                }
+                window.LogViewerContentRenderer.scrollToTop();
             }
-            window.LogViewerContentRenderer.scrollToTop();
         } else if (action === 'bottom') {
-            if (currentPage !== totalPages) {
-                const newPage = window.LogViewerPagination.goToPage(totalPages);
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-                window.LogViewerPagination.updatePagination(currentContentLines.length);
+            if (usePaginationMode) {
+                if (currentPage !== totalPages) {
+                    await loadPage(totalPages);
+                }
+                window.LogViewerContentRenderer.scrollToBottom();
+            } else {
+                if (currentPage !== totalPages) {
+                    const newPage = window.LogViewerPagination.goToPage(totalPages);
+                    window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
+                    window.LogViewerPagination.updatePagination(currentContentLines.length);
+                }
+                window.LogViewerContentRenderer.scrollToBottom();
             }
-            window.LogViewerContentRenderer.scrollToBottom();
         }
     }
 
@@ -334,11 +548,38 @@ $(document).ready(function () {
 
         window.LogViewerContentRenderer.showLoading();
 
-        if (isZipEntry) {
-            window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
-        } else {
-            window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, onFileLoadError);
-        }
+        // 先获取文件元数据，判断是否使用分页模式
+        const filePath = isZipEntry ? zipPath + "!" + entryName : node.path;
+        
+        $.ajax({
+            url: `${apiBase}/file/metadata`,
+            method: 'GET',
+            data: { file: filePath },
+            success: async function(metadata) {
+                // 根据文件大小决定使用哪种模式
+                const fileSizeMB = metadata.fileSize / (1024 * 1024);
+                const shouldUsePagination = fileSizeMB > 10 || metadata.totalLines > 10000;
+                
+                if (shouldUsePagination) {
+                    await onFileLoadSuccessPaginated(metadata, filePath);
+                } else {
+                    // 使用传统模式加载
+                    if (isZipEntry) {
+                        window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
+                    } else {
+                        window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, onFileLoadError);
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                // 元数据获取失败，回退到传统模式
+                if (isZipEntry) {
+                    window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
+                } else {
+                    window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, onFileLoadError);
+                }
+            }
+        });
     });
 
     // 下载按钮
@@ -359,30 +600,46 @@ $(document).ready(function () {
     });
 
     // 内容搜索按钮
-    $("#search-btn").on("click", function () {
+    $("#search-btn").on("click", async function () {
         if (!activeId) {
-            alert('请先选择一个文件');
+            // 在搜索结果面板显示提示
+            window.LogViewerUIState.openSearchPanel();
+            $("#search-results-list").html(`
+                <div class="text-center text-muted p-3">
+                    <div>请先选择一个文件</div>
+                </div>
+            `);
             return;
         }
         
         const keyword = $("#content-search").val().trim();
         if (!keyword) {
             window.LogViewerSearch.clearSearchResults();
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
+            if (!usePaginationMode) {
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
+            }
             return;
         }
         
         try {
-            performContentSearch(true);
-            const matches = window.LogViewerSearch.getCurrentMatches();
-            if (matches.length) {
-                window.LogViewerSearch.focusMatch(0, window.LogViewerPagination.getCurrentPage(), handlePageChange);
-            } else {
-                alert('未找到匹配的内容');
+            const result = await performContentSearch(true);
+            
+            if (result.matches && result.matches.length > 0) {
+                // 跳转到第一个匹配
+                const firstMatch = result.matches[0];
+                if (usePaginationMode) {
+                    await loadPage(firstMatch.page);
+                    setTimeout(() => {
+                        window.LogViewerContentRenderer.scrollToLine(firstMatch.lineNumber);
+                    }, 100);
+                } else {
+                    window.LogViewerSearch.focusMatch(0, window.LogViewerPagination.getCurrentPage(), handlePageChange);
+                }
             }
+            // 如果没有匹配，不做任何操作，搜索结果面板会显示"未找到匹配结果"
         } catch (error) {
+            // 错误已经在 performContentSearch 中显示在搜索结果面板了
             console.error('搜索失败:', error);
-            alert('搜索失败: ' + error.message);
         }
     });
 
@@ -444,7 +701,7 @@ $(document).ready(function () {
     });
 
     // 页码跳转
-    $("#page-jump-input").on("keydown", function (e) {
+    $("#page-jump-input").on("keydown", async function (e) {
         if (e.key === "Enter") {
             const page = parseInt($(this).val(), 10);
             if (isNaN(page) || page < 1) {
@@ -458,10 +715,15 @@ $(document).ready(function () {
                 return;
             }
             
-            const newPage = window.LogViewerPagination.goToPage(page);
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-            window.LogViewerPagination.updatePagination(currentContentLines.length);
-            window.LogViewerContentRenderer.showPageIndicator(newPage);
+            if (usePaginationMode) {
+                await loadPage(page);
+                window.LogViewerContentRenderer.showPageIndicator(page);
+            } else {
+                const newPage = window.LogViewerPagination.goToPage(page);
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
+                window.LogViewerPagination.updatePagination(currentContentLines.length);
+                window.LogViewerContentRenderer.showPageIndicator(newPage);
+            }
         }
     });
 
@@ -471,7 +733,7 @@ $(document).ready(function () {
     });
 
     // 实时刷新功能 - 改进版本
-    $("#refresh-btn").on("click", function () {
+    $("#refresh-btn").on("click", async function () {
         const $btn = $(this);
         const $icon = $btn.find('.refresh-btn-icon');
         const $text = $btn.find('.refresh-btn-text');
@@ -488,7 +750,6 @@ $(document).ready(function () {
             $text.text("实时刷新");
             $loading.hide();
             
-            console.log('实时刷新已停止');
             return;
         }
 
@@ -498,73 +759,77 @@ $(document).ready(function () {
         }
 
         try {
-            // 跳转到最后一页并滚动到底部
-            const totalPages = window.LogViewerPagination.getTotalPages();
-            window.LogViewerPagination.setCurrentPage(totalPages);
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, totalPages);
-            window.LogViewerPagination.updatePagination(currentContentLines.length);
-            window.LogViewerContentRenderer.scrollToBottom();
+            if (usePaginationMode) {
+                // 分页模式：跳转到最后一页
+                const metadata = window.LogViewerPageCache.getStatus().metadata;
+                const lastPage = metadata.totalPages;
+                await loadPage(lastPage, true);  // 传入 scrollToBottom=true
+            } else {
+                // 传统模式：跳转到最后一页并滚动到底部
+                const totalPages = window.LogViewerPagination.getTotalPages();
+                window.LogViewerPagination.setCurrentPage(totalPages);
+                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, totalPages);
+                window.LogViewerPagination.updatePagination(currentContentLines.length);
+                window.LogViewerContentRenderer.scrollToBottom();
+            }
 
             // 设置刷新状态
             $btn.addClass("refreshing");
             $icon.hide();
             $text.text("停止刷新");
             $loading.show();
-            
-            console.log('实时刷新已启动，间隔2秒');
 
-            refreshTimer = setInterval(function () {
+            refreshTimer = setInterval(async function () {
                 if (!activeId) {
                     console.warn('文件ID丢失，停止刷新');
                     $btn.trigger('click'); // 停止刷新
                     return;
                 }
-                
-                const $content = $("#log-content-actual");
-                const keepBottom = window.LogViewerUtils.isNearBottom($content);
-                const currentPageSnapshot = window.LogViewerPagination.getCurrentPage();
 
-                const loadCallback = function(newLines) {
+                if (usePaginationMode) {
+                    // 分页模式：始终跳转到最后一页并滚动到底部
                     try {
-                        const oldLineCount = currentContentLines.length;
-                        currentContentLines = newLines;
+                        const metadata = window.LogViewerPageCache.getStatus().metadata;
+                        const lastPage = metadata.totalPages;
                         
-                        window.LogViewerPagination.updatePagination(currentContentLines.length);
-                        
-                        if (keepBottom) {
+                        // 无论是否换页，都重新加载并滚动到底部
+                        await loadPage(lastPage, true);  // 传入 scrollToBottom=true
+                    } catch (error) {
+                        console.error('[Refresh] 刷新跳转失败:', error);
+                    }
+                } else {
+                    // 传统模式：全量重新加载
+                    const loadCallback = function(newLines) {
+                        try {
+                            currentContentLines = newLines;
+                            window.LogViewerPagination.updatePagination(currentContentLines.length);
+                            
+                            // 始终跳转到最后一页并滚动到底部
                             const newTotalPages = window.LogViewerPagination.getTotalPages();
                             window.LogViewerPagination.setCurrentPage(newTotalPages);
                             window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newTotalPages);
                             window.LogViewerContentRenderer.scrollToBottom();
-                        } else if (currentPageSnapshot !== window.LogViewerPagination.getCurrentPage()) {
-                            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
-                        } else {
-                            const newLineCount = currentContentLines.length;
-                            if (newLineCount > oldLineCount) {
-                                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
-                                console.log(`文件更新：新增 ${newLineCount - oldLineCount} 行`);
-                            }
+                        } catch (error) {
+                            console.error('刷新回调处理失败:', error);
                         }
-                    } catch (error) {
-                        console.error('刷新回调处理失败:', error);
+                    };
+                    
+                    const errorCallback = function(error) {
+                        console.error('刷新加载失败:', error);
+                        // 不停止刷新，继续尝试
+                    };
+                    
+                    // 根据文件类型加载
+                    if (activeId.includes("!")) {
+                        const idx = activeId.indexOf("!");
+                        const zipPath = activeId.substring(0, idx);
+                        const entryName = activeId.substring(idx + 1);
+                        window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, loadCallback, errorCallback);
+                    } else {
+                        window.LogViewerFileOperations.loadFsFile(activeId, loadCallback, errorCallback);
                     }
-                };
-                
-                const errorCallback = function(error) {
-                    console.error('刷新加载失败:', error);
-                    // 不停止刷新，继续尝试
-                };
-                
-                // 根据文件类型加载
-                if (activeId.includes("!")) {
-                    const idx = activeId.indexOf("!");
-                    const zipPath = activeId.substring(0, idx);
-                    const entryName = activeId.substring(idx + 1);
-                    window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, loadCallback, errorCallback);
-                } else {
-                    window.LogViewerFileOperations.loadFsFile(activeId, loadCallback, errorCallback);
                 }
-            }, 2000);
+            }, 500);
             
         } catch (error) {
             console.error('启动实时刷新失败:', error);
@@ -582,11 +847,18 @@ $(document).ready(function () {
             $("#refresh-btn").trigger('click');
         }
         
+        // 清理缓存
+        if (usePaginationMode) {
+            window.LogViewerPageCache.clear();
+        }
+        
         currentRootPath = newPath;
         window.LogViewerSelectionManager.clearAllSelection();
         window.LogViewerFileTree.clearExpandedState();
         activeId = null;
         currentContentLines = [];
+        usePaginationMode = false;
+        currentFileMetadata = null;
         window.LogViewerSearch.clearSearchResults();
         window.LogViewerPagination.reset();
         window.LogViewerUIState.setActiveFileName(null);
@@ -595,7 +867,6 @@ $(document).ready(function () {
         $("#file-search").val("");
         $("#pagination-controls").hide();
         
-        console.log('切换到新路径:', newPath);
         window.LogViewerFileTree.renderRootTree(currentRootPath);
     });
 
@@ -663,7 +934,9 @@ $(document).ready(function () {
             clearTimeout(searchTimer);
             searchTimer = null;
         }
-        console.log('页面卸载，已清理定时器');
+        if (usePaginationMode) {
+            window.LogViewerPageCache.clear();
+        }
     });
 
     // 初始化完成
@@ -671,6 +944,5 @@ $(document).ready(function () {
     window.LogViewerUIState.updateDownloadButton(window.LogViewerSelectionManager.getSelectedIds());
     $("#toggle-sidebar").text($("#main-row").hasClass("left-collapsed") ? "▶" : "◀");
     
-    console.log('日志查看器初始化完成');
     window.LogViewerFileTree.renderRootTree(currentRootPath);
 });

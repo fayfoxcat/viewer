@@ -12,6 +12,7 @@
     <link rel="stylesheet" th:href="@{/css/log-viewer.css}">
     <link rel="stylesheet" th:href="@{/css/search-panel.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/notification.css}">
 </head>
 <body th:attr="data-endpoint=${endpoint},data-auth-enabled=${authEnabled},data-authenticated=${authenticated}">
     <!-- 登录遮罩层 -->
@@ -181,10 +182,12 @@
 
     <script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}"></script>
     <!-- 日志语法高亮器 -->
-    <script th:src="@{/js/log-highlighter.js}"></script>
+    <parameter name="text">    <script th:src="@{/js/log-highlighter.js}"></script>
     <!-- 模块化JS文件 -->
     <script th:src="@{/js/utils.js}"></script>
     <script th:src="@{/js/auth.js}"></script>
+    <script th:src="@{/js/notification.js}"></script>
+    <script th:src="@{/js/page-cache-manager.js}"></script>
     <script th:src="@{/js/ui-state.js}"></script>
     <script th:src="@{/js/selection-manager.js}"></script>
     <script th:src="@{/js/pagination.js}"></script>

@@ -46,14 +46,15 @@ public class LogViewerProperties {
     
     /**
      * 大文件阈值（单位：MB）
-     * 超过此大小的文件将只显示尾部内容
-     * 默认为 10MB
+     * 超过此大小的文件将只显示尾部内容（仅用于传统模式）
+     * 分页模式下此限制不生效
+     * 默认为 1000MB
      */
-    private int maxFileSizeMb = 10;
+    private int maxFileSizeMb = 1000;
     
     /**
      * 大文件显示行数
-     * 当文件超过大文件阈值时，显示的尾部行数
+     * 当文件超过大文件阈值时，显示的尾部行数（仅用于传统模式）
      * 默认为 10000 行
      */
     private int tailLines = 10000;

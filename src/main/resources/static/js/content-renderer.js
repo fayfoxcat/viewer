@@ -49,21 +49,27 @@ window.LogViewerContentRenderer = (function() {
 
     /**
      * 渲染日志内容
+     * @param {Array} lines - 行数据数组
+     * @param {Map} highlightInfo - 高亮信息
+     * @param {Number} page - 页码（传统模式使用）
+     * @param {Number} startLineNumber - 起始行号（分页模式使用，可选）
      */
-    function renderLogContent(lines, highlightInfo, page) {
+    function renderLogContent(lines, highlightInfo, page, startLineNumber) {
         currentLines = lines;
         currentHighlightMap = highlightInfo;
         currentPage = page || 1;
         totalPages = Math.max(1, Math.ceil(lines.length / LINES_PER_PAGE));
         
-        renderPageContent(page);
+        renderPageContent(page, startLineNumber);
         hideLoading();
     }
 
     /**
      * 渲染指定页面内容
+     * @param {Number} page - 页码
+     * @param {Number} startLineNumber - 起始行号（可选，用于分页模式）
      */
-    function renderPageContent(page) {
+    function renderPageContent(page, startLineNumber) {
         const startLine = (page - 1) * LINES_PER_PAGE + 1;
         const endLine = Math.min(startLine + LINES_PER_PAGE - 1, currentLines.length);
         
@@ -71,7 +77,8 @@ window.LogViewerContentRenderer = (function() {
         let html = `<div class="log-lines">`;
         
         for (let i = startLine - 1; i < endLine && i < currentLines.length; i++) {
-            const ln = i + 1;
+            // 如果提供了 startLineNumber，使用它作为基准；否则使用数组索引
+            const ln = startLineNumber ? (startLineNumber + i) : (i + 1);
             const raw = currentLines[i] ?? "";
             const ranges = map.get(ln) || [];
             
@@ -92,6 +99,7 @@ window.LogViewerContentRenderer = (function() {
             `;
         }
         html += `</div>`;
+        
         $("#log-content-actual").html(html);
     }
 
@@ -212,11 +220,25 @@ window.LogViewerContentRenderer = (function() {
     /**
      * 滚动到底部
      */
-    function scrollToBottom() {
+    function scrollToBottom(immediate = false) {
         const $container = $("#log-content-actual");
         const el = $container[0];
         if (!el) return;
-        $container.stop(true).animate({ scrollTop: el.scrollHeight }, 150);
+        
+        if (immediate) {
+            // 使用 scrollIntoView 代替 scrollTop，避免强制同步布局
+            // scrollIntoView 由浏览器优化，不会触发昂贵的 reflow
+            const lastLine = el.querySelector('.log-lines > .log-line:last-child');
+            if (lastLine) {
+                lastLine.scrollIntoView({ block: 'end', behavior: 'instant' });
+            } else {
+                // 如果没有找到最后一行，回退到 scrollTop
+                el.scrollTop = 999999999;
+            }
+        } else {
+            // 使用动画滚动
+            $container.stop(true).animate({ scrollTop: el.scrollHeight }, 150);
+        }
     }
 
     /**

@@ -7,11 +7,51 @@ window.LogViewerSearch = (function() {
     let currentMatches = [];
     let currentMatchIndex = -1;
     let currentContentLines = [];
+    let serverSearchMode = false; // 是否使用服务端搜索结果
+
+    /**
+     * 设置服务端搜索结果
+     */
+    function setServerSearchResults(result, isPaginationMode) {
+        serverSearchMode = true;
+        currentMatches = [];
+        currentMatchIndex = -1;
+        
+        if (!result.matches || result.matches.length === 0) {
+            return;
+        }
+        
+        // 转换服务端结果为前端格式
+        result.matches.forEach(match => {
+            const line = match.content || "";
+            const ranges = match.matchRanges || [];
+            
+            // 生成预览HTML
+            let previewHtml = window.LogViewerUtils.escapeHtml(line);
+            
+            // 按倒序处理范围，避免索引偏移
+            const sortedRanges = ranges.slice().sort((a, b) => b.start - a.start);
+            sortedRanges.forEach(range => {
+                const before = previewHtml.substring(0, range.start);
+                const matched = previewHtml.substring(range.start, range.end);
+                const after = previewHtml.substring(range.end);
+                previewHtml = before + '<mark>' + matched + '</mark>' + after;
+            });
+            
+            currentMatches.push({
+                lineNumber: match.lineNumber,
+                previewHtml: previewHtml,
+                page: match.page,
+                ranges: ranges
+            });
+        });
+    }
 
     /**
      * 执行内容搜索
      */
     function runContentSearch(lines, keyword, useRegex, openPanel) {
+        serverSearchMode = false;
         currentContentLines = lines;
         currentMatches = [];
         currentMatchIndex = -1;
@@ -113,8 +153,13 @@ window.LogViewerSearch = (function() {
             const m = currentMatches[idx];
             const $item = $(`<div class="search-result-item" data-idx="${idx}"></div>`);
             $item.html(`<span class="search-result-number">行 ${m.lineNumber}</span><div class="search-result-line">${m.previewHtml}</div>`);
+            // 注意：这里不传递 currentPage 和 onPageChange，让 focusMatch 内部处理
+            // 因为点击时需要获取最新的页面状态
             $item.on("click", function () {
-                focusMatch(idx);
+                // 从全局获取当前页和页面切换函数
+                const currentPage = window.LogViewerPagination ? window.LogViewerPagination.getCurrentPage() : 1;
+                const onPageChange = window.LogViewerApp ? window.LogViewerApp.handlePageChange : null;
+                focusMatch(idx, currentPage, onPageChange);
             });
             fragment.appendChild($item[0]);
         }
@@ -129,18 +174,10 @@ window.LogViewerSearch = (function() {
         if (!currentMatches.length) return;
         const i = Math.max(0, Math.min(currentMatches.length - 1, idx));
         currentMatchIndex = i;
-        const ln = currentMatches[i].lineNumber;
+        const match = currentMatches[i];
+        const ln = match.lineNumber;
 
-        // 计算目标行所在的页面
-        const LINES_PER_PAGE = window.LogViewerContentRenderer.LINES_PER_PAGE;
-        const targetPage = Math.ceil(ln / LINES_PER_PAGE);
-        
-        // 如果不在当前页，先跳转到目标页
-        if (targetPage !== currentPage && onPageChange) {
-            onPageChange(targetPage, ln);
-            return;
-        }
-
+        // 高亮搜索结果列表中的当前项
         $("#search-results-list .search-result-item").removeClass("active");
         const $activeItem = $(`#search-results-list .search-result-item[data-idx='${i}']`).addClass("active");
         if ($activeItem.length) {
@@ -148,12 +185,43 @@ window.LogViewerSearch = (function() {
             el.scrollIntoView({ block: "nearest" });
         }
 
-        // 使用 setTimeout 确保 DOM 已更新
+        // 如果是服务端搜索模式，使用 page 信息
+        if (serverSearchMode && match.page) {
+            if (match.page !== currentPage && onPageChange) {
+                // 页面不同，需要切换页面
+                onPageChange(match.page, ln).then(() => {
+                    // 页面切换后，高亮当前匹配项
+                    highlightCurrentMatch(ln);
+                });
+                return;
+            }
+        } else {
+            // 传统模式：计算目标行所在的页面
+            const LINES_PER_PAGE = window.LogViewerContentRenderer.LINES_PER_PAGE;
+            const targetPage = Math.ceil(ln / LINES_PER_PAGE);
+            
+            if (targetPage !== currentPage && onPageChange) {
+                onPageChange(targetPage, ln);
+                return;
+            }
+        }
+
+        // 同一页面，直接高亮
+        highlightCurrentMatch(ln);
+    }
+
+    /**
+     * 高亮当前匹配项
+     */
+    function highlightCurrentMatch(lineNumber) {
         setTimeout(function() {
             $("#log-content-actual .log-hit-current").removeClass("log-hit-current");
-            const $line = $(`#log-content-actual .log-line[data-line='${ln}']`);
-            $line.find("mark.log-hit").first().addClass("log-hit-current");
-            window.LogViewerContentRenderer.scrollToLine(ln);
+            const $line = $(`#log-content-actual .log-line[data-line='${lineNumber}']`);
+            
+            // 将该行的所有匹配标记都设为当前匹配（红色）
+            $line.find("mark.log-hit").addClass("log-hit-current");
+            
+            window.LogViewerContentRenderer.scrollToLine(lineNumber);
         }, 50);
     }
 
@@ -179,12 +247,14 @@ window.LogViewerSearch = (function() {
     function clearSearchResults() {
         currentMatches = [];
         currentMatchIndex = -1;
+        serverSearchMode = false;
         $("#search-results-list").empty();
     }
 
     // 公开接口
     return {
         runContentSearch,
+        setServerSearchResults,
         renderSearchResults,
         focusMatch,
         getNextMatchIndex,

@@ -186,6 +186,66 @@ public class LogViewerController {
     }
 
     /**
+     * 获取文件元数据（分页模式）
+     * @param file 文件路径
+     * @return 文件元数据
+     * @throws IOException IO异常
+     */
+    @GetMapping("/file/metadata")
+    @ResponseBody
+    public Map<String, Object> getFileMetadata(@RequestParam("file") String file) throws IOException {
+        return logViewerService.getFileMetadata(file);
+    }
+
+    /**
+     * 分页获取文件内容
+     * @param file 文件路径
+     * @param page 页码（从1开始）
+     * @param pageSize 每页行数
+     * @return 分页内容
+     * @throws IOException IO异常
+     */
+    @GetMapping("/file/content/page")
+    @ResponseBody
+    public Map<String, Object> getFileContentByPage(@RequestParam("file") String file,
+                                                     @RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "1000") int pageSize) throws IOException {
+        return logViewerService.readFileContentByPage(file, page, pageSize);
+    }
+
+    /**
+     * 服务端搜索文件内容（增强版）
+     * @param request 搜索请求
+     * @return 搜索结果
+     * @throws IOException IO异常
+     */
+    @PostMapping("/file/search/advanced")
+    @ResponseBody
+    public Map<String, Object> searchFileContentAdvanced(@RequestBody Map<String, Object> request) throws IOException {
+        String filePath = (String) request.get("file");
+        String keyword = (String) request.get("keyword");
+        Boolean useRegex = (Boolean) request.getOrDefault("useRegex", false);
+        Boolean caseSensitive = (Boolean) request.getOrDefault("caseSensitive", false);
+        Integer contextLines = (Integer) request.getOrDefault("contextLines", 2);
+        Integer maxResults = (Integer) request.getOrDefault("maxResults", 500);
+        String patternName = (String) request.get("patternName");
+        
+        return logViewerService.searchFileContentAdvanced(filePath, keyword, useRegex, 
+                                                         caseSensitive, contextLines, maxResults, patternName);
+    }
+
+    /**
+     * 获取正则表达式配置
+     * @return 正则表达式配置
+     * @throws IOException IO异常
+     */
+    @GetMapping("/patterns")
+    @ResponseBody
+    public Map<String, Object> getLogPatterns() throws IOException {
+        return logViewerService.getLogPatterns();
+    }
+
+    /**
      * 下载文件
      * @param files 文件路径列表
      * @param response HTTP响应

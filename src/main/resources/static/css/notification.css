@@ -1,0 +1,107 @@
+/**
+ * 通知组件样式
+ */
+
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 400px;
+}
+
+.notification {
+    background: var(--ant-bg-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    border-left: 4px solid var(--ant-primary-color);
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-info {
+    border-left-color: #1890ff;
+}
+
+.notification-success {
+    border-left-color: #52c41a;
+}
+
+.notification-warning {
+    border-left-color: #faad14;
+}
+
+.notification-error {
+    border-left-color: #f5222d;
+}
+
+.notification-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.notification-message {
+    color: var(--ant-text-color);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.notification-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--ant-border-color);
+    border-radius: 4px;
+    background: var(--ant-bg-color);
+    color: var(--ant-text-color);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.notification-btn:hover {
+    border-color: var(--ant-primary-color);
+    color: var(--ant-primary-color);
+}
+
+.notification-close {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: var(--ant-text-color-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.3s;
+}
+
+.notification-close:hover {
+    color: var(--ant-text-color);
+}
