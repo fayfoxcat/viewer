@@ -32,7 +32,10 @@ window.LogViewerPageCache = (function() {
         cache.currentPage = 1;
         cache.mode = 'auto';
         
-        startFileChangeDetection();
+        // 如果是压缩包内的文件，不启动文件变化检测（不调用metadata接口）
+        if (!metadata.isZipEntry) {
+            startFileChangeDetection();
+        }
     }
 
     /**
@@ -199,6 +202,11 @@ window.LogViewerPageCache = (function() {
     function startFileChangeDetection() {
         if (checkTimer) {
             clearInterval(checkTimer);
+        }
+
+        // 再次检查防止异常情况调用
+        if (cache.metadata && cache.metadata.isZipEntry) {
+            return;
         }
 
         checkTimer = setInterval(async () => {

@@ -130,6 +130,14 @@ $(document).ready(function () {
         usePaginationMode = false;
         window.LogViewerPagination.reset();
         
+        // 针对压缩包隐藏/禁用实时刷新
+        const $refreshBtn = $("#refresh-btn");
+        if (fileId.includes("!")) {
+            $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
+        } else {
+            $refreshBtn.prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
+        }
+
         // 清除之前的搜索（如果有）
         window.LogViewerSearch.clearSearchResults();
         $("#content-search").val("");
@@ -157,6 +165,14 @@ $(document).ready(function () {
         usePaginationMode = true;
         window.LogViewerUIState.setActiveFileName(fileId);
         
+        // 针对压缩包隐藏/禁用实时刷新
+        const $refreshBtn = $("#refresh-btn");
+        if (metadata.isZipEntry) {
+            $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
+        } else {
+            $refreshBtn.prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
+        }
+
         // 清除搜索状态（分页模式不支持搜索）
         window.LogViewerSearch.clearSearchResults();
         $("#content-search").val("");
@@ -711,32 +727,39 @@ $(document).ready(function () {
 
     // 滚动按钮 - 使用统一处理函数
     $("#scroll-top-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handleScrollAction('top');
     });
 
     $("#scroll-bottom-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handleScrollAction('bottom');
     });
 
     // 分页按钮事件 - 使用统一处理函数
     $("#page-first-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handlePaginationClick('first');
     });
 
     $("#page-prev-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handlePaginationClick('prev');
     });
 
     $("#page-next-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handlePaginationClick('next');
     });
 
     $("#page-last-btn").on("click", function () {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         handlePaginationClick('last');
     });
 
     // 页码跳转
     $("#page-jump-input").on("keydown", async function (e) {
+        if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
         if (e.key === "Enter") {
             const page = parseInt($(this).val(), 10);
             if (isNaN(page) || page < 1) {
@@ -770,6 +793,11 @@ $(document).ready(function () {
     // 实时刷新功能 - 改进版本
     $("#refresh-btn").on("click", async function () {
         const $btn = $(this);
+
+        if ($btn.prop("disabled") || $btn.hasClass("disabled")) {
+            return;
+        }
+
         const $icon = $btn.find('.refresh-btn-icon');
         const $text = $btn.find('.refresh-btn-text');
         const $loading = $btn.find('.refresh-btn-loading');
@@ -784,7 +812,16 @@ $(document).ready(function () {
             $icon.show();
             $text.text("实时刷新");
             $loading.hide();
-            
+
+            // 通知分页模块实时刷新已停止
+            window.LogViewerPagination.setAutoRefreshEnabled(false);
+
+            // 更新分页状态（这会根据当前页码重新启用分页按钮）
+            window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
+
+            // 启用滚动按钮和输入框，并恢复样式
+            $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", false).css("cursor", "").removeClass("disabled");
+
             return;
         }
 
@@ -813,6 +850,15 @@ $(document).ready(function () {
             $icon.hide();
             $text.text("停止刷新");
             $loading.show();
+
+            // 通知分页模块实时刷新已开始
+            window.LogViewerPagination.setAutoRefreshEnabled(true);
+
+            // 更新分页状态（这会自动禁用分页按钮）
+            window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
+
+            // 禁用滚动按钮和输入框，并设置样式
+            $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", true).css("cursor", "not-allowed").addClass("disabled");
 
             refreshTimer = setInterval(async function () {
                 if (!activeId) {
@@ -901,6 +947,10 @@ $(document).ready(function () {
         window.LogViewerContentRenderer.hideLoading();
         $("#file-search").val("");
         $("#pagination-controls").hide();
+
+        // 重置实时刷新按钮状态
+        $("#refresh-btn").prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
+        $("#page-first-btn, #page-prev-btn, #page-next-btn, #page-last-btn, #page-jump-input, #scroll-top-btn, #scroll-bottom-btn").prop("disabled", false).css("cursor", "").removeClass("disabled");
         
         window.LogViewerFileTree.renderRootTree(currentRootPath);
     });
