@@ -36,18 +36,18 @@ public class LogViewerSecurityConfig {
     @Order(1)  // 最高优先级，确保在主项目的 Security 配置之前执行
     public SecurityFilterChain logViewerSecurityFilterChain(HttpSecurity http) throws Exception {
         String endpoint = properties.getEndpoint();
-        
+
         http.requestMatchers(matchers -> matchers.antMatchers(endpoint, endpoint + "/**"))
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
                 .csrf().disable();
-        
+
         // 当启用认证时，禁用 Spring Security 的默认认证机制
         if (properties.isEnableAuth()) {
             http.formLogin().disable()   // 禁用默认登录表单
-                .httpBasic().disable()   // 禁用 HTTP Basic 认证
-                .logout().disable();     // 禁用默认登出
+                    .httpBasic().disable()   // 禁用 HTTP Basic 认证
+                    .logout().disable();     // 禁用默认登出
         }
-        
+
         return http.build();
     }
 }

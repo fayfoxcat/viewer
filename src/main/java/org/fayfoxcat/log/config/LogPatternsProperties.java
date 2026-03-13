@@ -48,56 +48,119 @@ public class LogPatternsProperties {
      * 单条模式规则
      */
     public static class PatternRule {
-        /** 显示名称 */
+        /**
+         * 显示名称
+         */
         private String name;
-        /** 正则表达式 */
+        /**
+         * 正则表达式
+         */
         private String regex;
-        /** 前端 CSS class 名 */
+        /**
+         * 前端 CSS class 名
+         */
         private String className;
-        /** 高亮颜色 */
+        /**
+         * 高亮颜色
+         */
         private String color;
-        /** 描述 */
+        /**
+         * 描述
+         */
         private String description;
-        /** 是否参与前端语法高亮（true=渲染时自动高亮，false=仅搜索可用） */
+        /**
+         * 是否参与前端语法高亮（true=渲染时自动高亮，false=仅搜索可用）
+         */
         private boolean highlight = true;
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public String getName() {
+            return name;
+        }
 
-        public String getRegex() { return regex; }
-        public void setRegex(String regex) { this.regex = regex; }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public String getClassName() { return className; }
-        public void setClassName(String className) { this.className = className; }
+        public String getRegex() {
+            return regex;
+        }
 
-        public String getColor() { return color; }
-        public void setColor(String color) { this.color = color; }
+        public void setRegex(String regex) {
+            this.regex = regex;
+        }
 
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
+        public String getClassName() {
+            return className;
+        }
 
-        public boolean isHighlight() { return highlight; }
-        public void setHighlight(boolean highlight) { this.highlight = highlight; }
+        public void setClassName(String className) {
+            this.className = className;
+        }
+
+        public String getColor() {
+            return color;
+        }
+
+        public void setColor(String color) {
+            this.color = color;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public boolean isHighlight() {
+            return highlight;
+        }
+
+        public void setHighlight(boolean highlight) {
+            this.highlight = highlight;
+        }
     }
 
     /**
      * 预设组合
      */
     public static class PatternPreset {
-        /** 显示名称 */
+        /**
+         * 显示名称
+         */
         private String name;
-        /** 引用的规则 key 列表 */
+        /**
+         * 引用的规则 key 列表
+         */
         private List<String> patterns;
-        /** 描述 */
+        /**
+         * 描述
+         */
         private String description;
 
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
+        public String getName() {
+            return name;
+        }
 
-        public List<String> getPatterns() { return patterns; }
-        public void setPatterns(List<String> patterns) { this.patterns = patterns; }
+        public void setName(String name) {
+            this.name = name;
+        }
 
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
+        public List<String> getPatterns() {
+            return patterns;
+        }
+
+        public void setPatterns(List<String> patterns) {
+            this.patterns = patterns;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
     }
 }

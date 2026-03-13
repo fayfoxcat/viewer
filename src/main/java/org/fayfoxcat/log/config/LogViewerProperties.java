@@ -11,39 +11,39 @@ import java.util.List;
 /**
  * 日志查看器配置属性类
  * 用于从 application.yml 中读取配置
- * 
+ *
  * @author fayfoxcat
  * @version 0.0.1
  */
 @ConfigurationProperties(prefix = "logs.viewer")
 public class LogViewerProperties {
-    
+
     /**
      * 允许访问的日志目录列表（白名单）
      * 只有在此列表中的目录才能被访问
      * 如果为空，则默认使用当前jar包运行路径
      */
     private List<String> paths = new ArrayList<>();
-    
+
     /**
      * 日志查看器的访问端点
      * 默认为 /logs
      */
     private String endpoint = "/logs";
-    
+
     /**
      * 是否启用权限控制
      * 默认为 true，设置为 false 时跳过权限验证
      */
     private boolean enableAuth = true;
-    
+
     /**
      * 认证密钥
      * 如果配置了此密钥，登录时需要输入此密钥
      * 如果未配置，系统会生成临时密钥并打印到日志
      */
     private String secretKey;
-    
+
     /**
      * 大文件阈值（单位：MB）
      * 超过此大小的文件将只显示尾部内容（仅用于传统模式）
@@ -51,14 +51,13 @@ public class LogViewerProperties {
      * 默认为 1000MB
      */
     private int maxFileSizeMb = 1000;
-    
+
     /**
      * 大文件显示行数
      * 当文件超过大文件阈值时，显示的尾部行数（仅用于传统模式）
      * 默认为 10000 行
      */
     private int tailLines = 10000;
-    
 
 
     public List<String> getPaths() {
@@ -76,7 +75,7 @@ public class LogViewerProperties {
     public void setEndpoint(String endpoint) {
         this.endpoint = endpoint;
     }
-    
+
     public boolean isEnableAuth() {
         return enableAuth;
     }
@@ -84,7 +83,7 @@ public class LogViewerProperties {
     public void setEnableAuth(boolean enableAuth) {
         this.enableAuth = enableAuth;
     }
-    
+
     public String getSecretKey() {
         return secretKey;
     }
@@ -92,7 +91,7 @@ public class LogViewerProperties {
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
     }
-    
+
     public int getMaxFileSizeMb() {
         return maxFileSizeMb;
     }
@@ -109,20 +108,18 @@ public class LogViewerProperties {
         this.tailLines = tailLines;
     }
 
-
-    
     /**
      * 获取有效的日志路径列表
      * 如果用户配置了路径，则使用用户配置的路径
      * 如果用户没有配置路径，则返回当前jar包运行路径
-     * 
+     *
      * @return 有效的日志路径列表
      */
     public List<String> getEffectivePaths() {
         if (paths != null && !paths.isEmpty()) {
             return paths;
         }
-        
+
         // 如果没有配置路径，返回当前jar包运行路径
         List<String> defaultPaths = new ArrayList<>();
         String jarPath = getJarRunningPath();
@@ -131,11 +128,11 @@ public class LogViewerProperties {
         }
         return defaultPaths;
     }
-    
+
     /**
      * 获取当前jar包运行路径
      * 优先使用主进程的运行路径（user.dir），这样作为依赖时会使用主进程所在路径
-     * 
+     *
      * @return jar包运行路径
      */
     private String getJarRunningPath() {
@@ -146,11 +143,11 @@ public class LogViewerProperties {
             if (userDir != null && !userDir.trim().isEmpty()) {
                 return userDir;
             }
-            
+
             // 如果 user.dir 获取失败，尝试通过类路径获取
             String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
             path = URLDecoder.decode(path, StandardCharsets.UTF_8.name());
-            
+
             File file = new File(path);
             if (file.isFile()) {
                 return file.getParent();

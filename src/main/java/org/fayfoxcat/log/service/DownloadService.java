@@ -34,7 +34,8 @@ public class DownloadService {
 
     /**
      * 下载单个文件
-     * @param id 文件ID
+     *
+     * @param id       文件ID
      * @param response HTTP响应
      * @return 响应实体
      * @throws IOException IO异常
@@ -66,7 +67,8 @@ public class DownloadService {
 
     /**
      * 下载压缩包内的文件
-     * @param id 文件ID（格式：zipPath!entryName）
+     *
+     * @param id       文件ID（格式：zipPath!entryName）
      * @param response HTTP响应
      * @return 响应实体
      * @throws IOException IO异常
@@ -81,7 +83,7 @@ public class DownloadService {
         }
 
         String downloadName = entryName.contains("/") ?
-            entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
+                entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
         if (downloadName.trim().isEmpty()) {
             downloadName = "download.log";
         }
@@ -117,7 +119,8 @@ public class DownloadService {
 
     /**
      * 下载多个文件（打包为ZIP）
-     * @param files 文件列表
+     *
+     * @param files    文件列表
      * @param response HTTP响应
      * @return 响应实体
      * @throws IOException IO异常
@@ -149,10 +152,11 @@ public class DownloadService {
 
     /**
      * 将压缩包内的文件添加到归档
-     * @param id 文件ID
-     * @param zos ZIP输出流
+     *
+     * @param id          文件ID
+     * @param zos         ZIP输出流
      * @param nameCounter 文件名计数器
-     * @param buffer 缓冲区
+     * @param buffer      缓冲区
      * @throws IOException IO异常
      */
     private void addZipEntryToArchive(String id, ZipOutputStream zos, Map<String, Integer> nameCounter, byte[] buffer) throws IOException {
@@ -163,7 +167,7 @@ public class DownloadService {
         if (!logViewerService.isPathAllowedForViewer(zipPath)) return;
 
         String baseName = entryName.contains("/") ?
-            entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
+                entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
         if (baseName.trim().isEmpty()) baseName = "download.log";
 
         String finalName = dedupeName(baseName, nameCounter);
@@ -190,10 +194,11 @@ public class DownloadService {
 
     /**
      * 将普通文件添加到归档
-     * @param id 文件ID
-     * @param zos ZIP输出流
+     *
+     * @param id          文件ID
+     * @param zos         ZIP输出流
      * @param nameCounter 文件名计数器
-     * @param buffer 缓冲区
+     * @param buffer      缓冲区
      * @throws IOException IO异常
      */
     private void addFileToArchive(String id, ZipOutputStream zos, Map<String, Integer> nameCounter, byte[] buffer) throws IOException {
@@ -213,7 +218,8 @@ public class DownloadService {
 
     /**
      * 生成去重的文件名
-     * @param name 基础文件名
+     *
+     * @param name    基础文件名
      * @param counter 计数器
      * @return 去重后的文件名
      */

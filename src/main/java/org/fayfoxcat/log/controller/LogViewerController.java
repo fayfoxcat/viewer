@@ -1,9 +1,7 @@
 package org.fayfoxcat.log.controller;
 
 import org.fayfoxcat.log.config.LogViewerProperties;
-import org.fayfoxcat.log.service.AuthService;
-import org.fayfoxcat.log.service.DownloadService;
-import org.fayfoxcat.log.service.LogViewerService;
+import org.fayfoxcat.log.service.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,7 +32,8 @@ public class LogViewerController {
 
     /**
      * 首页
-     * @param model 模型
+     *
+     * @param model   模型
      * @param session HTTP会话
      * @return 日志查看器页面
      */
@@ -46,9 +45,10 @@ public class LogViewerController {
         model.addAttribute("authenticated", authService.isAuthenticated(session));
         return "index";
     }
-    
+
     /**
      * 登录验证
+     *
      * @param authKey 认证密钥
      * @param session HTTP会话
      * @return 验证结果
@@ -67,9 +67,10 @@ public class LogViewerController {
         }
         return result;
     }
-    
+
     /**
      * 登出
+     *
      * @param session HTTP会话
      * @return 登出结果
      */
@@ -82,9 +83,10 @@ public class LogViewerController {
         result.put("message", "已登出");
         return result;
     }
-    
+
     /**
      * 检查认证状态
+     *
      * @param session HTTP会话
      * @return 认证状态
      */
@@ -99,6 +101,7 @@ public class LogViewerController {
 
     /**
      * 列出指定路径下的文件
+     *
      * @param path 路径
      * @return 文件列表
      */
@@ -110,8 +113,9 @@ public class LogViewerController {
 
     /**
      * 在指定根路径下递归搜索文件名
+     *
      * @param rootPath 根路径
-     * @param keyword 关键字
+     * @param keyword  关键字
      * @return 匹配到的文件列表
      */
     @GetMapping("/files/search")
@@ -122,8 +126,9 @@ public class LogViewerController {
 
     /**
      * 列出压缩文件中的文件
+     *
      * @param zipPath 压缩文件路径
-     * @param prefix 前缀过滤
+     * @param prefix  前缀过滤
      * @return 压缩文件中的文件列表
      * @throws IOException IO异常
      */
@@ -136,6 +141,7 @@ public class LogViewerController {
 
     /**
      * 获取文件内容
+     *
      * @param filePath 文件路径
      * @return 文件内容
      * @throws IOException IO异常
@@ -148,7 +154,8 @@ public class LogViewerController {
 
     /**
      * 获取压缩文件中的文件内容
-     * @param zipPath 压缩文件路径
+     *
+     * @param zipPath   压缩文件路径
      * @param entryName 压缩文件中的文件名称
      * @return 文件内容
      * @throws IOException IO异常
@@ -161,15 +168,16 @@ public class LogViewerController {
 
     /**
      * 搜索文件内容
+     *
      * @param filePath 文件路径
-     * @param keyword 搜索关键词
+     * @param keyword  搜索关键词
      * @param useRegex 是否使用正则表达式
      * @return 搜索结果
      * @throws IOException IO异常
      */
     @PostMapping("/file/search")
     @ResponseBody
-    public List<String> searchFileContent(@RequestParam String filePath, 
+    public List<String> searchFileContent(@RequestParam String filePath,
                                           @RequestParam String keyword,
                                           @RequestParam(defaultValue = "false") boolean useRegex) throws IOException {
         return logViewerService.searchFileContent(filePath, keyword, useRegex);
@@ -177,41 +185,44 @@ public class LogViewerController {
 
     /**
      * 获取文件元数据（分页模式）
+     *
      * @param file 文件路径
      * @return 文件元数据
      * @throws IOException IO异常
      */
     @GetMapping("/file/metadata")
     @ResponseBody
-    public Map<String, Object> getFileMetadata(@RequestParam("file") String file) throws IOException {
+    public FileMetadata getFileMetadata(@RequestParam("file") String file) throws IOException {
         return logViewerService.getFileMetadata(file);
     }
 
     /**
      * 分页获取文件内容
-     * @param file 文件路径
-     * @param page 页码（从1开始）
+     *
+     * @param file     文件路径
+     * @param page     页码（从1开始）
      * @param pageSize 每页行数
      * @return 分页内容
      * @throws IOException IO异常
      */
     @GetMapping("/file/content/page")
     @ResponseBody
-    public Map<String, Object> getFileContentByPage(@RequestParam("file") String file,
-                                                     @RequestParam(defaultValue = "1") int page,
-                                                     @RequestParam(defaultValue = "1000") int pageSize) throws IOException {
+    public PageContent getFileContentByPage(@RequestParam("file") String file,
+                                            @RequestParam(defaultValue = "1") int page,
+                                            @RequestParam(defaultValue = "1000") int pageSize) throws IOException {
         return logViewerService.readFileContentByPage(file, page, pageSize);
     }
 
     /**
      * 服务端搜索文件内容（增强版）
+     *
      * @param request 搜索请求
      * @return 搜索结果
      * @throws IOException IO异常
      */
     @PostMapping("/file/search/advanced")
     @ResponseBody
-    public Map<String, Object> searchFileContentAdvanced(@RequestBody Map<String, Object> request) throws IOException {
+    public SearchResult searchFileContentAdvanced(@RequestBody Map<String, Object> request) throws IOException {
         String filePath = (String) request.get("file");
         String keyword = (String) request.get("keyword");
         Boolean useRegex = (Boolean) request.getOrDefault("useRegex", false);
@@ -219,13 +230,14 @@ public class LogViewerController {
         Integer contextLines = (Integer) request.getOrDefault("contextLines", 2);
         Integer maxResults = (Integer) request.getOrDefault("maxResults", 500);
         String patternName = (String) request.get("patternName");
-        
-        return logViewerService.searchFileContentAdvanced(filePath, keyword, useRegex, 
-                                                         caseSensitive, contextLines, maxResults, patternName);
+
+        return logViewerService.searchFileContentAdvanced(filePath, keyword, useRegex,
+                caseSensitive, contextLines, maxResults, patternName);
     }
 
     /**
      * 获取正则表达式配置
+     *
      * @return 正则表达式配置
      */
     @GetMapping("/patterns")
@@ -236,7 +248,8 @@ public class LogViewerController {
 
     /**
      * 下载文件
-     * @param files 文件路径列表
+     *
+     * @param files    文件路径列表
      * @param response HTTP响应
      * @return 响应实体
      * @throws IOException IO异常
@@ -246,11 +259,9 @@ public class LogViewerController {
         if (files == null || files.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-
         if (files.size() == 1) {
             return downloadService.downloadSingleFile(files.get(0), response);
         }
-
         return downloadService.downloadMultipleFiles(files, response);
     }
 }

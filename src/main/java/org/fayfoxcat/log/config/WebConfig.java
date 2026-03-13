@@ -18,9 +18,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Value("${logs.viewer.endpoint:/logs}")
     private String logViewerEndpoint;
-    
+
     private final AuthInterceptor authInterceptor;
-    
+
     public WebConfig(AuthInterceptor authInterceptor) {
         this.authInterceptor = authInterceptor;
     }
@@ -28,7 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
     /**
      * 配置静态资源处理器
      * 支持直接访问和带 endpoint 前缀的访问方式
-     * 
+     *
      * @param registry 资源处理器注册表
      */
     @Override
@@ -37,21 +37,21 @@ public class WebConfig implements WebMvcConfigurer {
         // 这样无论 context-path 是什么，都可以通过 /css/** 访问
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("classpath:/static/css/");
-        
+
         registry.addResourceHandler("/js/**")
                 .addResourceLocations("classpath:/static/js/");
-        
+
         // 同时也支持带 context-path 的访问（兼容性）
         registry.addResourceHandler(logViewerEndpoint + "/css/**")
                 .addResourceLocations("classpath:/static/css/");
-        
+
         registry.addResourceHandler(logViewerEndpoint + "/js/**")
                 .addResourceLocations("classpath:/static/js/");
     }
-    
+
     /**
      * 添加拦截器
-     * 
+     *
      * @param registry 拦截器注册表
      */
     @Override
