@@ -44,20 +44,21 @@ $(document).ready(function () {
      * 处理文件追加事件
      * 当文件内容被追加时更新分页信息
      * 
-     * @param {Object} info - 文件变更信息
-     * @param {number} info.newTotalPages - 新的总页数
+     * @param {Object} _info - 文件变更信息（未使用，保留以匹配接口）
      */
-    function handleFileAppend(info) {
-        window.LogViewerPagination.updatePagination(info.newTotalPages * 1000);
+    function handleFileAppend(_info) {
+        // 注意：此函数当前未使用 info 参数，因为分页信息由 PageCache 管理
+        // 保留参数以匹配 LogViewerApp 接口
+        // window.LogViewerPagination.updatePagination(info.newTotalPages * 1000);
     }
 
     /**
      * 处理文件修改事件
      * 显示文件已修改通知并刷新当前页面
      * 
-     * @param {Object} info - 文件变更信息
+     * @param {Object} _info - 文件变更信息（未使用，保留以匹配接口）
      */
-    function handleFileModified(info) {
+    function handleFileModified(_info) {
         window.LogViewerNotification.showFileModified();
         setTimeout(() => refreshCurrentPage(), 500);
     }
@@ -145,13 +146,13 @@ $(document).ready(function () {
         }
 
         window.LogViewerSearch.clearSearchResults();
-        $("#content-search").val("");
-
+        
         const keyword = $("#content-search").val().trim();
         if (keyword) {
-            window.LogViewerToolbar.performContentSearch(false, appContext);
+            window.LogViewerToolbar.performContentSearch(false, appContext).catch(err => {
+                console.error('搜索失败:', err);
+            });
         } else {
-            window.LogViewerSearch.clearSearchResults();
             window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, 1);
         }
 
@@ -270,23 +271,25 @@ $(document).ready(function () {
                     }
                     
                     list.forEach(function (f) {
-                        const isArchive = window.LogViewerUtils.isArchiveFileName(f.name);
+                        /** @type {{name?: string, path?: string, size?: number, lastModified?: number, directory?: boolean}} */
+                        const file = f || {};
+                        const isArchive = window.LogViewerUtils.isArchiveFileName(file.name || "");
                         const $li = $("<li class='file-node selectable'>");
-                        $li.attr("data-id", f.path).data("node", f);
+                        $li.attr("data-id", file.path).data("node", file);
                         
                         const selectedIds = window.LogViewerSelectionManager.getSelectedIds();
-                        if (selectedIds.has(f.path)) $li.addClass("selected");
+                        if (selectedIds.has(file.path || "")) $li.addClass("selected");
                         if (isArchive) $li.addClass("zip-file");
 
                         $li.html(`
-                          <div class="file-row" title="修改时间: ${window.LogViewerUtils.formatDate(f.lastModified)}">
+                          <div class="file-row" title="修改时间: ${window.LogViewerUtils.formatDate(file.lastModified || 0)}">
                             <div class="file-col file-col-name">
                               ${isArchive ? '<button type="button" class="file-expander" data-expander="1">▸</button>' : '<span class="file-expander hidden">▸</span>'}
                               <span class="file-icon">${isArchive ? "📦" : "📄"}</span>
-                              <span class="file-label">${window.LogViewerUtils.escapeHtml(f.name)}</span>
+                              <span class="file-label">${window.LogViewerUtils.escapeHtml(file.name || "")}</span>
                             </div>
-                            <div class="file-col file-col-time">${window.LogViewerUtils.formatDateShort(f.lastModified)}</div>
-                            <div class="file-col file-col-size">${window.LogViewerUtils.formatFileSize(f.size)}</div>
+                            <div class="file-col file-col-time">${window.LogViewerUtils.formatDateShort(file.lastModified || 0)}</div>
+                            <div class="file-col file-col-size">${window.LogViewerUtils.formatFileSize(file.size || 0)}</div>
                           </div>
                         `);
                         
@@ -312,11 +315,12 @@ $(document).ready(function () {
     $(document).on("click", "#file-list .file-col-name", function (e) {
         e.stopPropagation();
         const $li = $(this).closest("li.file-node");
+        /** @type {{directory?: boolean, name?: string, path?: string}} */
         const node = $li.data("node");
         if (!node) return;
 
-        const isDir = !!node.directory;
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name);
+        const isDir = !!(node.directory);
+        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
         const isZipEntry = $li.hasClass("zip-entry");
 
         if (isDir && !isZipEntry) {
@@ -332,8 +336,9 @@ $(document).ready(function () {
 
     $(document).on("click", "#file-list .file-col-size", function (e) {
         const $li = $(this).closest("li.file-node");
+        /** @type {{directory?: boolean, name?: string, path?: string}} */
         const node = $li.data("node");
-        if (!node || !!node.directory) return;
+        if (!node || !!(node.directory)) return;
         if (e.ctrlKey || e.metaKey || e.shiftKey) {
             e.stopPropagation();
             window.LogViewerSelectionManager.handleSelectionClick(e, $li);
@@ -345,10 +350,11 @@ $(document).ready(function () {
     $(document).on("click", "#file-list .file-expander[data-expander='1']", function (e) {
         e.stopPropagation();
         const $li = $(this).closest("li.file-node");
+        /** @type {{directory?: boolean, name?: string, path?: string}} */
         const node = $li.data("node");
         if (!node) return;
-        const isDir = !!node.directory;
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name);
+        const isDir = !!(node.directory);
+        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
 
         if ($li.hasClass("zip-entry") && isDir) {
             window.LogViewerFileTree.expandZipDirNode($li);
@@ -362,9 +368,10 @@ $(document).ready(function () {
     $(document).on("click", "#file-list li.file-node", function (e) {
         const $li = $(this);
         const id = $li.attr("data-id");
+        /** @type {{directory?: boolean, name?: string, path?: string}} */
         const node = $li.data("node") || {};
-        const isDir = !!node.directory;
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name);
+        const isDir = !!(node.directory);
+        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
         const isZipEntry = $li.hasClass("zip-entry");
         const entryName = $li.attr("data-entry");
         const zipPath = $li.attr("data-zip");
@@ -407,8 +414,10 @@ $(document).ready(function () {
             method: 'GET',
             data: { file: filePath },
             success: async function(metadata) {
-                const fileSizeMB = metadata.fileSize / (1024 * 1024);
-                const shouldUsePagination = fileSizeMB > 10 || metadata.totalLines > 10000;
+                /** @type {{fileSize?: number, totalLines?: number}} */
+                const meta = metadata || {};
+                const fileSizeMB = (meta.fileSize || 0) / (1024 * 1024);
+                const shouldUsePagination = fileSizeMB > 10 || (meta.totalLines || 0) > 10000;
                 
                 if (shouldUsePagination) {
                     await onFileLoadSuccessPaginated(metadata, filePath);
@@ -422,9 +431,13 @@ $(document).ready(function () {
             },
             error: function(xhr) {
                 let errorMessage = '获取文件信息失败';
-                if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
-                else if (xhr.status === 500) errorMessage = '服务器内部错误';
-                else if (xhr.status === 404) errorMessage = '文件未找到';
+                if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr && xhr.status === 500) {
+                    errorMessage = '服务器内部错误';
+                } else if (xhr && xhr.status === 404) {
+                    errorMessage = '文件未找到';
+                }
                 
                 if (isZipEntry) {
                     window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, function(fallbackError) {
@@ -507,31 +520,31 @@ $(document).ready(function () {
         }
     });
 
-    $("#scroll-top-btn").on("click", function () {
+    $("#scroll-top-btn").on("click", async function () {
         if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
-        window.LogViewerToolbar.handleScrollAction('top', appContext);
+        await window.LogViewerToolbar.handleScrollAction('top', appContext);
     });
 
-    $("#scroll-bottom-btn").on("click", function () {
+    $("#scroll-bottom-btn").on("click", async function () {
         if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
-        window.LogViewerToolbar.handleScrollAction('bottom', appContext);
+        await window.LogViewerToolbar.handleScrollAction('bottom', appContext);
     });
 
-    $("#page-first-btn").on("click", function () {
+    $("#page-first-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        window.LogViewerToolbar.handlePaginationClick('first', appContext);
+        await window.LogViewerToolbar.handlePaginationClick('first', appContext);
     });
-    $("#page-prev-btn").on("click", function () {
+    $("#page-prev-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        window.LogViewerToolbar.handlePaginationClick('prev', appContext);
+        await window.LogViewerToolbar.handlePaginationClick('prev', appContext);
     });
-    $("#page-next-btn").on("click", function () {
+    $("#page-next-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        window.LogViewerToolbar.handlePaginationClick('next', appContext);
+        await window.LogViewerToolbar.handlePaginationClick('next', appContext);
     });
-    $("#page-last-btn").on("click", function () {
+    $("#page-last-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        window.LogViewerToolbar.handlePaginationClick('last', appContext);
+        await window.LogViewerToolbar.handlePaginationClick('last', appContext);
     });
 
     $("#page-jump-input").on("keydown", async function (e) {
@@ -553,8 +566,8 @@ $(document).ready(function () {
         }
     });
 
-    $("#refresh-btn").on("click", function () {
-        window.LogViewerToolbar.toggleAutoRefresh(appContext);
+    $("#refresh-btn").on("click", async function () {
+        await window.LogViewerToolbar.toggleAutoRefresh(appContext);
     });
 
     // ========== 【搜索结果区】事件绑定 ==========
