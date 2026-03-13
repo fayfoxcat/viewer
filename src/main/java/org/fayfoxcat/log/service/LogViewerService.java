@@ -913,6 +913,20 @@ public class LogViewerService {
      * 获取正则表达式配置
      * @return 正则表达式配置
      */
+    /**
+     * 清除日志模式缓存
+     * 用于配置更新后重新加载
+     */
+    public void clearPatternsCache() {
+        logPatternsCache = null;
+    }
+
+    /**
+     * 获取日志模式配置
+     * 将 LogPatternsProperties 转换为前端可用的格式
+     * 
+     * @return 正则表达式配置
+     */
     public Map<String, Object> getLogPatterns() {
         if (logPatternsCache != null) {
             return logPatternsCache;

@@ -46,22 +46,6 @@
     min-height: 200px;
 }
 
-/* 日志语法高亮 */
-#log-content-actual .log-date,
-#log-content-actual .log-time { color: #26a69a; }
-#log-content-actual .log-error { color: #f44336; font-weight: bold; }
-#log-content-actual .log-warning { color: #ff9800; font-weight: bold; }
-#log-content-actual .log-info { color: #2196f3; }
-#log-content-actual .log-debug { color: #9c27b0; }
-#log-content-actual .log-exception { color: #ef5350; font-style: italic; }
-#log-content-actual .log-string { color: #66bb6a; }
-#log-content-actual .log-number { color: #42a5f5; }
-#log-content-actual .log-url { color: #29b6f6; text-decoration: underline; cursor: pointer; }
-#log-content-actual .log-ip { color: #ab47bc; }
-#log-content-actual .log-email { color: #66bb6a; }
-#log-content-actual .log-uuid { color: #42a5f5; }
-#log-content-actual .log-sql { color: #ff5722; font-weight: bold; }
-
 /* 日志行 */
 .log-lines {
     padding: 12px 0;
