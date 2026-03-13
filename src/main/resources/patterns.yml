@@ -3,7 +3,7 @@ logs:
     rules:
       date:
         name: 日期和时间
-        regex: "\\d{4}-\\d{2}-\\d{2}(?:T|\\s+)\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d{3})?)?"
+        regex: "\\d{4}-\\d{2}-\\d{2}(?:(?:T|\\s+)\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d{3})?)?)?"
         class-name: log-date
         color: "#26a69a"
         description: 匹配日期格式
@@ -72,11 +72,11 @@ logs:
         description: 匹配引号字符串
         highlight: true
       number:
-        name: 大于2位的纯数字，剔除java前缀
-        regex: "(?<!java[:-])\\b\\d{2,}\\b"
+        name: 独立纯数字
+        regex: "(?<=^|[\\s,，]|[\\u4e00-\\u9fa5])\\d+(?:\\.\\d+)?(?=[\\s,，]|[\\u4e00-\\u9fa5]|$)"
         class-name: log-number
         color: "#42a5f5"
-        description: 匹配纯数字
+        description: 匹配独立的整数或小数（前后只能是空格、逗号或中文）
         highlight: true
       email:
         name: 邮箱地址
