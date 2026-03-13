@@ -137,7 +137,6 @@ window.LogViewerUtils = (function() {
         formatDateShort,
         escapeHtml,
         escapeRegex,
-        isNearBottom,
         getEndpoint
     };
 })();

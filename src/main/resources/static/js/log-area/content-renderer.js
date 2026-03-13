@@ -301,33 +301,12 @@ window.LogViewerContentRenderer = (function() {
         }, 500);
     }
 
-    /**
-     * 跳转到指定页面
-     * 重新渲染内容并更新分页状态
-     * 
-     * @param {number} page - 目标页码
-     */
-    function jumpToPage(page) {
-        currentPage = Math.max(1, Math.min(totalPages, page));
-        renderPageContent(currentPage);
-        
-        window.LogViewerPagination.setCurrentPage(currentPage);
-        window.LogViewerPagination.updatePagination(currentLines.length);
-        
-        showPageIndicator(currentPage);
-        
-        setTimeout(() => {
-            $("#log-content-actual").scrollTop(0);
-        }, 50);
-    }
-
     return {
         renderLogContent,
         scrollToLine,
         scrollToTop,
         scrollToBottom,
         scrollToPosition,
-        jumpToPage,
         showPageIndicator,
         showLoading,
         hideLoading,

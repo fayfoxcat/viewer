@@ -315,7 +315,6 @@ window.LogViewerToolbar = (function() {
         performContentSearch,
         toggleAutoRefresh,
         stopRefresh,
-        isRefreshing,
         cleanup
     };
 })();

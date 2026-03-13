@@ -85,7 +85,6 @@ window.LogViewerSelectionManager = (function() {
                 setLiSelected($n, true);
             });
             window.LogViewerUIState.updateDownloadButton(selectedIds);
-            return;
         }
     }
 
@@ -98,22 +97,9 @@ window.LogViewerSelectionManager = (function() {
         return selectedIds;
     }
 
-    /**
-     * 设置选中的文件 ID 集合
-     * 
-     * @param {Set<string>} ids - 文件 ID 集合
-     */
-    function setSelectedIds(ids) {
-        selectedIds = ids;
-    }
-
     return {
-        getVisibleSelectableLis,
-        setLiSelected,
-        toggleSelectionById,
         clearAllSelection,
         handleSelectionClick,
-        getSelectedIds,
-        setSelectedIds
+        getSelectedIds
     };
 })();

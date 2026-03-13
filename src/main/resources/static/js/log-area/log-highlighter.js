@@ -205,23 +205,10 @@
         return html;
     }
 
-    /**
-     * 重新加载高亮规则配置
-     * 强制从服务器重新获取配置并更新样式
-     * 
-     * @returns {Promise<void>}
-     */
-    async function reloadPatterns() {
-        patternsLoaded = false;
-        HIGHLIGHT_RULES = [];
-        await loadPatterns();
-    }
-
     window.LogHighlighter = {
         highlightLine,
         highlightLines,
-        loadPatterns,
-        reloadPatterns
+        loadPatterns
     };
 
     loadPatterns();

@@ -5,7 +5,6 @@ window.LogViewerFileTree = (function() {
     'use strict';
 
     let apiBase = '';
-    let selectedIds = new Set();
     let expandedPaths = new Set();
     let expandedZipPaths = new Set();
     let currentSortBy = 'name';
@@ -295,10 +294,6 @@ window.LogViewerFileTree = (function() {
         apiBase = apiBasePath;
     }
 
-    function setSelectedIdsRef(selectedIdsRef) {
-        selectedIds = selectedIdsRef;
-    }
-
     function clearExpandedState() {
         expandedPaths.clear();
         expandedZipPaths.clear();
@@ -306,7 +301,6 @@ window.LogViewerFileTree = (function() {
 
     return {
         init,
-        setSelectedIdsRef,
         renderRootTree,
         expandDirectoryNode,
         expandArchiveNode,

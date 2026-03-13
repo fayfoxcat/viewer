@@ -235,28 +235,6 @@ public class LogViewerController {
     }
 
     /**
-     * 重新加载正则表达式配置
-     * 清除缓存并重新读取配置文件
-     * @return 操作结果
-     */
-    @PostMapping("/patterns/reload")
-    @ResponseBody
-    public Map<String, Object> reloadLogPatterns() {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            logViewerService.clearPatternsCache();
-            Map<String, Object> patterns = logViewerService.getLogPatterns();
-            result.put("success", true);
-            result.put("message", "配置重载成功");
-            result.put("patterns", patterns);
-        } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "配置重载失败: " + e.getMessage());
-        }
-        return result;
-    }
-
-    /**
      * 下载文件
      * @param files 文件路径列表
      * @param response HTTP响应

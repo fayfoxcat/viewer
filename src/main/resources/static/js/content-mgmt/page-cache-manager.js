@@ -397,9 +397,6 @@ window.LogViewerPageCache = (function() {
         init,
         getPage,
         setCurrentPage,
-        clear,
-        getStatus,
-        startFileChangeDetection,
-        stopFileChangeDetection
+        clear
     };
 })();

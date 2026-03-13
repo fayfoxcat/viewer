@@ -102,21 +102,6 @@ window.LogViewerNotification = (function() {
     }
 
     /**
-     * 显示文件追加通知
-     * 
-     * @param {number} newLines - 新增行数
-     * @returns {number} 通知 ID
-     */
-    function showFileAppend(newLines) {
-        return show({
-            icon: '📝',
-            message: `文件已更新，新增 ${newLines} 行`,
-            type: 'success',
-            duration: 3000
-        });
-    }
-
-    /**
      * 显示文件修改通知
      * 
      * @returns {number} 通知 ID
@@ -130,61 +115,8 @@ window.LogViewerNotification = (function() {
         });
     }
 
-    /**
-     * 显示跳转到最新内容的确认通知
-     * 
-     * @param {Function} onConfirm - 确认回调函数
-     * @returns {number} 通知 ID
-     */
-    function showJumpToLatest(onConfirm) {
-        return show({
-            icon: '🔄',
-            message: '检测到新内容，是否跳转到最新？',
-            type: 'info',
-            duration: 0,
-            actions: [
-                { text: '跳转', onClick: onConfirm },
-                { text: '稍后', onClick: () => {} }
-            ]
-        });
-    }
-
-    /**
-     * 显示成功通知
-     * 
-     * @param {string} message - 通知消息
-     * @param {number} [duration=3000] - 显示时长（毫秒）
-     * @returns {number} 通知 ID
-     */
-    function showSuccess(message, duration = 3000) {
-        return show({
-            icon: '✅',
-            message: message,
-            type: 'success',
-            duration: duration
-        });
-    }
-
-    /**
-     * 显示错误通知
-     * 
-     * @param {string} message - 通知消息
-     * @param {number} [duration=5000] - 显示时长（毫秒）
-     * @returns {number} 通知 ID
-     */
-    function showError(message, duration = 5000) {
-        return show({
-            icon: '❌',
-            message: message,
-            type: 'error',
-            duration: duration
-        });
-    }
-
     return {
         show,
-        showSuccess,
-        showError,
         showFileModified,
     };
 })();

@@ -570,52 +570,6 @@ $(document).ready(function () {
         await window.LogViewerToolbar.toggleAutoRefresh(appContext);
     });
 
-    // 配置重载按钮
-    $("#reload-patterns-btn").on("click", async function () {
-        const $btn = $(this);
-        const originalHtml = $btn.html();
-        
-        try {
-            $btn.prop("disabled", true).html('<span>⏳</span>');
-            
-            const endpoint = window.logViewerEndpoint || '/logs';
-            const response = await fetch(`${endpoint}/patterns/reload`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                // 重新加载前端的高亮配置
-                await window.LogHighlighter.reloadPatterns();
-                
-                // 如果当前有显示的内容，重新渲染以应用新的高亮规则
-                const currentContent = $("#log-content-actual").html();
-                if (currentContent && currentContent.trim() !== '') {
-                    // 触发内容重新渲染
-                    const currentFile = $("#current-file-path").text();
-                    if (currentFile && currentFile !== '请选择日志文件') {
-                        window.LogViewerNotification.showSuccess('配置已重载，正在重新渲染内容...');
-                        // 这里可以触发当前文件的重新加载
-                        // 但为了简单起见，我们只显示成功消息
-                    }
-                }
-                
-                window.LogViewerNotification.showSuccess('高亮配置重载成功');
-            } else {
-                window.LogViewerNotification.showError('配置重载失败: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Failed to reload patterns:', error);
-            window.LogViewerNotification.showError('配置重载失败: ' + error.message);
-        } finally {
-            $btn.prop("disabled", false).html(originalHtml);
-        }
-    });
-
     // ========== 【搜索结果区】事件绑定 ==========
 
     $("#close-search-btn").on("click", function () {
