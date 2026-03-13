@@ -776,40 +776,31 @@ public class LogViewerService {
     /**
      * 服务端搜索文件内容（增强版）
      *
-     * @param filePath      文件路径（支持压缩包格式：zipPath!entryName）
-     * @param keyword       搜索关键词
-     * @param useRegex      是否使用正则表达式
-     * @param caseSensitive 是否区分大小写
-     * @param contextLines  上下文行数
-     * @param maxResults    最大结果数
-     * @param patternName   预定义模式名称
+     * @param request 搜索请求参数
      * @return 搜索结果
      * @throws IOException IO异常
      */
-    public SearchResult searchFileContentAdvanced(String filePath, String keyword,
-                                                  boolean useRegex, boolean caseSensitive,
-                                                  int contextLines, int maxResults,
-                                                  String patternName) throws IOException {
+    public SearchResult searchFileContentAdvanced(SearchRequest request) throws IOException {
         // 检查是否为压缩包内的文件
-        if (filePath.contains("!")) {
-            return searchZipEntryContentAdvanced(filePath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName);
+        if (request.getFilePath().contains("!")) {
+            return searchZipEntryContentAdvanced(request);
         }
 
         // 普通文件处理
-        if (!isPathAllowedForViewer(filePath)) {
+        if (!isPathAllowedForViewer(request.getFilePath())) {
             throw new FileNotFoundException("Not allowed");
         }
 
-        File file = new File(filePath);
+        File file = new File(request.getFilePath());
         if (!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException("File not found: " + filePath);
+            throw new FileNotFoundException("File not found: " + request.getFilePath());
         }
 
-        return performSearch(filePath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName,
+        return performSearch(request,
                 () -> {
                     List<String> allLines = new ArrayList<>();
                     try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
+                            new InputStreamReader(Files.newInputStream(Paths.get(request.getFilePath())), StandardCharsets.UTF_8))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             allLines.add(line);
@@ -823,23 +814,14 @@ public class LogViewerService {
     /**
      * 搜索压缩包内文件内容（增强版）
      *
-     * @param zipEntryPath  压缩包文件路径（格式：zipPath!entryName）
-     * @param keyword       搜索关键词
-     * @param useRegex      是否使用正则表达式
-     * @param caseSensitive 是否区分大小写
-     * @param contextLines  上下文行数
-     * @param maxResults    最大结果数
-     * @param patternName   预定义模式名称
+     * @param request 搜索请求参数
      * @return 搜索结果
      * @throws IOException IO异常
      */
-    private SearchResult searchZipEntryContentAdvanced(String zipEntryPath, String keyword,
-                                                       boolean useRegex, boolean caseSensitive,
-                                                       int contextLines, int maxResults,
-                                                       String patternName) throws IOException {
-        int idx = zipEntryPath.indexOf('!');
-        String zipPath = zipEntryPath.substring(0, idx);
-        String entryName = zipEntryPath.substring(idx + 1);
+    private SearchResult searchZipEntryContentAdvanced(SearchRequest request) throws IOException {
+        int idx = request.getFilePath().indexOf('!');
+        String zipPath = request.getFilePath().substring(0, idx);
+        String entryName = request.getFilePath().substring(idx + 1);
 
         if (!isPathAllowedForViewer(zipPath)) {
             throw new FileNotFoundException("Not allowed");
@@ -848,7 +830,7 @@ public class LogViewerService {
         File zipFile = new File(zipPath);
         String fileVersion = zipFile.lastModified() + "-" + zipFile.length() + "-" + entryName.hashCode();
 
-        return performSearch(zipEntryPath, keyword, useRegex, caseSensitive, contextLines, maxResults, patternName,
+        return performSearch(request,
                 () -> {
                     String content = readFileFromZip(zipPath, entryName);
                     String[] lines = content.split("\n");
@@ -863,22 +845,21 @@ public class LogViewerService {
      * 执行搜索的通用方法
      * 支持正则表达式、大小写敏感、上下文行数等高级搜索功能
      *
-     * @param filePath      文件路径
-     * @param keyword       搜索关键词
-     * @param useRegex      是否使用正则表达式
-     * @param caseSensitive 是否区分大小写
-     * @param contextLines  上下文行数
-     * @param maxResults    最大结果数
-     * @param patternName   预定义模式名称（可选）
+     * @param request       搜索请求参数
      * @param linesProvider 行内容提供者函数式接口
      * @param fileVersion   文件版本标识
      * @return 搜索结果，包含匹配行、上下文、匹配范围等信息
      * @throws IOException IO异常
      */
-    private SearchResult performSearch(String filePath, String keyword, boolean useRegex, boolean caseSensitive,
-                                       int contextLines, int maxResults, String patternName,
-                                       LinesProvider linesProvider, String fileVersion) throws IOException {
+    private SearchResult performSearch(SearchRequest request, LinesProvider linesProvider, String fileVersion) throws IOException {
         long startTime = System.currentTimeMillis();
+
+        String keyword = request.getKeyword();
+        boolean useRegex = request.isUseRegex();
+        boolean caseSensitive = request.isCaseSensitive();
+        int contextLines = request.getContextLines();
+        int maxResults = request.getMaxResults();
+        String patternName = request.getPatternName();
 
         // 如果指定了预定义模式，使用模式的正则
         if (patternName != null && !patternName.trim().isEmpty()) {

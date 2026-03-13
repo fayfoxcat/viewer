@@ -137,7 +137,7 @@ window.LogViewerToolbar = (function() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    file: appContext.getActiveId(),
+                    filePath: appContext.getActiveId(),
                     keyword: keyword,
                     useRegex: useRegex,
                     caseSensitive: false,

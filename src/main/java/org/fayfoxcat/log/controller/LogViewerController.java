@@ -216,23 +216,14 @@ public class LogViewerController {
     /**
      * 服务端搜索文件内容（增强版）
      *
-     * @param request 搜索请求
+     * @param request 搜索请求参数
      * @return 搜索结果
      * @throws IOException IO异常
      */
     @PostMapping("/file/search/advanced")
     @ResponseBody
-    public SearchResult searchFileContentAdvanced(@RequestBody Map<String, Object> request) throws IOException {
-        String filePath = (String) request.get("file");
-        String keyword = (String) request.get("keyword");
-        Boolean useRegex = (Boolean) request.getOrDefault("useRegex", false);
-        Boolean caseSensitive = (Boolean) request.getOrDefault("caseSensitive", false);
-        Integer contextLines = (Integer) request.getOrDefault("contextLines", 2);
-        Integer maxResults = (Integer) request.getOrDefault("maxResults", 500);
-        String patternName = (String) request.get("patternName");
-
-        return logViewerService.searchFileContentAdvanced(filePath, keyword, useRegex,
-                caseSensitive, contextLines, maxResults, patternName);
+    public SearchResult searchFileContentAdvanced(@RequestBody SearchRequest request) throws IOException {
+        return logViewerService.searchFileContentAdvanced(request);
     }
 
     /**
