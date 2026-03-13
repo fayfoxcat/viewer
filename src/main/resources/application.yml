@@ -43,7 +43,7 @@ logs:
     rules:
       wiscom-java-file:
         name: Wiscom Java文件位置
-        regex: "([A-Z][a-zA-Z0-9_]+\\.java:\\d+)(?=\\))"
+        regex: "(?<=com\\.wiscom.*?)[A-Za-z][A-Za-z0-9_]*\\.java:\\d+"
         class-name: log-wiscom-java-file
         color: "#42a5f5"
         description: 匹配包名com.wiscom.xxx的Java文件名和行号（如SysUserService.java:59）

@@ -2,8 +2,8 @@ logs:
   patterns:
     rules:
       date:
-        name: 日期
-        regex: "\\d{4}-\\d{2}-\\d{2}"
+        name: 日期和时间
+        regex: "\\d{4}-\\d{2}-\\d{2}(?:T|\\s+)\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d{3})?)?"
         class-name: log-date
         color: "#26a69a"
         description: 匹配日期格式
@@ -72,8 +72,8 @@ logs:
         description: 匹配引号字符串
         highlight: true
       number:
-        name: 数字
-        regex: "\\b\\d+\\b"
+        name: 大于2位的纯数字，剔除java前缀
+        regex: "(?<!java[:-])\\b\\d{2,}\\b"
         class-name: log-number
         color: "#42a5f5"
         description: 匹配纯数字
