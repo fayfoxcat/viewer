@@ -44,21 +44,6 @@ public class ViewerProperties {
      */
     private String secretKey;
 
-    /**
-     * 大文件阈值（单位：MB）
-     * 此配置已废弃，所有文件均采用分页加载模式
-     * 默认为 1000MB
-     */
-    private int maxFileSizeMb = 1000;
-
-    /**
-     * 大文件显示行数
-     * 此配置已废弃，所有文件均采用分页加载模式
-     * 默认为 10000 行
-     */
-    private int tailLines = 10000;
-
-
     public List<String> getPaths() {
         return paths;
     }
@@ -89,22 +74,6 @@ public class ViewerProperties {
 
     public void setSecretKey(String secretKey) {
         this.secretKey = secretKey;
-    }
-
-    public int getMaxFileSizeMb() {
-        return maxFileSizeMb;
-    }
-
-    public void setMaxFileSizeMb(int maxFileSizeMb) {
-        this.maxFileSizeMb = maxFileSizeMb;
-    }
-
-    public int getTailLines() {
-        return tailLines;
-    }
-
-    public void setTailLines(int tailLines) {
-        this.tailLines = tailLines;
     }
 
     /**

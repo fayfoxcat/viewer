@@ -31,8 +31,6 @@ viewer:
     endpoint: /viewer               # 访问端点，默认 /viewer
     enable-auth: false              # 是否启用认证，默认 true
     secret-key:                     # 认证密钥，留空则自动生成
-    max-file-size-mb: 100           # 大文件阈值（MB），超过此大小只显示尾部，默认 10MB
-    tail-lines: 1000000             # 大文件显示行数，默认 10000 行
     paths:
       - C:/Users/root/Desktop/logs  # 示例：桌面日志目录
   patterns:

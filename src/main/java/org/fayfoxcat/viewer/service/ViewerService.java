@@ -253,6 +253,7 @@ public class ViewerService {
 
     /**
      * 读取文件内容
+     * 注意：由于项目已全面采用分页模式，此方法仅用于向后兼容
      *
      * @param filePath 文件路径
      * @return 文件内容
@@ -264,12 +265,6 @@ public class ViewerService {
         }
         File file = new File(filePath);
 
-        // 使用配置的文件大小限制
-        long maxFileSize = properties.getMaxFileSizeMb() * 1024L * 1024L;
-        if (file.length() > maxFileSize) {
-            return readFileTail(filePath, properties.getTailLines());
-        }
-
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
@@ -277,35 +272,6 @@ public class ViewerService {
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
             }
-        }
-        return content.toString();
-    }
-
-    /**
-     * 读取文件尾部内容
-     *
-     * @param filePath 文件路径
-     * @param lines    行数
-     * @return 文件内容
-     * @throws IOException IO异常
-     */
-    private String readFileTail(String filePath, int lines) throws IOException {
-        List<String> lineList = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(Paths.get(filePath)), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lineList.add(line);
-                if (lineList.size() > lines) {
-                    lineList.remove(0);
-                }
-            }
-        }
-
-        StringBuilder content = new StringBuilder();
-        content.append("=== 文件过大，仅显示最后 ").append(lines).append(" 行 ===\n\n");
-        for (String line : lineList) {
-            content.append(line).append("\n");
         }
         return content.toString();
     }
@@ -499,20 +465,13 @@ public class ViewerService {
 
     /**
      * 读取 gzip 文件内容
+     * 注意：由于项目已全面采用分页模式，此方法仅用于向后兼容
      *
      * @param gzipPath gzip 文件路径
      * @return 文件内容
      * @throws IOException IO异常
      */
     private String readGzipFile(String gzipPath) throws IOException {
-        File file = new File(gzipPath);
-
-        // 使用配置的文件大小限制（压缩后）
-        long maxFileSize = properties.getMaxFileSizeMb() * 1024L * 1024L;
-        if (file.length() > maxFileSize) {
-            return readGzipFileTail(gzipPath, properties.getTailLines());
-        }
-
         StringBuilder content = new StringBuilder();
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(Files.newInputStream(Paths.get(gzipPath)));
              BufferedReader reader = new BufferedReader(new InputStreamReader(gzipInputStream, StandardCharsets.UTF_8))) {
@@ -520,35 +479,6 @@ public class ViewerService {
             while ((line = reader.readLine()) != null) {
                 content.append(line).append("\n");
             }
-        }
-        return content.toString();
-    }
-
-    /**
-     * 读取 gzip 文件尾部内容
-     *
-     * @param gzipPath gzip 文件路径
-     * @param lines    行数
-     * @return 文件内容
-     * @throws IOException IO异常
-     */
-    private String readGzipFileTail(String gzipPath, int lines) throws IOException {
-        List<String> lineList = new ArrayList<>();
-        try (GZIPInputStream gzipInputStream = new GZIPInputStream(Files.newInputStream(Paths.get(gzipPath)));
-             BufferedReader reader = new BufferedReader(new InputStreamReader(gzipInputStream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lineList.add(line);
-                if (lineList.size() > lines) {
-                    lineList.remove(0);
-                }
-            }
-        }
-
-        StringBuilder content = new StringBuilder();
-        content.append("=== 文件过大，仅显示最后 ").append(lines).append(" 行 ===\n\n");
-        for (String line : lineList) {
-            content.append(line).append("\n");
         }
         return content.toString();
     }

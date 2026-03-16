@@ -9,19 +9,6 @@
     let patternsLoaded = false;
 
     /**
-     * HTML 转义函数
-     * 防止 XSS 攻击
-     *
-     * @param {string} text - 需要转义的文本
-     * @returns {string} 转义后的 HTML 文本
-     */
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    /**
      * 动态生成CSS样式
      * 根据配置的颜色和样式生成对应的CSS规则
      *
@@ -124,7 +111,7 @@
      */
     function highlightLine(line) {
         if (!line) return '';
-        if (!patternsLoaded || HIGHLIGHT_RULES.length === 0) return escapeHtml(line);
+        if (!patternsLoaded || HIGHLIGHT_RULES.length === 0) return window.ViewerUtils.escapeHtml(line);
 
         const matches = [];
 
@@ -163,15 +150,15 @@
 
         filteredMatches.forEach(match => {
             if (match.start > pos) {
-                result += escapeHtml(line.substring(pos, match.start));
+                result += window.ViewerUtils.escapeHtml(line.substring(pos, match.start));
             }
 
-            result += `<span class="${match.className}">${escapeHtml(match.text)}</span>`;
+            result += `<span class="${match.className}">${window.ViewerUtils.escapeHtml(match.text)}</span>`;
             pos = match.end;
         });
 
         if (pos < line.length) {
-            result += escapeHtml(line.substring(pos));
+            result += window.ViewerUtils.escapeHtml(line.substring(pos));
         }
 
         return result;

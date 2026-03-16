@@ -100,19 +100,6 @@ window.ViewerUtils = (function () {
     }
 
     /**
-     * 判断元素是否接近底部
-     * 用于判断是否需要自动滚动
-     *
-     * @param {jQuery} $el - jQuery 元素对象
-     * @returns {boolean} 是否接近底部（距离底部小于50px）
-     */
-    function isNearBottom($el) {
-        const el = $el[0];
-        if (!el) return true;
-        return el.scrollHeight - $el.scrollTop() <= $el.outerHeight() + 50;
-    }
-
-    /**
      * 获取 API 端点路径
      * 从当前 URL 中提取端点路径
      *
