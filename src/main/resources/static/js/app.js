@@ -172,8 +172,8 @@ $(document).ready(function () {
             window.LogViewerContextMenu.clearMarks();
         }
 
-        const $refreshBtn = $("#refresh-btn");
-        if (metadata.isZipEntry) {
+                const $refreshBtn = $("#refresh-btn");
+        if (metadata.zipEntry || metadata.isZipEntry) {
             $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
         } else {
             $refreshBtn.prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");

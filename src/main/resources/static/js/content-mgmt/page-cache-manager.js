@@ -40,7 +40,7 @@ window.LogViewerPageCache = (function() {
         cache.currentPage = 1;
         cache.mode = 'auto';
         
-        if (!metadata.isZipEntry) {
+                if (!metadata.zipEntry && !metadata.isZipEntry) {
             startFileChangeDetection();
         }
     }
@@ -222,9 +222,9 @@ window.LogViewerPageCache = (function() {
             clearInterval(checkTimer);
         }
 
-        if (cache.metadata && cache.metadata.isZipEntry) {
-            return;
-        }
+                    if (cache.metadata && (cache.metadata.zipEntry || cache.metadata.isZipEntry)) {
+                return;
+            }
 
         checkTimer = setInterval(async () => {
             try {
@@ -400,10 +400,11 @@ window.LogViewerPageCache = (function() {
         };
     }
 
-    return {
+        return {
         init,
         getPage,
         setCurrentPage,
-        clear
+        clear,
+        getStatus
     };
 })();
