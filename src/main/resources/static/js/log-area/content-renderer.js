@@ -47,14 +47,14 @@ window.LogViewerContentRenderer = (function() {
         $("#log-content-actual").find("#loading-overlay").remove();
     }
 
-    /**
+        /**
      * 渲染日志内容
      * 主要渲染函数，支持语法高亮和搜索高亮
      * 
      * @param {string[]} lines - 日志行数组
      * @param {Map<number, Array>} highlightInfo - 高亮信息映射（行号 -> 高亮范围数组）
      * @param {number} [page] - 页码
-     * @param {number} [startLineNumber] - 起始行号（用于分页模式）
+     * @param {number} [startLineNumber] - 起始行号（用于后端分页）
      */
     function renderLogContent(lines, highlightInfo, page, startLineNumber) {
         currentLines = lines;

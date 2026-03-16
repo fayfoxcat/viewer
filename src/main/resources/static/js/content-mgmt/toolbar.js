@@ -2,7 +2,7 @@
  * 【内容管理区】工具栏模块
  * 负责搜索、分页按钮、滚动、实时刷新等工具栏交互
  */
-window.LogViewerToolbar = (function() {
+window.LogViewerToolbar = (function () {
     'use strict';
 
     let refreshTimer = null;
@@ -10,21 +10,19 @@ window.LogViewerToolbar = (function() {
     /**
      * 统一的分页按钮处理
      * 支持首页、上一页、下一页、末页操作
-     * 
+     *
      * @param {string} action - 操作类型：'first', 'prev', 'next', 'last'
      * @param {Object} appContext - 应用上下文对象
      * @param {Function} appContext.getActiveId - 获取当前活动文件ID
-     * @param {Function} appContext.isPaginationMode - 是否为分页模式
      * @param {Function} appContext.loadPage - 加载指定页面
-     * @param {Function} appContext.getContentLines - 获取内容行数组
      */
     async function handlePaginationClick(action, appContext) {
         if (!appContext.getActiveId()) return;
-        
+
         const currentPage = window.LogViewerPagination.getCurrentPage();
         const totalPages = window.LogViewerPagination.getTotalPages();
         let targetPage = currentPage;
-        
+
         switch (action) {
             case 'first':
                 if (currentPage <= 1) return;
@@ -45,66 +43,41 @@ window.LogViewerToolbar = (function() {
             default:
                 return;
         }
-        
-        if (appContext.isPaginationMode()) {
-            await appContext.loadPage(targetPage);
-            window.LogViewerContentRenderer.showPageIndicator(targetPage);
-        } else {
-            const newPage = window.LogViewerPagination.goToPage(targetPage);
-            window.LogViewerContentRenderer.renderLogContent(appContext.getContentLines(), null, newPage);
-            window.LogViewerPagination.updatePagination(appContext.getContentLines().length);
-            window.LogViewerContentRenderer.showPageIndicator(newPage);
-        }
+
+        await appContext.loadPage(targetPage);
+        window.LogViewerContentRenderer.showPageIndicator(targetPage);
     }
 
     /**
      * 统一的滚动处理
      * 支持滚动到顶部和底部，自动处理分页跳转
-     * 
+     *
      * @param {string} action - 操作类型：'top' 或 'bottom'
      * @param {Object} appContext - 应用上下文对象
      */
     async function handleScrollAction(action, appContext) {
         if (!appContext.getActiveId()) return;
-        
+
         const currentPage = window.LogViewerPagination.getCurrentPage();
         const totalPages = window.LogViewerPagination.getTotalPages();
-        
+
         if (action === 'top') {
-            if (appContext.isPaginationMode()) {
-                if (currentPage !== 1) {
-                    await appContext.loadPage(1);
-                }
-                window.LogViewerContentRenderer.scrollToTop();
-            } else {
-                if (currentPage !== 1) {
-                    const newPage = window.LogViewerPagination.goToPage(1);
-                    window.LogViewerContentRenderer.renderLogContent(appContext.getContentLines(), null, newPage);
-                    window.LogViewerPagination.updatePagination(appContext.getContentLines().length);
-                }
-                window.LogViewerContentRenderer.scrollToTop();
+            if (currentPage !== 1) {
+                await appContext.loadPage(1);
             }
+            window.LogViewerContentRenderer.scrollToTop();
         } else if (action === 'bottom') {
-            if (appContext.isPaginationMode()) {
-                if (currentPage !== totalPages) {
-                    await appContext.loadPage(totalPages);
-                }
-                window.LogViewerContentRenderer.scrollToBottom();
-            } else {
-                if (currentPage !== totalPages) {
-                    const newPage = window.LogViewerPagination.goToPage(totalPages);
-                    window.LogViewerContentRenderer.renderLogContent(appContext.getContentLines(), null, newPage);
-                    window.LogViewerPagination.updatePagination(appContext.getContentLines().length);
-                }
-                window.LogViewerContentRenderer.scrollToBottom();
+            if (currentPage !== totalPages) {
+                await appContext.loadPage(totalPages);
             }
+            window.LogViewerContentRenderer.scrollToBottom();
         }
     }
 
     /**
      * 执行内容搜索
      * 支持正则表达式和普通文本搜索，调用服务端高级搜索接口
-     * 
+     *
      * @param {boolean} openPanel - 是否打开搜索结果面板
      * @param {Object} appContext - 应用上下文对象
      * @returns {Promise<Object>} 搜索结果对象
@@ -113,12 +86,9 @@ window.LogViewerToolbar = (function() {
     async function performContentSearch(openPanel, appContext) {
         const keyword = $("#content-search").val().trim();
         const useRegex = $("#use-regex").is(":checked");
-        
+
         if (!appContext.getActiveId() || !keyword) {
             window.LogViewerSearch.clearSearchResults();
-            if (!appContext.isPaginationMode()) {
-                window.LogViewerContentRenderer.renderLogContent(appContext.getContentLines(), null, window.LogViewerPagination.getCurrentPage());
-            }
             return;
         }
 
@@ -132,10 +102,10 @@ window.LogViewerToolbar = (function() {
                     </div>
                 `);
             }
-            
+
             const response = await fetch(`${window.LogViewerUtils.getEndpoint()}/file/search/advanced`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     filePath: appContext.getActiveId(),
                     keyword: keyword,
@@ -145,21 +115,21 @@ window.LogViewerToolbar = (function() {
                     maxResults: 10000
                 })
             });
-            
+
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
+
             const result = await response.json();
             if (!result.success) throw new Error(result.error || '搜索失败');
-            
+
             window.LogViewerSearch.setServerSearchResults(result);
             window.LogViewerSearch.renderSearchResults();
-            
+
             if (openPanel !== false) {
                 window.LogViewerUIState.openSearchPanel();
             }
-            
+
             return result;
-            
+
         } catch (error) {
             console.error('搜索失败:', error);
             $("#search-results-list").html(`
@@ -175,7 +145,7 @@ window.LogViewerToolbar = (function() {
     /**
      * 启动/停止实时刷新
      * 自动跳转到最后一页并定时刷新内容
-     * 
+     *
      * @param {Object} appContext - 应用上下文对象
      */
     async function toggleAutoRefresh(appContext) {
@@ -186,12 +156,12 @@ window.LogViewerToolbar = (function() {
         const $icon = $btn.find('.refresh-btn-icon');
         const $text = $btn.find('.refresh-btn-text');
         const $loading = $btn.find('.refresh-btn-loading');
-        
+
         if (refreshTimer) {
             // 停止刷新
             clearInterval(refreshTimer);
             refreshTimer = null;
-            
+
             $btn.removeClass("refreshing");
             $icon.show();
             $text.text("实时刷新");
@@ -209,17 +179,9 @@ window.LogViewerToolbar = (function() {
         }
 
         try {
-            if (appContext.isPaginationMode()) {
-                const metadata = window.LogViewerPageCache.getStatus().metadata;
-                const lastPage = metadata.totalPages;
-                await appContext.loadPage(lastPage, true);
-            } else {
-                const totalPages = window.LogViewerPagination.getTotalPages();
-                window.LogViewerPagination.setCurrentPage(totalPages);
-                window.LogViewerContentRenderer.renderLogContent(appContext.getContentLines(), null, totalPages);
-                window.LogViewerPagination.updatePagination(appContext.getContentLines().length);
-                window.LogViewerContentRenderer.scrollToBottom();
-            }
+            const metadata = window.LogViewerPageCache.getStatus().metadata;
+            const lastPage = metadata.totalPages;
+            await appContext.loadPage(lastPage, true);
 
             $btn.addClass("refreshing");
             $icon.hide();
@@ -237,42 +199,15 @@ window.LogViewerToolbar = (function() {
                     return;
                 }
 
-                if (appContext.isPaginationMode()) {
-                    try {
-                        const metadata = window.LogViewerPageCache.getStatus().metadata;
-                        const lastPage = metadata.totalPages;
-                        await appContext.loadPage(lastPage, true);
-                    } catch (error) {
-                        console.error('[Refresh] 刷新跳转失败:', error);
-                    }
-                } else {
-                    const loadCallback = function(newLines) {
-                        try {
-                            appContext.setContentLines(newLines);
-                            window.LogViewerPagination.updatePagination(newLines.length);
-                            const newTotalPages = window.LogViewerPagination.getTotalPages();
-                            window.LogViewerPagination.setCurrentPage(newTotalPages);
-                            window.LogViewerContentRenderer.renderLogContent(newLines, null, newTotalPages);
-                            window.LogViewerContentRenderer.scrollToBottom();
-                        } catch (error) {
-                            console.error('刷新回调处理失败:', error);
-                        }
-                    };
-                    
-                    const errorCallback = function(error) {
-                        console.error('刷新加载失败:', error);
-                    };
-                    
-                    const activeId = appContext.getActiveId();
-                    if (activeId.includes("!")) {
-                        const idx = activeId.indexOf("!");
-                        window.LogViewerFileOperations.loadZipEntry(activeId.substring(0, idx), activeId.substring(idx + 1), loadCallback, errorCallback);
-                    } else {
-                        window.LogViewerFileOperations.loadFsFile(activeId, loadCallback, errorCallback);
-                    }
+                try {
+                    const metadata = window.LogViewerPageCache.getStatus().metadata;
+                    const lastPage = metadata.totalPages;
+                    await appContext.loadPage(lastPage, true);
+                } catch (error) {
+                    console.error('[Refresh] 刷新跳转失败:', error);
                 }
             }, 500);
-            
+
         } catch (error) {
             console.error('启动实时刷新失败:', error);
             alert('启动实时刷新失败: ' + error.message);
@@ -287,15 +222,6 @@ window.LogViewerToolbar = (function() {
         if (refreshTimer) {
             $("#refresh-btn").trigger('click');
         }
-    }
-
-    /**
-     * 是否正在刷新
-     * 
-     * @returns {boolean} 刷新状态
-     */
-    function isRefreshing() {
-        return refreshTimer !== null;
     }
 
     /**

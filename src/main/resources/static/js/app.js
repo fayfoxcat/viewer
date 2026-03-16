@@ -6,15 +6,13 @@ $(document).ready(function () {
     'use strict';
 
     const apiBase = window.location.pathname.replace(/\/$/, "");
-    
+
     if (!window.LogViewerAuth.init(apiBase)) {
         return;
     }
 
     let currentRootPath = $("#path-select").val();
     let activeId = null;
-    let currentContentLines = [];
-    let usePaginationMode = false;
     let currentFileMetadata = null;
     let searchTimer = null;
     let loadPageRequestId = 0;
@@ -28,14 +26,10 @@ $(document).ready(function () {
     // 暴露给其他模块的上下文接口
     const appContext = {
         getActiveId: () => activeId,
-        isPaginationMode: () => usePaginationMode,
-        getContentLines: () => currentContentLines,
-        setContentLines: (lines) => { currentContentLines = lines; },
         loadPage: loadPage
     };
 
     window.LogViewerApp = {
-        onFileAppend: handleFileAppend,
         onFileModified: handleFileModified,
         refreshCurrentPage: refreshCurrentPage,
         handlePageChange: handlePageChange
@@ -44,21 +38,9 @@ $(document).ready(function () {
     // ========== 文件事件回调 ==========
 
     /**
-     * 处理文件追加事件
-     * 当文件内容被追加时更新分页信息
-     * 
-     * @param {Object} _info - 文件变更信息（未使用，保留以匹配接口）
-     */
-    function handleFileAppend(_info) {
-        // 注意：此函数当前未使用 info 参数，因为分页信息由 PageCache 管理
-        // 保留参数以匹配 LogViewerApp 接口
-        // window.LogViewerPagination.updatePagination(info.newTotalPages * 1000);
-    }
-
-    /**
      * 处理文件修改事件
      * 显示文件已修改通知并刷新当前页面
-     * 
+     *
      * @param {Object} _info - 文件变更信息（未使用，保留以匹配接口）
      */
     function handleFileModified(_info) {
@@ -68,10 +50,10 @@ $(document).ready(function () {
 
     /**
      * 刷新当前页面内容
-     * 仅在分页模式下有效，重新加载当前页的数据
+     * 重新加载当前页的数据
      */
     async function refreshCurrentPage() {
-        if (!activeId || !usePaginationMode) return;
+        if (!activeId) return;
         try {
             const currentPage = window.LogViewerPagination.getCurrentPage();
             const data = await window.LogViewerPageCache.getPage(currentPage);
@@ -88,7 +70,7 @@ $(document).ready(function () {
      * 加载指定页面的内容
      * 支持搜索高亮和自动滚动功能
      * 使用防抖机制避免快速点击时发送过多请求
-     * 
+     *
      * @param {number} page - 页码（从1开始）
      * @param {boolean} [autoScroll=false] - 是否自动滚动到底部
      */
@@ -97,64 +79,64 @@ $(document).ready(function () {
         window.LogViewerPagination.setCurrentPage(page);
         window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
         window.LogViewerContentRenderer.showPageIndicator(page);
-        
+
         // 清除之前的防抖定时器
         if (loadPageDebounceTimer) {
             clearTimeout(loadPageDebounceTimer);
         }
-        
+
         // 设置新的防抖定时器，150ms 后执行实际加载
         loadPageDebounceTimer = setTimeout(async () => {
             await loadPageImmediate(page, autoScroll);
         }, 150);
     }
-    
+
     /**
      * 立即加载页面内容（内部方法）
      * 实际执行页面加载逻辑
-     * 
+     *
      * @param {number} page - 页码（从1开始）
      * @param {boolean} [autoScroll=false] - 是否自动滚动到底部
      */
     async function loadPageImmediate(page, autoScroll = false) {
         // 生成新的请求ID
         const requestId = ++loadPageRequestId;
-        
+
         try {
             window.LogViewerContentRenderer.showLoading();
-            
+
             const data = await window.LogViewerPageCache.getPage(page);
-            
+
             // 请求被取消，不做任何处理
             if (data === null) {
                 window.LogViewerContentRenderer.hideLoading();
                 return;
             }
-            
+
             // 检查是否是最新的请求，如果不是则丢弃结果
             if (requestId !== loadPageRequestId) {
                 return;
             }
-            
+
             window.LogViewerPageCache.setCurrentPage(page);
-            
+
             const matches = window.LogViewerSearch.getCurrentMatches();
             let highlightMap = null;
             if (matches.length > 0) {
                 highlightMap = new Map();
                 matches.forEach(match => {
                     if (match.page === page && match.ranges) {
-                        const ranges = match.ranges.map(r => ({ s: r.start, e: r.end }));
+                        const ranges = match.ranges.map(r => ({s: r.start, e: r.end}));
                         highlightMap.set(match.lineNumber, ranges);
                     }
                 });
             }
-            
+
             window.LogViewerContentRenderer.renderLogContent(data.lines, highlightMap, 1, data.startLine);
             window.LogViewerPagination.updatePagination(data.totalLines);
             window.LogViewerUIState.setEmptyHintVisible(false);
             window.LogViewerContentRenderer.hideLoading();
-            
+
             if (autoScroll) {
                 window.LogViewerContentRenderer.scrollToBottom(true);
             }
@@ -169,68 +151,27 @@ $(document).ready(function () {
 
     // ========== 文件加载回调 ==========
 
-    /**
-     * 文件加载成功回调（非分页模式）
-     * 处理文件内容加载完成后的渲染和状态更新
-     * 
-     * @param {string[]} lines - 文件内容行数组
-     * @param {string} fileId - 文件标识符
-     */
-    function onFileLoadSuccess(lines, fileId) {
-        activeId = fileId;
-        window.LogViewerUIState.setActiveFileName(fileId);
-        currentContentLines = lines;
-        usePaginationMode = false;
-        window.LogViewerPagination.reset();
-        
-        // 清除之前文件的标记
-        if (window.LogViewerContextMenu) {
-            window.LogViewerContextMenu.clearMarks();
-        }
-        
-        const $refreshBtn = $("#refresh-btn");
-        if (fileId.includes("!")) {
-            $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
-        } else {
-            $refreshBtn.prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
-        }
-
-        window.LogViewerSearch.clearSearchResults();
-        
-        const keyword = $("#content-search").val().trim();
-        if (keyword) {
-            window.LogViewerToolbar.performContentSearch(false, appContext).catch(err => {
-                console.error('搜索失败:', err);
-            });
-        } else {
-            window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, 1);
-        }
-
-        window.LogViewerPagination.updatePagination(currentContentLines.length);
-        window.LogViewerUIState.setEmptyHintVisible(false);
-    }
 
     /**
-     * 文件加载成功回调（分页模式）
-     * 处理大文件的分页加载和元数据初始化
-     * 
+     * 文件加载成功回调
+     * 处理文件的分页加载和元数据初始化
+     *
      * @param {Object} metadata - 文件元数据
      * @param {number} metadata.totalLines - 文件总行数
      * @param {number} metadata.totalPages - 总页数
      * @param {boolean} metadata.isZipEntry - 是否为压缩包内文件
      * @param {string} fileId - 文件标识符
      */
-    async function onFileLoadSuccessPaginated(metadata, fileId) {
+    async function onFileLoadSuccess(metadata, fileId) {
         activeId = fileId;
         currentFileMetadata = metadata;
-        usePaginationMode = true;
         window.LogViewerUIState.setActiveFileName(fileId);
-        
+
         // 清除之前文件的标记
         if (window.LogViewerContextMenu) {
             window.LogViewerContextMenu.clearMarks();
         }
-        
+
         const $refreshBtn = $("#refresh-btn");
         if (metadata.isZipEntry) {
             $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
@@ -247,7 +188,7 @@ $(document).ready(function () {
     /**
      * 文件加载失败回调
      * 显示错误信息并隐藏加载动画
-     * 
+     *
      * @param {string} message - 错误信息
      */
     function onFileLoadError(message) {
@@ -260,44 +201,24 @@ $(document).ready(function () {
 
     /**
      * 处理页面切换
-     * 支持分页模式和非分页模式的页面跳转，以及滚动位置恢复
-     * 
+     * 支持页面跳转和滚动位置恢复
+     *
      * @param {number} targetPage - 目标页码
      * @param {number} [lineNumber] - 可选的目标行号
      * @param {number} [scrollPosition] - 可选的滚动位置
      */
     async function handlePageChange(targetPage, lineNumber, scrollPosition) {
-        if (usePaginationMode) {
-            await loadPage(targetPage);
-            if (scrollPosition) {
-                window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
-            } else if (lineNumber) {
-                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
-            }
-        } else {
-            const newPage = window.LogViewerPagination.goToPage(targetPage);
-            const keyword = $("#content-search").val().trim();
-            const useRegex = $("#use-regex").is(":checked");
-            
-            if (keyword) {
-                const result = window.LogViewerSearch.runContentSearch(currentContentLines, keyword, useRegex);
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, result.highlightMap, newPage);
-            } else {
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-            }
-            
-            window.LogViewerPagination.updatePagination(currentContentLines.length);
-            if (scrollPosition) {
-                window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
-            } else if (lineNumber) {
-                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
-            }
+        await loadPage(targetPage);
+        if (scrollPosition) {
+            window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
+        } else if (lineNumber) {
+            setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
         }
     }
 
     // ========== 【目录区】事件绑定 ==========
 
-    $(document).on("click", ".sort-btn", function() {
+    $(document).on("click", ".sort-btn", function () {
         window.LogViewerFileTree.setSortBy($(this).data("sort"), $(this).data("order"));
         window.LogViewerFileTree.renderRootTree(currentRootPath);
     });
@@ -305,33 +226,33 @@ $(document).ready(function () {
     $("#file-search").on("input", function () {
         const keyword = $(this).val().trim();
         if (searchTimer) clearTimeout(searchTimer);
-        
+
         if (!keyword) {
             window.LogViewerFileTree.renderRootTree(currentRootPath);
             return;
         }
-        
+
         searchTimer = setTimeout(function () {
             $("#file-list").empty().append(`<li class="text-center"><div class="loading-spinner"></div> 搜索中...</li>`);
-            
-            window.LogViewerFileOperations.searchFiles(currentRootPath, keyword, 
-                function(data) {
+
+            window.LogViewerFileOperations.searchFiles(currentRootPath, keyword,
+                function (data) {
                     $("#file-list").empty();
                     const list = Array.isArray(data) ? data.slice() : [];
                     list.sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "zh-CN"));
-                    
+
                     if (!list.length) {
                         $("#file-list").append(`<li class="text-center text-muted">未找到文件</li>`);
                         return;
                     }
-                    
+
                     list.forEach(function (f) {
                         /** @type {{name?: string, path?: string, size?: number, lastModified?: number, directory?: boolean}} */
                         const file = f || {};
                         const isArchive = window.LogViewerUtils.isArchiveFileName(file.name || "");
                         const $li = $("<li class='file-node selectable'>");
                         $li.attr("data-id", file.path).data("node", file);
-                        
+
                         const selectedIds = window.LogViewerSelectionManager.getSelectedIds();
                         if (selectedIds.has(file.path || "")) $li.addClass("selected");
                         if (isArchive) $li.addClass("zip-file");
@@ -347,14 +268,14 @@ $(document).ready(function () {
                             <div class="file-col file-col-size">${window.LogViewerUtils.formatFileSize(file.size || 0)}</div>
                           </div>
                         `);
-                        
+
                         if (isArchive) {
                             $li.append($("<ul class='file-list tree-children' style='display:none;'></ul>"));
                         }
                         $("#file-list").append($li);
                     });
                 },
-                function(xhr, status, error) {
+                function (xhr, status, error) {
                     console.error('文件搜索失败:', error);
                     $("#file-list").html(`<li class="text-center text-danger">搜索失败: ${error}</li>`);
                 }
@@ -463,28 +384,15 @@ $(document).ready(function () {
         window.LogViewerContentRenderer.showLoading();
 
         const filePath = isZipEntry ? zipPath + "!" + entryName : node.path;
-        
+
         $.ajax({
             url: `${apiBase}/file/metadata`,
             method: 'GET',
-            data: { file: filePath },
-            success: async function(metadata) {
-                /** @type {{fileSize?: number, totalLines?: number}} */
-                const meta = metadata || {};
-                const fileSizeMB = (meta.fileSize || 0) / (1024 * 1024);
-                const shouldUsePagination = fileSizeMB > 10 || (meta.totalLines || 0) > 10000;
-                
-                if (shouldUsePagination) {
-                    await onFileLoadSuccessPaginated(metadata, filePath);
-                } else {
-                    if (isZipEntry) {
-                        window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, onFileLoadError);
-                    } else {
-                        window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, onFileLoadError);
-                    }
-                }
+            data: {file: filePath},
+            success: async function (metadata) {
+                await onFileLoadSuccess(metadata, filePath);
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 let errorMessage = '获取文件信息失败';
                 if (xhr && xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
@@ -493,23 +401,17 @@ $(document).ready(function () {
                 } else if (xhr && xhr.status === 404) {
                     errorMessage = '文件未找到';
                 }
-                
-                if (isZipEntry) {
-                    window.LogViewerFileOperations.loadZipEntry(zipPath, entryName, onFileLoadSuccess, function(fallbackError) {
-                        onFileLoadError(`${errorMessage}，传统模式加载也失败: ${fallbackError}`);
-                    });
-                } else {
-                    window.LogViewerFileOperations.loadFsFile(node.path, onFileLoadSuccess, function(fallbackError) {
-                        onFileLoadError(`${errorMessage}，传统模式加载也失败: ${fallbackError}`);
-                    });
-                }
+                onFileLoadError(errorMessage);
             }
         });
     });
 
     $("#download-btn").on("click", function () {
         const selectedIds = window.LogViewerSelectionManager.getSelectedIds();
-        if (selectedIds.size === 0) { alert('请先选择要下载的文件'); return; }
+        if (selectedIds.size === 0) {
+            alert('请先选择要下载的文件');
+            return;
+        }
         try {
             window.LogViewerFileOperations.downloadSelectedFiles(selectedIds, apiBase);
             window.LogViewerSelectionManager.clearAllSelection();
@@ -530,21 +432,14 @@ $(document).ready(function () {
         const keyword = $("#content-search").val().trim();
         if (!keyword) {
             window.LogViewerSearch.clearSearchResults();
-            if (!usePaginationMode) {
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, window.LogViewerPagination.getCurrentPage());
-            }
             return;
         }
         try {
             const result = await window.LogViewerToolbar.performContentSearch(true, appContext);
             if (result.matches && result.matches.length > 0) {
                 const firstMatch = result.matches[0];
-                if (usePaginationMode) {
-                    await loadPage(firstMatch.page);
-                    setTimeout(() => window.LogViewerContentRenderer.scrollToLine(firstMatch.lineNumber), 100);
-                } else {
-                    window.LogViewerSearch.focusMatch(0, window.LogViewerPagination.getCurrentPage(), handlePageChange);
-                }
+                await loadPage(firstMatch.page);
+                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(firstMatch.lineNumber), 100);
             }
         } catch (error) {
             console.error('搜索失败:', error);
@@ -606,17 +501,17 @@ $(document).ready(function () {
         if ($(this).prop("disabled")) return;
         if (e.key === "Enter") {
             const page = parseInt($(this).val(), 10);
-            if (isNaN(page) || page < 1) { alert('请输入有效的页码'); return; }
-            const totalPages = window.LogViewerPagination.getTotalPages();
-            if (page > totalPages) { alert(`页码不能超过总页数 ${totalPages}`); return; }
-            
-            if (usePaginationMode) {
-                await loadPage(page);
-            } else {
-                const newPage = window.LogViewerPagination.goToPage(page);
-                window.LogViewerContentRenderer.renderLogContent(currentContentLines, null, newPage);
-                window.LogViewerPagination.updatePagination(currentContentLines.length);
+            if (isNaN(page) || page < 1) {
+                alert('请输入有效的页码');
+                return;
             }
+            const totalPages = window.LogViewerPagination.getTotalPages();
+            if (page > totalPages) {
+                alert(`页码不能超过总页数 ${totalPages}`);
+                return;
+            }
+
+            await loadPage(page);
             window.LogViewerContentRenderer.showPageIndicator(page);
         }
     });
@@ -636,16 +531,14 @@ $(document).ready(function () {
     $("#path-select").on("change", function () {
         const newPath = $(this).val();
         if (newPath === currentRootPath) return;
-        
+
         window.LogViewerToolbar.stopRefresh();
-        if (usePaginationMode) window.LogViewerPageCache.clear();
-        
+        window.LogViewerPageCache.clear();
+
         currentRootPath = newPath;
         window.LogViewerSelectionManager.clearAllSelection();
         window.LogViewerFileTree.clearExpandedState();
         activeId = null;
-        currentContentLines = [];
-        usePaginationMode = false;
         currentFileMetadata = null;
         window.LogViewerSearch.clearSearchResults();
         window.LogViewerPagination.reset();
@@ -657,7 +550,7 @@ $(document).ready(function () {
 
         $("#refresh-btn").prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
         $("#page-first-btn, #page-prev-btn, #page-next-btn, #page-last-btn, #page-jump-input, #scroll-top-btn, #scroll-bottom-btn").prop("disabled", false).css("cursor", "").removeClass("disabled");
-        
+
         window.LogViewerFileTree.renderRootTree(currentRootPath);
     });
 
@@ -710,7 +603,7 @@ $(document).ready(function () {
         window.LogViewerToolbar.cleanup();
         if (searchTimer) clearTimeout(searchTimer);
         if (loadPageDebounceTimer) clearTimeout(loadPageDebounceTimer);
-        if (usePaginationMode) window.LogViewerPageCache.clear();
+        window.LogViewerPageCache.clear();
     });
 
     // ========== 初始化完成 ==========
