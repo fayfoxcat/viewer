@@ -15,7 +15,7 @@ import java.util.List;
  * @author fayfoxcat
  * @version 0.0.1
  */
-@ConfigurationProperties(prefix = "viewer.viewer")
+@ConfigurationProperties(prefix = "viewer.config")
 public class ViewerProperties {
 
     /**
