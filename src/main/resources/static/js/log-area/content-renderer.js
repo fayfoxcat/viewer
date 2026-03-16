@@ -104,6 +104,11 @@ window.LogViewerContentRenderer = (function() {
         html += `</div>`;
         
         $("#log-content-actual").html(html);
+        
+        // 恢复标记显示
+        if (window.LogViewerContextMenu && window.LogViewerContextMenu.restoreMarks) {
+            window.LogViewerContextMenu.restoreMarks();
+        }
     }
 
     /**

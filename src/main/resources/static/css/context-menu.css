@@ -1,0 +1,190 @@
+/* 右键菜单样式 */
+.context-menu {
+    position: fixed;
+    background: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px 0;
+    min-width: 140px;
+    z-index: 10000;
+    display: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.context-menu-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.85);
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+}
+
+.context-menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.context-menu-item:active {
+    background-color: #e6f7ff;
+}
+
+.context-menu-item.disabled {
+    color: rgba(0, 0, 0, 0.25);
+    cursor: not-allowed;
+}
+
+.context-menu-item.disabled:hover {
+    background-color: transparent;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background-color: #f0f0f0;
+    margin: 4px 0;
+}
+
+.context-menu-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+/* 标记样式 - 只保留大圆点 */
+.log-line.marked .log-ln {
+    position: relative;
+}
+
+.log-line.marked .log-ln::before {
+    content: '●';
+    color: #ffc107;
+    font-size: 16px;
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* 自定义高亮样式（区别于搜索高亮） */
+mark.log-highlight {
+    background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
+    border-radius: 3px;
+    padding: 1px 3px;
+    color: #2d5016;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 截图容器样式 */
+.screenshot-container {
+    background: #ffffff;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.screenshot-container .log-line {
+    display: flex;
+    margin-bottom: 1px;
+    padding: 2px 0;
+}
+
+.screenshot-container .log-ln {
+    min-width: 60px;
+    padding-right: 10px;
+    color: #666;
+    text-align: right;
+    border-right: 1px solid #ddd;
+    margin-right: 10px;
+}
+
+.screenshot-container .log-txt {
+    flex: 1;
+    word-break: break-all;
+}
+
+.screenshot-container .log-line.marked .log-ln {
+    position: relative;
+}
+
+.screenshot-container .log-line.marked .log-ln::before {
+    content: '●';
+    color: #ffc107;
+    font-size: 16px;
+    position: absolute;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.screenshot-container mark.log-hit {
+    background-color: #ffeb3b;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.screenshot-container mark.log-highlight {
+    background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
+    border-radius: 3px;
+    padding: 1px 3px;
+    color: #2d5016;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 截图容器中的语法高亮样式 */
+.screenshot-container .log-keyword { color: #0000ff; font-weight: bold; }
+.screenshot-container .log-string { color: #008000; }
+.screenshot-container .log-number { color: #ff6600; }
+.screenshot-container .log-comment { color: #808080; font-style: italic; }
+.screenshot-container .log-error { color: #ff0000; font-weight: bold; }
+.screenshot-container .log-warning { color: #ff8c00; }
+.screenshot-container .log-info { color: #0080ff; }
+.screenshot-container .log-debug { color: #808080; }
+.screenshot-container .log-timestamp { color: #666666; }
+.screenshot-container .log-level { font-weight: bold; }
+.screenshot-container .log-level.ERROR { color: #ff0000; }
+.screenshot-container .log-level.WARN { color: #ff8c00; }
+.screenshot-container .log-level.INFO { color: #0080ff; }
+.screenshot-container .log-level.DEBUG { color: #808080; }
+
+.screenshot-container mark.log-hit {
+    background-color: #ffeb3b;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+    .context-menu {
+        background: #1f1f1f;
+        border-color: #434343;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .context-menu-item {
+        color: rgba(255, 255, 255, 0.85);
+    }
+    
+    .context-menu-item:hover {
+        background-color: #2a2a2a;
+    }
+    
+    .context-menu-item:active {
+        background-color: #1890ff;
+    }
+    
+    .context-menu-item.disabled {
+        color: rgba(255, 255, 255, 0.25);
+    }
+    
+    .context-menu-divider {
+        background-color: #434343;
+    }
+}

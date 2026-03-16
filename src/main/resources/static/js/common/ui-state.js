@@ -37,6 +37,20 @@ window.LogViewerUIState = (function() {
     }
 
     /**
+     * 获取当前活动文件名
+     * 
+     * @returns {string|null} 当前文件名或路径，未选择时返回 null
+     */
+    function getActiveFileName() {
+        const $pathValue = $("#current-file-path");
+        const text = $pathValue.text();
+        if (text === "请选择日志文件" || $pathValue.hasClass("placeholder")) {
+            return null;
+        }
+        return text;
+    }
+
+    /**
      * 更新下载按钮状态
      * 根据选中文件数量更新按钮状态和徽章显示
      * 
@@ -87,6 +101,7 @@ window.LogViewerUIState = (function() {
     return {
         setEmptyHintVisible,
         setActiveFileName,
+        getActiveFileName,
         updateDownloadButton,
         openSearchPanel,
         closeSearchPanel,

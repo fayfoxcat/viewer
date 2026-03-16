@@ -23,6 +23,7 @@ $(document).ready(function () {
     // ========== 初始化各区域模块 ==========
     window.LogViewerFileTree.init(apiBase);
     window.LogViewerFileOperations.init(apiBase);
+    window.LogViewerContextMenu.init();
 
     // 暴露给其他模块的上下文接口
     const appContext = {
@@ -182,6 +183,11 @@ $(document).ready(function () {
         usePaginationMode = false;
         window.LogViewerPagination.reset();
         
+        // 清除之前文件的标记
+        if (window.LogViewerContextMenu) {
+            window.LogViewerContextMenu.clearMarks();
+        }
+        
         const $refreshBtn = $("#refresh-btn");
         if (fileId.includes("!")) {
             $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
@@ -219,6 +225,11 @@ $(document).ready(function () {
         currentFileMetadata = metadata;
         usePaginationMode = true;
         window.LogViewerUIState.setActiveFileName(fileId);
+        
+        // 清除之前文件的标记
+        if (window.LogViewerContextMenu) {
+            window.LogViewerContextMenu.clearMarks();
+        }
         
         const $refreshBtn = $("#refresh-btn");
         if (metadata.isZipEntry) {
