@@ -1,13 +1,13 @@
-package org.fayfoxcat.filelens.controller;
+package org.fayfoxcat.viewer.controller;
 
-import org.fayfoxcat.filelens.config.FileLensProperties;
-import org.fayfoxcat.filelens.entity.FileMetadata;
-import org.fayfoxcat.filelens.entity.PageContent;
-import org.fayfoxcat.filelens.entity.SearchRequest;
-import org.fayfoxcat.filelens.entity.SearchResult;
-import org.fayfoxcat.filelens.service.AuthService;
-import org.fayfoxcat.filelens.service.DownloadService;
-import org.fayfoxcat.filelens.service.FileLensService;
+import org.fayfoxcat.viewer.config.ViewerProperties;
+import org.fayfoxcat.viewer.entity.FileMetadata;
+import org.fayfoxcat.viewer.entity.PageContent;
+import org.fayfoxcat.viewer.entity.SearchRequest;
+import org.fayfoxcat.viewer.entity.SearchResult;
+import org.fayfoxcat.viewer.service.AuthService;
+import org.fayfoxcat.viewer.service.DownloadService;
+import org.fayfoxcat.viewer.service.ViewerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,17 +21,17 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("${filelens.viewer.endpoint:/filelens}")
-public class FileLensController {
+@RequestMapping("${viewer.viewer.endpoint:/viewer}")
+public class ViewerController {
 
-    private final FileLensProperties properties;
-    private final FileLensService fileLensService;
+    private final ViewerProperties properties;
+    private final ViewerService viewerService;
     private final AuthService authService;
     private final DownloadService downloadService;
 
-    public FileLensController(FileLensProperties properties, FileLensService fileLensService, AuthService authService, DownloadService downloadService) {
+    public ViewerController(ViewerProperties properties, ViewerService viewerService, AuthService authService, DownloadService downloadService) {
         this.properties = properties;
-        this.fileLensService = fileLensService;
+        this.viewerService = viewerService;
         this.authService = authService;
         this.downloadService = downloadService;
     }
@@ -113,8 +113,8 @@ public class FileLensController {
      */
         @GetMapping("/files")
     @ResponseBody
-    public List<FileLensService.FileInfo> listFiles(@RequestParam String path) {
-        return fileLensService.listFiles(path);
+    public List<ViewerService.FileInfo> listFiles(@RequestParam String path) {
+        return viewerService.listFiles(path);
     }
 
     /**
@@ -126,8 +126,8 @@ public class FileLensController {
      */
         @GetMapping("/files/search")
     @ResponseBody
-    public List<FileLensService.FileInfo> searchFiles(@RequestParam String rootPath, @RequestParam String keyword) {
-        return fileLensService.searchFiles(rootPath, keyword);
+    public List<ViewerService.FileInfo> searchFiles(@RequestParam String rootPath, @RequestParam String keyword) {
+        return viewerService.searchFiles(rootPath, keyword);
     }
 
     /**
@@ -140,9 +140,9 @@ public class FileLensController {
      */
         @GetMapping("/zip/files")
     @ResponseBody
-    public List<FileLensService.FileInfo> listFilesInZip(@RequestParam String zipPath,
+    public List<ViewerService.FileInfo> listFilesInZip(@RequestParam String zipPath,
                                                           @RequestParam(required = false, defaultValue = "") String prefix) throws IOException {
-        return fileLensService.listFilesInZip(zipPath, prefix);
+        return viewerService.listFilesInZip(zipPath, prefix);
     }
 
     /**
@@ -155,7 +155,7 @@ public class FileLensController {
     @GetMapping("/file/content")
     @ResponseBody
     public String getFileContent(@RequestParam String filePath) throws IOException {
-        return fileLensService.readFileContent(filePath);
+        return viewerService.readFileContent(filePath);
     }
 
     /**
@@ -169,7 +169,7 @@ public class FileLensController {
     @GetMapping("/zip/file/content")
     @ResponseBody
     public String getFileFromZip(@RequestParam String zipPath, @RequestParam String entryName) throws IOException {
-        return fileLensService.readFileFromZip(zipPath, entryName);
+        return viewerService.readFileFromZip(zipPath, entryName);
     }
 
     /**
@@ -186,7 +186,7 @@ public class FileLensController {
     public List<String> searchFileContent(@RequestParam String filePath,
                                           @RequestParam String keyword,
                                           @RequestParam(defaultValue = "false") boolean useRegex) throws IOException {
-        return fileLensService.searchFileContent(filePath, keyword, useRegex);
+        return viewerService.searchFileContent(filePath, keyword, useRegex);
     }
 
     /**
@@ -199,7 +199,7 @@ public class FileLensController {
     @GetMapping("/file/metadata")
     @ResponseBody
     public FileMetadata getFileMetadata(@RequestParam("file") String file) throws IOException {
-        return fileLensService.getFileMetadata(file);
+        return viewerService.getFileMetadata(file);
     }
 
     /**
@@ -216,7 +216,7 @@ public class FileLensController {
     public PageContent getFileContentByPage(@RequestParam("file") String file,
                                             @RequestParam(defaultValue = "1") int page,
                                             @RequestParam(defaultValue = "1000") int pageSize) throws IOException {
-        return fileLensService.readFileContentByPage(file, page, pageSize);
+        return viewerService.readFileContentByPage(file, page, pageSize);
     }
 
     /**
@@ -229,7 +229,7 @@ public class FileLensController {
     @PostMapping("/file/search/advanced")
     @ResponseBody
     public SearchResult searchFileContentAdvanced(@RequestBody SearchRequest request) throws IOException {
-        return fileLensService.searchFileContentAdvanced(request);
+        return viewerService.searchFileContentAdvanced(request);
     }
 
     /**
@@ -240,7 +240,7 @@ public class FileLensController {
     @GetMapping("/patterns")
     @ResponseBody
     public Map<String, Object> getLogPatterns() {
-        return fileLensService.getLogPatterns();
+        return viewerService.getLogPatterns();
     }
 
     /**

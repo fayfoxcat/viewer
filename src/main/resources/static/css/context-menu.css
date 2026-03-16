@@ -139,62 +139,62 @@ mark.custom-highlight {
 }
 
   /* 截图容器中的语法高亮样式 */
-  .screenshot-container .filelens-keyword {
+  .screenshot-container .viewer-keyword {
       color: #0000ff;
       font-weight: bold;
   }
   
-  .screenshot-container .filelens-string {
+  .screenshot-container .viewer-string {
       color: #008000;
   }
   
-  .screenshot-container .filelens-number {
+  .screenshot-container .viewer-number {
       color: #ff6600;
   }
   
-  .screenshot-container .filelens-comment {
+  .screenshot-container .viewer-comment {
       color: #808080;
       font-style: italic;
   }
   
-  .screenshot-container .filelens-error {
+  .screenshot-container .viewer-error {
       color: #ff0000;
       font-weight: bold;
   }
   
-  .screenshot-container .filelens-warning {
+  .screenshot-container .viewer-warning {
       color: #ff8c00;
   }
   
-  .screenshot-container .filelens-info {
+  .screenshot-container .viewer-info {
       color: #0080ff;
   }
   
-  .screenshot-container .filelens-debug {
+  .screenshot-container .viewer-debug {
       color: #808080;
   }
   
-  .screenshot-container .filelens-timestamp {
+  .screenshot-container .viewer-timestamp {
       color: #666666;
   }
   
-  .screenshot-container .filelens-level {
+  .screenshot-container .viewer-level {
       font-weight: bold;
   }
   
-  .screenshot-container .filelens-level.ERROR {
+  .screenshot-container .viewer-level.ERROR {
       color: #ff0000;
   }
   
-  .screenshot-container .filelens-level.WARN {
+  .screenshot-container .viewer-level.WARN {
       color: #ff8c00;
   }
   
-  .screenshot-container .filelens-level.INFO {
+  .screenshot-container .viewer-level.INFO {
       color: #0080ff;
   }
   
-  .screenshot-container .filelens-level.DEBUG {
+  .screenshot-container .viewer-level.DEBUG {
       color: #808080;
   }
 

@@ -2,7 +2,7 @@
  * 认证模块
  * 负责用户认证和登录流程
  */
-window.FileLensAuth = (function () {
+window.ViewerAuth = (function () {
     'use strict';
 
     let apiBase = '';

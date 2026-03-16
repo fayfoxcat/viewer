@@ -1,6 +1,6 @@
-package org.fayfoxcat.filelens.config;
+package org.fayfoxcat.viewer.config;
 
-import org.fayfoxcat.filelens.service.AuthService;
+import org.fayfoxcat.viewer.service.AuthService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -19,9 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final AuthService authService;
-    private final FileLensProperties properties;
+    private final ViewerProperties properties;
 
-    public AuthInterceptor(AuthService authService, FileLensProperties properties) {
+    public AuthInterceptor(AuthService authService, ViewerProperties properties) {
         this.authService = authService;
         this.properties = properties;
     }

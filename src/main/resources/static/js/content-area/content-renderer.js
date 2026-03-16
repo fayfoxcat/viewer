@@ -2,7 +2,7 @@
  * 【内容区】内容渲染模块
  * 负责文件内容的渲染、高亮和滚动控制
  */
-window.FileLensContentRenderer = (function () {
+window.ViewerContentRenderer = (function () {
     'use strict';
 
     const LINES_PER_PAGE = 1000;
@@ -91,7 +91,7 @@ window.FileLensContentRenderer = (function () {
             } else if (window.LogHighlighter) {
                 textHtml = window.LogHighlighter.highlightLine(raw);
             } else {
-                textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.FileLensUtils.escapeHtml(raw);
+                textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.ViewerUtils.escapeHtml(raw);
             }
 
             html += `
@@ -106,8 +106,8 @@ window.FileLensContentRenderer = (function () {
         $("#content-actual").html(html);
 
         // 恢复标记显示
-        if (window.FileLensContextMenu && window.FileLensContextMenu.restoreMarks) {
-            window.FileLensContextMenu.restoreMarks();
+        if (window.ViewerContextMenu && window.ViewerContextMenu.restoreMarks) {
+            window.ViewerContextMenu.restoreMarks();
         }
     }
 
@@ -206,11 +206,11 @@ window.FileLensContentRenderer = (function () {
             const s = Math.max(0, Math.min(t.length, r.s));
             const e = Math.max(0, Math.min(t.length, r.e));
             if (e <= s) continue;
-            if (s > pos) out += window.FileLensUtils.escapeHtml(t.slice(pos, s));
-            out += `<mark class="search-hit">${window.FileLensUtils.escapeHtml(t.slice(s, e))}</mark>`;
+            if (s > pos) out += window.ViewerUtils.escapeHtml(t.slice(pos, s));
+            out += `<mark class="search-hit">${window.ViewerUtils.escapeHtml(t.slice(s, e))}</mark>`;
             pos = e;
         }
-        if (pos < t.length) out += window.FileLensUtils.escapeHtml(t.slice(pos));
+        if (pos < t.length) out += window.ViewerUtils.escapeHtml(t.slice(pos));
         return out;
     }
 

@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.entity;
+package org.fayfoxcat.viewer.entity;
 
 /**
  * 文件元数据实体类

@@ -2,7 +2,7 @@
  * 通知组件
  * 用于显示各种提示信息，支持自定义图标、类型和操作按钮
  */
-window.FileLensNotification = (function () {
+window.ViewerNotification = (function () {
     'use strict';
 
     let notificationContainer = null;

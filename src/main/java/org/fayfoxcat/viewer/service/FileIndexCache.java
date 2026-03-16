@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.service;
+package org.fayfoxcat.viewer.service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

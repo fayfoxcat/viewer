@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.config;
+package org.fayfoxcat.viewer.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  * @author fayfoxcat
  * @version 0.0.1
  */
-@ConfigurationProperties(prefix = "filelens.patterns")
+@ConfigurationProperties(prefix = "viewer.patterns")
 public class FilePatternsProperties {
 
     /**

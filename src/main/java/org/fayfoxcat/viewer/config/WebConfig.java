@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.config;
+package org.fayfoxcat.viewer.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -16,8 +16,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-        @Value("${filelens.viewer.endpoint:/filelens}")
-    private String fileLensEndpoint;
+        @Value("${viewer.viewer.endpoint:/viewer}")
+    private String viewerEndpoint;
 
     private final AuthInterceptor authInterceptor;
 
@@ -42,10 +42,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/js/");
 
                 // 同时也支持带 context-path 的访问（兼容性）
-        registry.addResourceHandler(fileLensEndpoint + "/css/**")
+        registry.addResourceHandler(viewerEndpoint + "/css/**")
                 .addResourceLocations("classpath:/static/css/");
 
-        registry.addResourceHandler(fileLensEndpoint + "/js/**")
+        registry.addResourceHandler(viewerEndpoint + "/js/**")
                 .addResourceLocations("classpath:/static/js/");
     }
 
@@ -58,6 +58,6 @@ public class WebConfig implements WebMvcConfigurer {
     @SuppressWarnings("null")
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
                 registry.addInterceptor(authInterceptor)
-                .addPathPatterns(fileLensEndpoint + "/**");
+                .addPathPatterns(viewerEndpoint + "/**");
     }
 }

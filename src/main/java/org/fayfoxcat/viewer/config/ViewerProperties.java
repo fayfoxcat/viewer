@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.config;
+package org.fayfoxcat.viewer.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -9,14 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FileLens文件查看器配置属性类
+ * Viewer文件查看器配置属性类
  * 用于从 application.yml 中读取配置
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
-@ConfigurationProperties(prefix = "filelens.viewer")
-public class FileLensProperties {
+@ConfigurationProperties(prefix = "viewer.viewer")
+public class ViewerProperties {
 
     /**
      * 允许访问的文件目录列表（白名单）
@@ -27,9 +27,9 @@ public class FileLensProperties {
 
     /**
      * 文件查看器的访问端点
-     * 默认为 /filelens
+     * 默认为 /viewer
      */
-    private String endpoint = "/filelens";
+    private String endpoint = "/viewer";
 
     /**
      * 是否启用权限控制

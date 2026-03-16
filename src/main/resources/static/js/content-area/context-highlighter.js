@@ -29,20 +29,20 @@
      */
     function generateDynamicStyles(patterns) {
         // 移除之前的动态样式
-        const existingStyle = document.getElementById('dynamic-filelens-styles');
+        const existingStyle = document.getElementById('dynamic-viewer-styles');
         if (existingStyle) {
             existingStyle.remove();
         }
 
         // 创建新的样式元素
         const style = document.createElement('style');
-        style.id = 'dynamic-filelens-styles';
+        style.id = 'dynamic-viewer-styles';
         style.type = 'text/css';
 
         let css = '';
         Object.entries(patterns).forEach(([key, rule]) => {
             if (rule.highlight && rule.color) {
-                const className = rule.className || `filelens-${key}`;
+                const className = rule.className || `viewer-${key}`;
 
                 // 基础样式
                 css += `
@@ -85,7 +85,7 @@
         if (patternsLoaded) return;
 
         try {
-            const endpoint = window.fileLensEndpoint || '/filelens';
+            const endpoint = window.viewerEndpoint || '/viewer';
             const response = await fetch(`${endpoint}/patterns`);
             const data = await response.json();
 
@@ -100,7 +100,7 @@
                             const pattern = new RegExp(rule.regex, 'g');
                             HIGHLIGHT_RULES.push({
                                 pattern: pattern,
-                                className: rule.className || `filelens-${key}`
+                                className: rule.className || `viewer-${key}`
                             });
                         } catch (e) {
                             console.warn(`Invalid regex for pattern ${key}:`, e);

@@ -2,7 +2,7 @@
  * 【内容管理区】工具栏模块
  * 负责搜索、分页按钮、滚动、实时刷新等工具栏交互
  */
-window.FileLensToolbar = (function () {
+window.ViewerToolbar = (function () {
     'use strict';
 
     let refreshTimer = null;
@@ -19,8 +19,8 @@ window.FileLensToolbar = (function () {
     async function handlePaginationClick(action, appContext) {
         if (!appContext.getActiveId()) return;
 
-        const currentPage = window.FileLensPagination.getCurrentPage();
-        const totalPages = window.FileLensPagination.getTotalPages();
+        const currentPage = window.ViewerPagination.getCurrentPage();
+        const totalPages = window.ViewerPagination.getTotalPages();
         let targetPage = currentPage;
 
         switch (action) {
@@ -45,7 +45,7 @@ window.FileLensToolbar = (function () {
         }
 
         await appContext.loadPage(targetPage);
-        window.FileLensContentRenderer.showPageIndicator(targetPage);
+        window.ViewerContentRenderer.showPageIndicator(targetPage);
     }
 
     /**
@@ -58,19 +58,19 @@ window.FileLensToolbar = (function () {
     async function handleScrollAction(action, appContext) {
         if (!appContext.getActiveId()) return;
 
-        const currentPage = window.FileLensPagination.getCurrentPage();
-        const totalPages = window.FileLensPagination.getTotalPages();
+        const currentPage = window.ViewerPagination.getCurrentPage();
+        const totalPages = window.ViewerPagination.getTotalPages();
 
         if (action === 'top') {
             if (currentPage !== 1) {
                 await appContext.loadPage(1);
             }
-            window.FileLensContentRenderer.scrollToTop();
+            window.ViewerContentRenderer.scrollToTop();
         } else if (action === 'bottom') {
             if (currentPage !== totalPages) {
                 await appContext.loadPage(totalPages);
             }
-            window.FileLensContentRenderer.scrollToBottom();
+            window.ViewerContentRenderer.scrollToBottom();
         }
     }
 
@@ -88,13 +88,13 @@ window.FileLensToolbar = (function () {
         const useRegex = $("#use-regex").is(":checked");
 
         if (!appContext.getActiveId() || !keyword) {
-            window.FileLensSearch.clearSearchResults();
+            window.ViewerSearch.clearSearchResults();
             return;
         }
 
         try {
             if (openPanel !== false) {
-                window.FileLensUIState.openSearchPanel();
+                window.ViewerUIState.openSearchPanel();
                 $("#search-results-list").html(`
                     <div class="text-center p-3">
                         <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 8px;"></div>
@@ -103,7 +103,7 @@ window.FileLensToolbar = (function () {
                 `);
             }
 
-            const response = await fetch(`${window.FileLensUtils.getEndpoint()}/file/search/advanced`, {
+            const response = await fetch(`${window.ViewerUtils.getEndpoint()}/file/search/advanced`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -121,11 +121,11 @@ window.FileLensToolbar = (function () {
             const result = await response.json();
             if (!result.success) throw new Error(result.error || '搜索失败');
 
-            window.FileLensSearch.setServerSearchResults(result);
-            window.FileLensSearch.renderSearchResults();
+            window.ViewerSearch.setServerSearchResults(result);
+            window.ViewerSearch.renderSearchResults();
 
             if (openPanel !== false) {
-                window.FileLensUIState.openSearchPanel();
+                window.ViewerUIState.openSearchPanel();
             }
 
             return result;
@@ -167,7 +167,7 @@ window.FileLensToolbar = (function () {
             $text.text("实时刷新");
             $loading.hide();
 
-            window.FileLensPagination.setAutoRefreshEnabled(false);
+            window.ViewerPagination.setAutoRefreshEnabled(false);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", false).css("cursor", "").removeClass("disabled");
             return;
         }
@@ -178,7 +178,7 @@ window.FileLensToolbar = (function () {
         }
 
         try {
-            const metadata = window.FileLensPageCache.getStatus().metadata;
+            const metadata = window.ViewerPageCache.getStatus().metadata;
             const lastPage = metadata.totalPages;
             await appContext.loadPage(lastPage, true);
 
@@ -187,7 +187,7 @@ window.FileLensToolbar = (function () {
             $text.text("停止刷新");
             $loading.show();
 
-            window.FileLensPagination.setAutoRefreshEnabled(true);
+            window.ViewerPagination.setAutoRefreshEnabled(true);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", true).css("cursor", "not-allowed").addClass("disabled");
 
             refreshTimer = setInterval(async function () {
@@ -198,7 +198,7 @@ window.FileLensToolbar = (function () {
                 }
 
                 try {
-                    const metadata = window.FileLensPageCache.getStatus().metadata;
+                    const metadata = window.ViewerPageCache.getStatus().metadata;
                     const lastPage = metadata.totalPages;
                     await appContext.loadPage(lastPage, true);
                 } catch (error) {

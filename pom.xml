@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>org.fayfoxcat</groupId>
-        <artifactId>filelens</artifactId>
+        <artifactId>viewer</artifactId>
     <version>0.0.1</version>
-    <name>FileLens</name>
+    <name>Viewer</name>
     <description>在线文件查看器</description>
 
     <properties>

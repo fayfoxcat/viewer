@@ -2,7 +2,7 @@
  * 【搜索结果区】搜索功能模块
  * 负责内容搜索、结果渲染和匹配项导航
  */
-window.FileLensSearch = (function () {
+window.ViewerSearch = (function () {
     'use strict';
 
     let currentMatches = [];
@@ -29,7 +29,7 @@ window.FileLensSearch = (function () {
             const line = match.content || "";
             const ranges = match.matchRanges || [];
 
-            let previewHtml = window.FileLensUtils.escapeHtml(line);
+            let previewHtml = window.ViewerUtils.escapeHtml(line);
 
             const sortedRanges = ranges.slice().sort((a, b) => b.start - a.start);
             sortedRanges.forEach(range => {
@@ -109,17 +109,17 @@ window.FileLensSearch = (function () {
             if (ranges.length) {
                 highlightMap.set(ln, ranges);
                 const maxPreviewLength = 200;
-                const preview = window.FileLensUtils.escapeHtml(line.length > maxPreviewLength ? line.substring(0, maxPreviewLength) + "..." : line);
+                const preview = window.ViewerUtils.escapeHtml(line.length > maxPreviewLength ? line.substring(0, maxPreviewLength) + "..." : line);
                 let previewHtml;
                 if (regex) {
                     try {
                         const r = new RegExp(regex.source, "gi");
                         previewHtml = preview.replace(r, "<mark>$&</mark>");
                     } catch (e) {
-                        previewHtml = preview.replace(new RegExp("(" + window.FileLensUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
+                        previewHtml = preview.replace(new RegExp("(" + window.ViewerUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
                     }
                 } else {
-                    previewHtml = preview.replace(new RegExp("(" + window.FileLensUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
+                    previewHtml = preview.replace(new RegExp("(" + window.ViewerUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
                 }
                 currentMatches.push({lineNumber: ln, previewHtml: previewHtml});
             }
@@ -158,8 +158,8 @@ window.FileLensSearch = (function () {
             const $item = $(`<div class="search-result-item" data-idx="${idx}"></div>`);
             $item.html(`<span class="search-result-number">行 ${m.lineNumber}</span><div class="search-result-line">${m.previewHtml}</div>`);
             $item.on("click", function () {
-                const currentPage = window.FileLensPagination ? window.FileLensPagination.getCurrentPage() : 1;
-                const onPageChange = window.FileLensApp ? window.FileLensApp.handlePageChange : null;
+                const currentPage = window.ViewerPagination ? window.ViewerPagination.getCurrentPage() : 1;
+                const onPageChange = window.ViewerApp ? window.ViewerApp.handlePageChange : null;
                 focusMatch(idx, currentPage, onPageChange);
             });
             fragment.appendChild($item[0]);
@@ -198,7 +198,7 @@ window.FileLensSearch = (function () {
                 return;
             }
         } else {
-            const LINES_PER_PAGE = window.FileLensContentRenderer.LINES_PER_PAGE;
+            const LINES_PER_PAGE = window.ViewerContentRenderer.LINES_PER_PAGE;
             const targetPage = Math.ceil(ln / LINES_PER_PAGE);
 
             if (targetPage !== currentPage && onPageChange) {
@@ -221,7 +221,7 @@ window.FileLensSearch = (function () {
             $("#content-actual .search-hit-current").removeClass("search-hit-current");
             const $line = $(`#content-actual .content-line[data-line='${lineNumber}']`);
             $line.find("mark.search-hit").addClass("search-hit-current");
-            window.FileLensContentRenderer.scrollToLine(lineNumber);
+            window.ViewerContentRenderer.scrollToLine(lineNumber);
         }, 50);
     }
 

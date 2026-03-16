@@ -2,7 +2,7 @@
  * UI状态管理模块
  * 负责管理界面各部分的显示状态和交互
  */
-window.FileLensUIState = (function () {
+window.ViewerUIState = (function () {
     'use strict';
 
     /**

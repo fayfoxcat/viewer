@@ -1,12 +1,12 @@
-package org.fayfoxcat.filelens.service;
+package org.fayfoxcat.viewer.service;
 
 
-import org.fayfoxcat.filelens.config.FileLensProperties;
-import org.fayfoxcat.filelens.config.FilePatternsProperties;
-import org.fayfoxcat.filelens.entity.FileMetadata;
-import org.fayfoxcat.filelens.entity.PageContent;
-import org.fayfoxcat.filelens.entity.SearchRequest;
-import org.fayfoxcat.filelens.entity.SearchResult;
+import org.fayfoxcat.viewer.config.FilePatternsProperties;
+import org.fayfoxcat.viewer.config.ViewerProperties;
+import org.fayfoxcat.viewer.entity.FileMetadata;
+import org.fayfoxcat.viewer.entity.PageContent;
+import org.fayfoxcat.viewer.entity.SearchRequest;
+import org.fayfoxcat.viewer.entity.SearchResult;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -25,16 +25,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * FileLens文件查看器服务
+ * Viewer文件查看器服务
  * 提供文件和目录的操作功能，包括文件读取、搜索、压缩包处理等
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
 @Service
-public class FileLensService {
+public class ViewerService {
 
-    private final FileLensProperties properties;
+    private final ViewerProperties properties;
     private final FilePatternsProperties patternsProperties;
 
     // 正则配置缓存
@@ -116,7 +116,7 @@ public class FileLensService {
         });
     }
 
-    public FileLensService(FileLensProperties properties, FilePatternsProperties patternsProperties) {
+    public ViewerService(ViewerProperties properties, FilePatternsProperties patternsProperties) {
         this.properties = properties;
         this.patternsProperties = patternsProperties;
     }

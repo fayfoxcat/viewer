@@ -2,7 +2,7 @@
  * 【内容区】右键菜单模块
  * 负责文件内容区域的右键菜单功能
  */
-window.FileLensContextMenu = (function () {
+window.ViewerContextMenu = (function () {
     'use strict';
 
     let $menu = null;
@@ -117,7 +117,7 @@ window.FileLensContextMenu = (function () {
      * 显示默认菜单（无选中文字）
      */
     function showDefaultMenu(e) {
-        const activeFileName = window.FileLensUIState ? window.FileLensUIState.getActiveFileName() : null;
+        const activeFileName = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
         const isMarked = currentLineNumber && markedLines.has(currentLineNumber);
 
         // 检查是否有高亮内容
@@ -268,8 +268,8 @@ window.FileLensContextMenu = (function () {
             // 静默复制，不显示通知
         }).catch(err => {
             console.error('复制失败:', err);
-            if (window.FileLensNotification) {
-                window.FileLensNotification.show({
+            if (window.ViewerNotification) {
+                window.ViewerNotification.show({
                     message: '复制失败',
                     type: 'error'
                 });
@@ -300,7 +300,7 @@ window.FileLensContextMenu = (function () {
 
         $logTxt.html(html);
 
-        if (window.FileLensNotification) {
+        if (window.ViewerNotification) {
             // 移除高亮通知
         }
     }
@@ -315,7 +315,7 @@ window.FileLensContextMenu = (function () {
             $mark.replaceWith($mark.text());
         });
 
-        if (window.FileLensNotification) {
+        if (window.ViewerNotification) {
             // 移除清除高亮通知
         }
     }
@@ -329,8 +329,8 @@ window.FileLensContextMenu = (function () {
         markedLines.add(currentLineNumber);
         updateMarkDisplay();
 
-        if (window.FileLensNotification) {
-            window.FileLensNotification.show({
+        if (window.ViewerNotification) {
+            window.ViewerNotification.show({
                 message: `已标记第 ${currentLineNumber} 行`,
                 type: 'success'
             });
@@ -346,8 +346,8 @@ window.FileLensContextMenu = (function () {
         markedLines.delete(currentLineNumber);
         updateMarkDisplay();
 
-        if (window.FileLensNotification) {
-            window.FileLensNotification.show({
+        if (window.ViewerNotification) {
+            window.ViewerNotification.show({
                 message: `已移除第 ${currentLineNumber} 行的标记`,
                 type: 'success'
             });
@@ -362,8 +362,8 @@ window.FileLensContextMenu = (function () {
         markedLines.clear();
         updateMarkDisplay();
 
-        if (window.FileLensNotification) {
-            window.FileLensNotification.show({
+        if (window.ViewerNotification) {
+            window.ViewerNotification.show({
                 message: `已清除 ${count} 个标记`,
                 type: 'success'
             });
@@ -391,20 +391,20 @@ window.FileLensContextMenu = (function () {
      * 复制文件路径
      */
     function performCopyPath() {
-        const filePath = window.FileLensUIState ? window.FileLensUIState.getActiveFileName() : null;
+        const filePath = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
         if (!filePath) return;
 
         navigator.clipboard.writeText(filePath).then(() => {
-            if (window.FileLensNotification) {
-                window.FileLensNotification.show({
+            if (window.ViewerNotification) {
+                window.ViewerNotification.show({
                     message: '已复制文件路径',
                     type: 'success'
                 });
             }
         }).catch(err => {
             console.error('复制失败:', err);
-            if (window.FileLensNotification) {
-                window.FileLensNotification.show({
+            if (window.ViewerNotification) {
+                window.ViewerNotification.show({
                     message: '复制失败',
                     type: 'error'
                 });
@@ -416,7 +416,7 @@ window.FileLensContextMenu = (function () {
      * 下载文件
      */
     function performDownload() {
-        const filePath = window.FileLensUIState ? window.FileLensUIState.getActiveFileName() : null;
+        const filePath = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
         if (!filePath) return;
 
         const apiBase = window.location.pathname.replace(/\/$/, "");
@@ -589,20 +589,20 @@ window.FileLensContextMenu = (function () {
                     }
                     
                                         /* 语法高亮样式 */
-                    .filelens-keyword { color: #0000ff !important; font-weight: bold; }
-                    .filelens-string { color: #008000 !important; }
-                    .filelens-number { color: #ff6600 !important; }
-                    .filelens-comment { color: #808080 !important; font-style: italic; }
-                    .filelens-error { color: #ff0000 !important; font-weight: bold; }
-                    .filelens-warning { color: #ff8c00 !important; }
-                    .filelens-info { color: #0080ff !important; }
-                    .filelens-debug { color: #808080 !important; }
-                    .filelens-timestamp { color: #666666 !important; }
-                    .filelens-level { font-weight: bold; }
-                    .filelens-level.ERROR { color: #ff0000 !important; }
-                    .filelens-level.WARN { color: #ff8c00 !important; }
-                    .filelens-level.INFO { color: #0080ff !important; }
-                    .filelens-level.DEBUG { color: #808080 !important; }
+                    .viewer-keyword { color: #0000ff !important; font-weight: bold; }
+                    .viewer-string { color: #008000 !important; }
+                    .viewer-number { color: #ff6600 !important; }
+                    .viewer-comment { color: #808080 !important; font-style: italic; }
+                    .viewer-error { color: #ff0000 !important; font-weight: bold; }
+                    .viewer-warning { color: #ff8c00 !important; }
+                    .viewer-info { color: #0080ff !important; }
+                    .viewer-debug { color: #808080 !important; }
+                    .viewer-timestamp { color: #666666 !important; }
+                    .viewer-level { font-weight: bold; }
+                    .viewer-level.ERROR { color: #ff0000 !important; }
+                    .viewer-level.WARN { color: #ff8c00 !important; }
+                    .viewer-level.INFO { color: #0080ff !important; }
+                    .viewer-level.DEBUG { color: #808080 !important; }
                     
                     @page {
                         margin: 0.5cm;
@@ -630,7 +630,7 @@ window.FileLensContextMenu = (function () {
         $('head').append($printStyles);
         $('body').append($printContent);
 
-        if (window.FileLensNotification) {
+        if (window.ViewerNotification) {
             // 移除打印通知
         }
 
@@ -681,7 +681,7 @@ window.FileLensContextMenu = (function () {
      * 获取文件名（用于截图命名）
      */
     function getFileName() {
-        const filePath = window.FileLensUIState ? window.FileLensUIState.getActiveFileName() : null;
+        const filePath = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
         if (!filePath) return 'log';
 
         // 提取文件名（去除路径和扩展名）

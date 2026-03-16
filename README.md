@@ -1,6 +1,6 @@
-# FileLens - 文件查看器
+# Viewer - 文件查看器
 
-[![Release Build](https://github.com/fayfoxcat/filelens/workflows/Release%20Build/badge.svg)](https://github.com/fayfoxcat/filelens/actions)
+[![Release Build](https://github.com/fayfoxcat/viewer/workflows/Release%20Build/badge.svg)](https://github.com/fayfoxcat/viewer/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-8%2B-blue.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7.18-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -41,7 +41,7 @@
 ```xml
 <dependency>
     <groupId>org.fayfoxcat</groupId>
-    <artifactId>filelens</artifactId>
+    <artifactId>viewer</artifactId>
     <version>0.0.1</version>
 </dependency>
 ```
@@ -50,7 +50,7 @@
 
 **最简配置（开发环境）**：
 ```yaml
-filelens:
+viewer:
   viewer:
     enable-auth: false  # 禁用认证
     paths:
@@ -60,11 +60,11 @@ filelens:
 
 **生产环境配置**：
 ```yaml
-filelens:
+viewer:
   viewer:
     enable-auth: true
     secret-key: "your-secure-password-here"
-    endpoint: /admin/filelens
+    endpoint: /admin/viewer
     paths:
       - /var/log/application
       - /opt/app/logs
@@ -72,7 +72,7 @@ filelens:
 
 ### 3. 启动访问
 
-启动应用后访问：`http://localhost:1098/filelens`
+启动应用后访问：`http://localhost:1098/viewer`
 
 ## 📦 部署场景
 
@@ -90,11 +90,11 @@ filelens:
 
 ```bash
 # 下载可执行 JAR
-wget https://github.com/fayfoxcat/filelens/releases/download/v0.0.1/filelens-0.0.1-exec.jar
+wget https://github.com/fayfoxcat/viewer/releases/download/v0.0.1/viewer-0.0.1-exec.jar
 
 # 创建配置文件
 cat > application.yml << EOF
-filelens:
+viewer:
   viewer:
     enable-auth: true
     secret-key: "MySecurePassword123"
@@ -104,7 +104,7 @@ filelens:
 EOF
 
 # 启动服务
-java -jar filelens-0.0.1-exec.jar
+java -jar viewer-0.0.1-exec.jar
 ```
 
 ## 📖 详细配置
@@ -113,17 +113,17 @@ java -jar filelens-0.0.1-exec.jar
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `filelens.viewer.endpoint` | String | `/filelens` | 访问端点路径 |
-| `filelens.viewer.enable-auth` | Boolean | `true` | 是否启用认证保护 |
-| `filelens.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
-| `filelens.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
+| `viewer.viewer.endpoint` | String | `/viewer` | 访问端点路径 |
+| `viewer.viewer.enable-auth` | Boolean | `true` | 是否启用认证保护 |
+| `viewer.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
+| `viewer.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
 
 ### 日志高亮配置
 
 系统支持通过 `patterns.yml` 配置文件自定义日志高亮规则：
 
 ```yaml
-filelens:
+viewer:
   patterns:
     rules:
       error:
@@ -155,7 +155,7 @@ filelens:
 
 #### 🔓 开发模式（禁用认证）
 ```yaml
-filelens:
+viewer:
   viewer:
     enable-auth: false
 ```
@@ -165,7 +165,7 @@ filelens:
 
 **固定密钥**（推荐生产环境）：
 ```yaml
-filelens:
+viewer:
   viewer:
     enable-auth: true
     secret-key: "MySecurePassword123!"
@@ -173,7 +173,7 @@ filelens:
 
 **临时密钥**（快速测试）：
 ```yaml
-filelens:
+viewer:
   viewer:
     enable-auth: true
     # 不配置 secret-key，系统自动生成并输出到控制台
@@ -182,7 +182,7 @@ filelens:
 ### 路径配置示例
 
 ```yaml
-filelens:
+viewer:
   viewer:
     paths:
       # 绝对路径
@@ -206,14 +206,14 @@ filelens:
 
 ```bash
 # 克隆项目
-git clone https://github.com/fayfoxcat/filelens.git
-cd filelens
+git clone https://github.com/fayfoxcat/viewer.git
+cd viewer
 
 # 启动开发服务器
 mvn spring-boot:run
 
 # 访问应用
-open http://localhost:1098/filelens
+open http://localhost:1098/viewer
 ```
 
 ### 构建部署
@@ -223,11 +223,11 @@ open http://localhost:1098/filelens
 mvn clean package
 
 # 生成文件
-# target/filelens-0.0.1.jar        - 库文件（集成使用）
-# target/filelens-0.0.1-exec.jar   - 可执行文件（独立运行）
+# target/viewer-0.0.1.jar        - 库文件（集成使用）
+# target/viewer-0.0.1-exec.jar   - 可执行文件（独立运行）
 
 # 独立运行
-java -jar target/filelens-0.0.1-exec.jar
+java -jar target/viewer-0.0.1-exec.jar
 ```
 
 ## 📊 技术架构
@@ -235,24 +235,24 @@ java -jar target/filelens-0.0.1-exec.jar
 ### 项目结构
 
 ```
-filelens/
-├── src/main/java/org/fayfoxcat/filelens/
+viewer/
+├── src/main/java/org/fayfoxcat/viewer/
 │   ├── config/                          # 配置层
 │   │   ├── AuthInterceptor.java         # 认证拦截器
 │   │   ├── FilePatternsProperties.java  # 文件高亮规则配置
-│   │   ├── FileLensAutoConfiguration.java  # 自动配置类
-│   │   ├── FileLensProperties.java      # 核心配置属性
-│   │   ├── FileLensSecurityConfig.java  # 安全配置
-│   │   ├── FileLensUniversalFilter.java # 通用过滤器
+│   │   ├── ViewerAutoConfiguration.java  # 自动配置类
+│   │   ├── ViewerProperties.java      # 核心配置属性
+│   │   ├── ViewerSecurityConfig.java  # 安全配置
+│   │   ├── ViewerUniversalFilter.java # 通用过滤器
 │   │   └── WebConfig.java               # Web配置
 │   ├── controller/                      # 控制层
-│   │   └── FileLensController.java      # 主控制器（REST API）
+│   │   └── ViewerController.java      # 主控制器（REST API）
 │   ├── service/                         # 服务层
 │   │   ├── AuthService.java             # 认证服务
 │   │   ├── DownloadService.java         # 文件下载服务
 │   │   ├── FileIndexCache.java          # 文件索引缓存
-│   │   └── FileLensService.java         # 核心业务逻辑
-│   └── FileLensApplication.java         # 应用入口
+│   │   └── ViewerService.java         # 核心业务逻辑
+│   └── ViewerApplication.java         # 应用入口
 ├── src/main/resources/
 │   ├── static/                          # 前端静态资源
 │   │   ├── css/                         # 样式文件
@@ -293,7 +293,7 @@ filelens/
 
 ### 核心功能模块
 
-#### 1. 文件管理服务 (FileLensService)
+#### 1. 文件管理服务 (ViewerService)
 - 文件列表获取与递归搜索
 - 多格式压缩包支持（ZIP、JAR、GZ）
 - 大文件智能截取（尾部读取）
@@ -346,9 +346,9 @@ filelens/
 
 ## 🔗 相关链接
 
-- [项目主页](https://github.com/fayfoxcat/filelens)
-- [问题反馈](https://github.com/fayfoxcat/filelens/issues)
-- [版本发布](https://github.com/fayfoxcat/filelens/releases)
+- [项目主页](https://github.com/fayfoxcat/viewer)
+- [问题反馈](https://github.com/fayfoxcat/viewer/issues)
+- [版本发布](https://github.com/fayfoxcat/viewer/releases)
 - [更新日志](CHANGELOG.md)
 
 ## ⭐ 支持项目

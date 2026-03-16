@@ -2,7 +2,7 @@
  * 【目录区】文件操作模块
  * 负责文件加载、搜索和下载操作
  */
-window.FileLensFileOperations = (function () {
+window.ViewerFileOperations = (function () {
     'use strict';
 
     let apiBase = '';
@@ -69,7 +69,7 @@ window.FileLensFileOperations = (function () {
         if (selectedIds.size === 0) return;
         const form = $(`<form action="${apiBasePath}/download" method="post"></form>`);
         Array.from(selectedIds).forEach(function (id) {
-            form.append(`<input type="hidden" name="files" value="${window.FileLensUtils.escapeHtml(id)}"/>`);
+            form.append(`<input type="hidden" name="files" value="${window.ViewerUtils.escapeHtml(id)}"/>`);
         });
         $("body").append(form);
         form.submit();

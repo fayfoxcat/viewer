@@ -1,4 +1,4 @@
-package org.fayfoxcat.filelens.entity;
+package org.fayfoxcat.viewer.entity;
 
 import java.util.List;
 

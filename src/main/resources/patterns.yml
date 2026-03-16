@@ -1,101 +1,101 @@
-filelens:
+viewer:
   patterns:
     rules:
       date:
         name: 日期和时间
         regex: "\\d{4}-\\d{2}-\\d{2}(?:(?:T|\\s+)\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d{3})?)?)?"
-        class-name: filelens-date
+        class-name: viewer-date
         color: "#26a69a"
         description: 匹配日期格式
         highlight: true
       time:
         name: 时间
         regex: "\\d{2}:\\d{2}:\\d{2}[.,]\\d{3}"
-        class-name: filelens-time
+        class-name: viewer-time
         color: "#26a69a"
         description: 匹配时间格式
         highlight: true
       error:
         name: 错误日志
         regex: "\\b(ERROR|FATAL|SEVERE)\\b"
-        class-name: filelens-error
+        class-name: viewer-error
         color: "#f44336"
         description: 匹配错误级别日志
         highlight: true
       warning:
         name: 警告日志
         regex: "\\b(WARN|WARNING)\\b"
-        class-name: filelens-warning
+        class-name: viewer-warning
         color: "#ff9800"
         description: 匹配警告级别日志
         highlight: true
       info:
         name: 信息日志
         regex: "\\b(INFO|INFORMATION)\\b"
-        class-name: filelens-info
+        class-name: viewer-info
         color: "#2196f3"
         description: 匹配信息级别日志
         highlight: true
       debug:
         name: 调试日志
         regex: "\\b(DEBUG|TRACE|VERBOSE)\\b"
-        class-name: filelens-debug
+        class-name: viewer-debug
         color: "#9c27b0"
         description: 匹配调试级别日志
         highlight: true
       exception:
         name: 异常类名
         regex: "\\b[A-Z][a-zA-Z0-9]*(?:Exception|Error)\\b"
-        class-name: filelens-exception
+        class-name: viewer-exception
         color: "#ef5350"
         description: 匹配Java异常类名（如NullPointerException）
         highlight: true
       ip:
         name: IP地址
         regex: "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b"
-        class-name: filelens-ip
+        class-name: viewer-ip
         color: "#ab47bc"
         description: 匹配IPv4地址
         highlight: true
       url:
         name: URL
         regex: "https?://[^\\s]+"
-        class-name: filelens-url
+        class-name: viewer-url
         color: "#29b6f6"
         description: 匹配HTTP/HTTPS链接
         highlight: true
       string:
         name: 字符串
         regex: "\"[^\"]*\"|'[^']*'"
-        class-name: filelens-string
+        class-name: viewer-string
         color: "#66bb6a"
         description: 匹配引号字符串
         highlight: true
       number:
         name: 独立纯数字
         regex: "(?<=^|[\\s,，,：]|[\\u4e00-\\u9fa5])\\d+(?:\\.\\d+)?(?=[\\s,，]|[\\u4e00-\\u9fa5]|$)"
-        class-name: filelens-number
+        class-name: viewer-number
         color: "#42a5f5"
         description: 匹配独立的整数或小数（前后只能是空格、逗号或中文）
         highlight: true
       email:
         name: 邮箱地址
         regex: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
-        class-name: filelens-email
+        class-name: viewer-email
         color: "#66bb6a"
         description: 匹配邮箱地址
         highlight: false
       uuid:
         name: UUID
         regex: "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-        class-name: filelens-uuid
+        class-name: viewer-uuid
         color: "#42a5f5"
         description: 匹配UUID格式
         highlight: false
       sql:
         name: SQL语句
         regex: "\\b(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|JOIN|CREATE|DROP|ALTER)\\b"
-        class-name: filelens-sql
+        class-name: viewer-sql
         color: "#ff5722"
         description: 匹配SQL关键字
         highlight: false

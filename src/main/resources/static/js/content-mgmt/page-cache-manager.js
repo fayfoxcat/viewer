@@ -2,7 +2,7 @@
  * 【内容管理区】页面缓存管理器
  * 负责分页内容的缓存、预加载和文件变更检测
  */
-window.FileLensPageCache = (function () {
+window.ViewerPageCache = (function () {
     'use strict';
 
     const CONFIG = {
@@ -86,7 +86,7 @@ window.FileLensPageCache = (function () {
 
         try {
             const response = await fetch(
-                `${window.FileLensUtils.getEndpoint()}/file/content/page?` +
+                `${window.ViewerUtils.getEndpoint()}/file/content/page?` +
                 `file=${encodeURIComponent(cache.fileId)}&page=${page}&pageSize=1000`,
                 {signal: controller.signal}
             );
@@ -257,7 +257,7 @@ window.FileLensPageCache = (function () {
 
         try {
             const response = await fetch(
-                `${window.FileLensUtils.getEndpoint()}/file/metadata?` +
+                `${window.ViewerUtils.getEndpoint()}/file/metadata?` +
                 `file=${encodeURIComponent(cache.fileId)}`
             );
 
@@ -330,8 +330,8 @@ window.FileLensPageCache = (function () {
             }
         }
 
-        if (window.FileLensApp && window.FileLensApp.onFileAppend) {
-            window.FileLensApp.onFileAppend({
+        if (window.ViewerApp && window.ViewerApp.onFileAppend) {
+            window.ViewerApp.onFileAppend({
                 oldTotalPages,
                 newTotalPages,
                 newLines
@@ -339,8 +339,8 @@ window.FileLensPageCache = (function () {
         }
 
         if (cache.currentPage >= oldTotalPages - 1) {
-            if (window.FileLensApp && window.FileLensApp.refreshCurrentPage) {
-                window.FileLensApp.refreshCurrentPage();
+            if (window.ViewerApp && window.ViewerApp.refreshCurrentPage) {
+                window.ViewerApp.refreshCurrentPage();
             }
         }
     }
@@ -359,8 +359,8 @@ window.FileLensPageCache = (function () {
             cache.fileVersion = newMetadata.fileVersion;
         }
 
-        if (window.FileLensApp && window.FileLensApp.onFileModified) {
-            window.FileLensApp.onFileModified({
+        if (window.ViewerApp && window.ViewerApp.onFileModified) {
+            window.ViewerApp.onFileModified({
                 message: '文件已被修改，正在重新加载...'
             });
         }
