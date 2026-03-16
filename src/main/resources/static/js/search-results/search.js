@@ -2,7 +2,7 @@
  * 【搜索结果区】搜索功能模块
  * 负责内容搜索、结果渲染和匹配项导航
  */
-window.LogViewerSearch = (function () {
+window.FileLensSearch = (function () {
     'use strict';
 
     let currentMatches = [];
@@ -29,7 +29,7 @@ window.LogViewerSearch = (function () {
             const line = match.content || "";
             const ranges = match.matchRanges || [];
 
-            let previewHtml = window.LogViewerUtils.escapeHtml(line);
+            let previewHtml = window.FileLensUtils.escapeHtml(line);
 
             const sortedRanges = ranges.slice().sort((a, b) => b.start - a.start);
             sortedRanges.forEach(range => {
@@ -109,17 +109,17 @@ window.LogViewerSearch = (function () {
             if (ranges.length) {
                 highlightMap.set(ln, ranges);
                 const maxPreviewLength = 200;
-                const preview = window.LogViewerUtils.escapeHtml(line.length > maxPreviewLength ? line.substring(0, maxPreviewLength) + "..." : line);
+                const preview = window.FileLensUtils.escapeHtml(line.length > maxPreviewLength ? line.substring(0, maxPreviewLength) + "..." : line);
                 let previewHtml;
                 if (regex) {
                     try {
                         const r = new RegExp(regex.source, "gi");
                         previewHtml = preview.replace(r, "<mark>$&</mark>");
                     } catch (e) {
-                        previewHtml = preview.replace(new RegExp("(" + window.LogViewerUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
+                        previewHtml = preview.replace(new RegExp("(" + window.FileLensUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
                     }
                 } else {
-                    previewHtml = preview.replace(new RegExp("(" + window.LogViewerUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
+                    previewHtml = preview.replace(new RegExp("(" + window.FileLensUtils.escapeRegex(keyword) + ")", "gi"), "<mark>$1</mark>");
                 }
                 currentMatches.push({lineNumber: ln, previewHtml: previewHtml});
             }
@@ -158,8 +158,8 @@ window.LogViewerSearch = (function () {
             const $item = $(`<div class="search-result-item" data-idx="${idx}"></div>`);
             $item.html(`<span class="search-result-number">行 ${m.lineNumber}</span><div class="search-result-line">${m.previewHtml}</div>`);
             $item.on("click", function () {
-                const currentPage = window.LogViewerPagination ? window.LogViewerPagination.getCurrentPage() : 1;
-                const onPageChange = window.LogViewerApp ? window.LogViewerApp.handlePageChange : null;
+                const currentPage = window.FileLensPagination ? window.FileLensPagination.getCurrentPage() : 1;
+                const onPageChange = window.FileLensApp ? window.FileLensApp.handlePageChange : null;
                 focusMatch(idx, currentPage, onPageChange);
             });
             fragment.appendChild($item[0]);
@@ -198,7 +198,7 @@ window.LogViewerSearch = (function () {
                 return;
             }
         } else {
-            const LINES_PER_PAGE = window.LogViewerContentRenderer.LINES_PER_PAGE;
+            const LINES_PER_PAGE = window.FileLensContentRenderer.LINES_PER_PAGE;
             const targetPage = Math.ceil(ln / LINES_PER_PAGE);
 
             if (targetPage !== currentPage && onPageChange) {
@@ -212,16 +212,16 @@ window.LogViewerSearch = (function () {
 
     /**
      * 高亮当前匹配项
-     * 在日志内容区域中高亮显示当前匹配的行
+     * 在内容区域中高亮显示当前匹配的行
      *
      * @param {number} lineNumber - 行号
      */
     function highlightCurrentMatch(lineNumber) {
         setTimeout(function () {
-            $("#log-content-actual .log-hit-current").removeClass("log-hit-current");
-            const $line = $(`#log-content-actual .log-line[data-line='${lineNumber}']`);
-            $line.find("mark.log-hit").addClass("log-hit-current");
-            window.LogViewerContentRenderer.scrollToLine(lineNumber);
+            $("#content-actual .search-hit-current").removeClass("search-hit-current");
+            const $line = $(`#content-actual .content-line[data-line='${lineNumber}']`);
+            $line.find("mark.search-hit").addClass("search-hit-current");
+            window.FileLensContentRenderer.scrollToLine(lineNumber);
         }, 50);
     }
 
@@ -257,7 +257,6 @@ window.LogViewerSearch = (function () {
     }
 
     return {
-        runContentSearch,
         setServerSearchResults,
         renderSearchResults,
         focusMatch,

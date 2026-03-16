@@ -2,7 +2,7 @@
  * 工具函数模块
  * 提供通用的工具函数，如格式化、转义等
  */
-window.LogViewerUtils = (function () {
+window.FileLensUtils = (function () {
     'use strict';
 
     /**

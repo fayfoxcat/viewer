@@ -36,8 +36,8 @@
     user-select: none;
 }
 
-/* 日志文件路径显示 */
-.log-file-path {
+/* 文件路径显示 */
+.file-path-display {
     padding: 10px 16px;
     background: var(--ant-bg-color);
     border-bottom: 1px solid var(--ant-border-color-split);
@@ -50,21 +50,21 @@
     user-select: none;
 }
 
-.log-file-path .path-label {
+.file-path-display .path-label {
     font-weight: 600;
     color: var(--ant-text-color-secondary);
     flex-shrink: 0;
     user-select: none;
 }
 
-.log-file-path .path-value {
+.file-path-display .path-value {
     color: var(--ant-primary-color);
     font-family: 'Courier New', monospace;
     word-break: break-all;
     user-select: text;
 }
 
-.log-file-path .path-value.placeholder {
+.file-path-display .path-value.placeholder {
     color: var(--ant-text-color-tertiary);
     font-style: italic;
     user-select: none;

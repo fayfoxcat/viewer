@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>org.fayfoxcat</groupId>
-    <artifactId>logs</artifactId>
+        <artifactId>filelens</artifactId>
     <version>0.0.1</version>
-    <name>logs</name>
-    <description>在线日志查看</description>
+    <name>FileLens</name>
+    <description>在线文件查看器</description>
 
     <properties>
         <java.version>1.8</java.version>

@@ -1,4 +1,4 @@
-package org.fayfoxcat.log.config;
+package org.fayfoxcat.filelens.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -9,7 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * 日志查看器安全配置类 - Spring Security 适配
+ * FileLens文件查看器安全配置类 - Spring Security 适配
  * <p>
  * 根据 enable-auth 配置自动选择安全策略：
  * - enable-auth=false: 允许匿名访问
@@ -23,18 +23,18 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @ConditionalOnClass(SecurityFilterChain.class)
-@EnableConfigurationProperties(LogViewerProperties.class)
-public class LogViewerSecurityConfig {
+@EnableConfigurationProperties(FileLensProperties.class)
+public class FileLensSecurityConfig {
 
-    private final LogViewerProperties properties;
+    private final FileLensProperties properties;
 
-    public LogViewerSecurityConfig(LogViewerProperties properties) {
+    public FileLensSecurityConfig(FileLensProperties properties) {
         this.properties = properties;
     }
 
     @Bean
     @Order(1)  // 最高优先级，确保在主项目的 Security 配置之前执行
-    public SecurityFilterChain logViewerSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain fileLensSecurityFilterChain(HttpSecurity http) throws Exception {
         String endpoint = properties.getEndpoint();
 
         http.requestMatchers(matchers -> matchers.antMatchers(endpoint, endpoint + "/**"))

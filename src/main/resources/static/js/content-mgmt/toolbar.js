@@ -2,7 +2,7 @@
  * 【内容管理区】工具栏模块
  * 负责搜索、分页按钮、滚动、实时刷新等工具栏交互
  */
-window.LogViewerToolbar = (function () {
+window.FileLensToolbar = (function () {
     'use strict';
 
     let refreshTimer = null;
@@ -19,8 +19,8 @@ window.LogViewerToolbar = (function () {
     async function handlePaginationClick(action, appContext) {
         if (!appContext.getActiveId()) return;
 
-        const currentPage = window.LogViewerPagination.getCurrentPage();
-        const totalPages = window.LogViewerPagination.getTotalPages();
+        const currentPage = window.FileLensPagination.getCurrentPage();
+        const totalPages = window.FileLensPagination.getTotalPages();
         let targetPage = currentPage;
 
         switch (action) {
@@ -45,7 +45,7 @@ window.LogViewerToolbar = (function () {
         }
 
         await appContext.loadPage(targetPage);
-        window.LogViewerContentRenderer.showPageIndicator(targetPage);
+        window.FileLensContentRenderer.showPageIndicator(targetPage);
     }
 
     /**
@@ -58,19 +58,19 @@ window.LogViewerToolbar = (function () {
     async function handleScrollAction(action, appContext) {
         if (!appContext.getActiveId()) return;
 
-        const currentPage = window.LogViewerPagination.getCurrentPage();
-        const totalPages = window.LogViewerPagination.getTotalPages();
+        const currentPage = window.FileLensPagination.getCurrentPage();
+        const totalPages = window.FileLensPagination.getTotalPages();
 
         if (action === 'top') {
             if (currentPage !== 1) {
                 await appContext.loadPage(1);
             }
-            window.LogViewerContentRenderer.scrollToTop();
+            window.FileLensContentRenderer.scrollToTop();
         } else if (action === 'bottom') {
             if (currentPage !== totalPages) {
                 await appContext.loadPage(totalPages);
             }
-            window.LogViewerContentRenderer.scrollToBottom();
+            window.FileLensContentRenderer.scrollToBottom();
         }
     }
 
@@ -88,13 +88,13 @@ window.LogViewerToolbar = (function () {
         const useRegex = $("#use-regex").is(":checked");
 
         if (!appContext.getActiveId() || !keyword) {
-            window.LogViewerSearch.clearSearchResults();
+            window.FileLensSearch.clearSearchResults();
             return;
         }
 
         try {
             if (openPanel !== false) {
-                window.LogViewerUIState.openSearchPanel();
+                window.FileLensUIState.openSearchPanel();
                 $("#search-results-list").html(`
                     <div class="text-center p-3">
                         <div class="loading-spinner" style="width: 24px; height: 24px; margin: 0 auto 8px;"></div>
@@ -103,7 +103,7 @@ window.LogViewerToolbar = (function () {
                 `);
             }
 
-            const response = await fetch(`${window.LogViewerUtils.getEndpoint()}/file/search/advanced`, {
+            const response = await fetch(`${window.FileLensUtils.getEndpoint()}/file/search/advanced`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -121,11 +121,11 @@ window.LogViewerToolbar = (function () {
             const result = await response.json();
             if (!result.success) throw new Error(result.error || '搜索失败');
 
-            window.LogViewerSearch.setServerSearchResults(result);
-            window.LogViewerSearch.renderSearchResults();
+            window.FileLensSearch.setServerSearchResults(result);
+            window.FileLensSearch.renderSearchResults();
 
             if (openPanel !== false) {
-                window.LogViewerUIState.openSearchPanel();
+                window.FileLensUIState.openSearchPanel();
             }
 
             return result;
@@ -167,7 +167,7 @@ window.LogViewerToolbar = (function () {
             $text.text("实时刷新");
             $loading.hide();
 
-            window.LogViewerPagination.setAutoRefreshEnabled(false);
+            window.FileLensPagination.setAutoRefreshEnabled(false);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", false).css("cursor", "").removeClass("disabled");
             return;
         }
@@ -178,7 +178,7 @@ window.LogViewerToolbar = (function () {
         }
 
         try {
-            const metadata = window.LogViewerPageCache.getStatus().metadata;
+            const metadata = window.FileLensPageCache.getStatus().metadata;
             const lastPage = metadata.totalPages;
             await appContext.loadPage(lastPage, true);
 
@@ -187,7 +187,7 @@ window.LogViewerToolbar = (function () {
             $text.text("停止刷新");
             $loading.show();
 
-            window.LogViewerPagination.setAutoRefreshEnabled(true);
+            window.FileLensPagination.setAutoRefreshEnabled(true);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", true).css("cursor", "not-allowed").addClass("disabled");
 
             refreshTimer = setInterval(async function () {
@@ -198,7 +198,7 @@ window.LogViewerToolbar = (function () {
                 }
 
                 try {
-                    const metadata = window.LogViewerPageCache.getStatus().metadata;
+                    const metadata = window.FileLensPageCache.getStatus().metadata;
                     const lastPage = metadata.totalPages;
                     await appContext.loadPage(lastPage, true);
                 } catch (error) {

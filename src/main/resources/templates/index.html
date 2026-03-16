@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>在线日志查看器</title>
+    <title>FileLens - 在线文件查看器</title>
     <link rel="icon"
           href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
     <!-- 公共样式 -->
@@ -15,8 +15,8 @@
     <link rel="stylesheet" th:href="@{/css/directory.css}">
     <!-- 【内容管理区】 -->
     <link rel="stylesheet" th:href="@{/css/content-mgmt.css}">
-    <!-- 【日志区】 -->
-    <link rel="stylesheet" th:href="@{/css/log-area.css}">
+    <!-- 【文件内容区】 -->
+    <link rel="stylesheet" th:href="@{/css/content-area.css}">
     <link rel="stylesheet" th:href="@{/css/context-menu.css}">
     <!-- 【搜索结果区】 -->
     <link rel="stylesheet" th:href="@{/css/search-panel.css}">
@@ -27,7 +27,7 @@
     <div class="login-box">
         <div class="login-header">
             <div class="login-icon">📋</div>
-            <h3 class="login-title">日志查看器</h3>
+            <h3 class="login-title">FileLens</h3>
             <p class="login-subtitle">请输入认证密钥以继续</p>
         </div>
         <div class="login-form">
@@ -65,7 +65,7 @@
             <div class="sidebar-header">
                 <div class="logo-title">
                     <span class="logo-icon">📋</span>
-                    <span class="logo-text">日志查看器</span>
+                    <span class="logo-text">FileLens</span>
                 </div>
                 <div class="select-wrapper mb-2">
                     <select id="path-select" class="ant-select">
@@ -168,13 +168,13 @@
                     </button>
                 </div>
             </div>
-            <div class="log-file-path" id="log-file-path">
-                <span class="path-label">日志位置：</span>
-                <span class="path-value placeholder" id="current-file-path">请选择日志文件</span>
+            <div class="file-path-display" id="file-path">
+                <span class="path-label">文件位置：</span>
+                <span class="path-value placeholder" id="current-file-path">请选择文件</span>
             </div>
             <div class="content-body p-0">
-                <div id="log-content-empty" class="text-center py-5">
-                    <h4>请选择日志文件</h4>
+                <div id="content-empty" class="text-center py-5">
+                    <h4>请选择文件</h4>
                     <p class="mt-4">
                         使用提示：<br><br>
                         • 左侧选择目录/压缩包并展开，点击文件查看内容<br>
@@ -182,7 +182,7 @@
                         • 支持实时刷新、关键字/正则搜索、高亮与方向键切换结果
                     </p>
                 </div>
-                <div id="log-content-actual" style="display: none; height: 100%; overflow: auto; position: relative;">
+                <div id="content-actual" style="display: none; height: 100%; overflow: auto; position: relative;">
                 </div>
                 <!-- 页码提示框 -->
                 <div id="page-indicator" class="page-indicator" style="display: none;">
@@ -210,10 +210,10 @@
 <script th:src="@{/js/common/auth.js}"></script>
 <script th:src="@{/js/common/notification.js}"></script>
 <script th:src="@{/js/common/ui-state.js}"></script>
-<!-- 【日志区】 -->
-<script th:src="@{/js/log-area/log-highlighter.js}"></script>
-<script th:src="@{/js/log-area/content-renderer.js}"></script>
-<script th:src="@{/js/log-area/context-menu.js}"></script>
+<!-- 【内容区】 -->
+<script th:src="@{/js/content-area/context-highlighter.js}"></script>
+<script th:src="@{/js/content-area/content-renderer.js}"></script>
+<script th:src="@{/js/content-area/context-menu.js}"></script>
 <!-- 【目录区】 -->
 <script th:src="@{/js/directory/selection-manager.js}"></script>
 <script th:src="@{/js/directory/file-operations.js}"></script>

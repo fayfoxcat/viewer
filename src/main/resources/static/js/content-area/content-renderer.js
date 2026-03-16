@@ -1,8 +1,8 @@
 /**
- * 【日志区】内容渲染模块
- * 负责日志内容的渲染、高亮和滚动控制
+ * 【内容区】内容渲染模块
+ * 负责文件内容的渲染、高亮和滚动控制
  */
-window.LogViewerContentRenderer = (function () {
+window.FileLensContentRenderer = (function () {
     'use strict';
 
     const LINES_PER_PAGE = 1000;
@@ -14,11 +14,11 @@ window.LogViewerContentRenderer = (function () {
 
     /**
      * 显示加载动画
-     * 在日志内容区域显示加载中状态
+     * 在文件内容区域显示加载中状态
      */
     function showLoading() {
-        $("#log-content-empty").hide();
-        const $actual = $("#log-content-actual");
+        $("#content-empty").hide();
+        const $actual = $("#content-actual");
         $actual.show().html('');
         const $loading = $actual.find("#loading-overlay");
         if ($loading.length === 0) {
@@ -44,14 +44,14 @@ window.LogViewerContentRenderer = (function () {
      * 移除加载中状态的覆盖层
      */
     function hideLoading() {
-        $("#log-content-actual").find("#loading-overlay").remove();
+        $("#content-actual").find("#loading-overlay").remove();
     }
 
     /**
-     * 渲染日志内容
+     * 渲染文件内容
      * 主要渲染函数，支持语法高亮和搜索高亮
      *
-     * @param {string[]} lines - 日志行数组
+     * @param {string[]} lines - 文件行数组
      * @param {Map<number, Array>} highlightInfo - 高亮信息映射（行号 -> 高亮范围数组）
      * @param {number} [page] - 页码
      * @param {number} [startLineNumber] - 起始行号（用于后端分页）
@@ -78,7 +78,7 @@ window.LogViewerContentRenderer = (function () {
         const endLine = Math.min(startLine + LINES_PER_PAGE - 1, currentLines.length);
 
         const map = currentHighlightMap || new Map();
-        let html = `<div class="log-lines">`;
+        let html = `<div class="content-lines">`;
 
         for (let i = startLine - 1; i < endLine && i < currentLines.length; i++) {
             const ln = startLineNumber ? (startLineNumber + i) : (i + 1);
@@ -91,23 +91,23 @@ window.LogViewerContentRenderer = (function () {
             } else if (window.LogHighlighter) {
                 textHtml = window.LogHighlighter.highlightLine(raw);
             } else {
-                textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.LogViewerUtils.escapeHtml(raw);
+                textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.FileLensUtils.escapeHtml(raw);
             }
 
             html += `
-              <div class="log-line" data-line="${ln}">
-                <span class="log-ln">${ln}</span>
-                <span class="log-txt">${textHtml}</span>
+              <div class="content-line" data-line="${ln}">
+                <span class="line-number">${ln}</span>
+                <span class="line-text">${textHtml}</span>
               </div>
             `;
         }
         html += `</div>`;
 
-        $("#log-content-actual").html(html);
+        $("#content-actual").html(html);
 
         // 恢复标记显示
-        if (window.LogViewerContextMenu && window.LogViewerContextMenu.restoreMarks) {
-            window.LogViewerContextMenu.restoreMarks();
+        if (window.FileLensContextMenu && window.FileLensContextMenu.restoreMarks) {
+            window.FileLensContextMenu.restoreMarks();
         }
     }
 
@@ -179,7 +179,7 @@ window.LogViewerContentRenderer = (function () {
             if (before) fragment.appendChild(document.createTextNode(before));
 
             const mark = document.createElement('mark');
-            mark.className = 'log-hit';
+            mark.className = 'search-hit';
             mark.textContent = highlight;
             fragment.appendChild(mark);
 
@@ -206,11 +206,11 @@ window.LogViewerContentRenderer = (function () {
             const s = Math.max(0, Math.min(t.length, r.s));
             const e = Math.max(0, Math.min(t.length, r.e));
             if (e <= s) continue;
-            if (s > pos) out += window.LogViewerUtils.escapeHtml(t.slice(pos, s));
-            out += `<mark class="log-hit">${window.LogViewerUtils.escapeHtml(t.slice(s, e))}</mark>`;
+            if (s > pos) out += window.FileLensUtils.escapeHtml(t.slice(pos, s));
+            out += `<mark class="search-hit">${window.FileLensUtils.escapeHtml(t.slice(s, e))}</mark>`;
             pos = e;
         }
-        if (pos < t.length) out += window.LogViewerUtils.escapeHtml(t.slice(pos));
+        if (pos < t.length) out += window.FileLensUtils.escapeHtml(t.slice(pos));
         return out;
     }
 
@@ -221,8 +221,8 @@ window.LogViewerContentRenderer = (function () {
      * @param {number} lineNumber - 行号
      */
     function scrollToLine(lineNumber) {
-        const $container = $("#log-content-actual");
-        const $line = $container.find(`.log-line[data-line='${lineNumber}']`).first();
+        const $container = $("#content-actual");
+        const $line = $container.find(`.content-line[data-line='${lineNumber}']`).first();
         if ($line.length === 0) return;
         const containerHeight = $container.height();
         const targetOffset = containerHeight / 5;
@@ -235,7 +235,7 @@ window.LogViewerContentRenderer = (function () {
      * 平滑滚动到内容区域顶部
      */
     function scrollToTop() {
-        const $container = $("#log-content-actual");
+        const $container = $("#content-actual");
         $container.stop(true).animate({scrollTop: 0}, 150);
     }
 
@@ -246,12 +246,12 @@ window.LogViewerContentRenderer = (function () {
      * @param {boolean} [immediate=false] - 是否立即滚动
      */
     function scrollToBottom(immediate = false) {
-        const $container = $("#log-content-actual");
+        const $container = $("#content-actual");
         const el = $container[0];
         if (!el) return;
 
         if (immediate) {
-            const lastLine = el.querySelector('.log-lines > .log-line:last-child');
+            const lastLine = el.querySelector('.content-lines > .content-line:last-child');
             if (lastLine) {
                 lastLine.scrollIntoView({block: 'end', behavior: 'instant'});
             } else {
@@ -268,7 +268,7 @@ window.LogViewerContentRenderer = (function () {
      * @param {string} position - 位置：'top' 或 'bottom'
      */
     function scrollToPosition(position) {
-        const $container = $("#log-content-actual");
+        const $container = $("#content-actual");
         const container = $container[0];
         if (!container) return;
 

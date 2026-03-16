@@ -57,11 +57,11 @@
 }
 
 /* 标记样式 - 只保留大圆点 */
-.log-line.marked .log-ln {
+.content-line.marked .line-number {
     position: relative;
 }
 
-.log-line.marked .log-ln::before {
+.content-line.marked .line-number::before {
     content: '●';
     color: #ffc107;
     font-size: 16px;
@@ -72,7 +72,7 @@
 }
 
 /* 自定义高亮样式（区别于搜索高亮） */
-mark.log-highlight {
+mark.custom-highlight {
     background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
     border-radius: 3px;
     padding: 1px 3px;
@@ -89,13 +89,13 @@ mark.log-highlight {
     line-height: 1.4;
 }
 
-.screenshot-container .log-line {
+.screenshot-container .content-line {
     display: flex;
     margin-bottom: 1px;
     padding: 2px 0;
 }
 
-.screenshot-container .log-ln {
+.screenshot-container .line-number {
     min-width: 60px;
     padding-right: 10px;
     color: #666;
@@ -104,16 +104,16 @@ mark.log-highlight {
     margin-right: 10px;
 }
 
-.screenshot-container .log-txt {
+.screenshot-container .line-text {
     flex: 1;
     word-break: break-all;
 }
 
-.screenshot-container .log-line.marked .log-ln {
+.screenshot-container .content-line.marked .line-number {
     position: relative;
 }
 
-.screenshot-container .log-line.marked .log-ln::before {
+.screenshot-container .content-line.marked .line-number::before {
     content: '●';
     color: #ffc107;
     font-size: 16px;
@@ -123,13 +123,13 @@ mark.log-highlight {
     transform: translateY(-50%);
 }
 
-.screenshot-container mark.log-hit {
+.screenshot-container mark.search-hit {
     background-color: #ffeb3b;
     padding: 0 2px;
     border-radius: 2px;
 }
 
-.screenshot-container mark.log-highlight {
+.screenshot-container mark.custom-highlight {
     background: linear-gradient(120deg, #a8e6cf 0%, #dcedc1 100%);
     border-radius: 3px;
     padding: 1px 3px;
@@ -138,67 +138,67 @@ mark.log-highlight {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* 截图容器中的语法高亮样式 */
-.screenshot-container .log-keyword {
-    color: #0000ff;
-    font-weight: bold;
-}
+  /* 截图容器中的语法高亮样式 */
+  .screenshot-container .filelens-keyword {
+      color: #0000ff;
+      font-weight: bold;
+  }
+  
+  .screenshot-container .filelens-string {
+      color: #008000;
+  }
+  
+  .screenshot-container .filelens-number {
+      color: #ff6600;
+  }
+  
+  .screenshot-container .filelens-comment {
+      color: #808080;
+      font-style: italic;
+  }
+  
+  .screenshot-container .filelens-error {
+      color: #ff0000;
+      font-weight: bold;
+  }
+  
+  .screenshot-container .filelens-warning {
+      color: #ff8c00;
+  }
+  
+  .screenshot-container .filelens-info {
+      color: #0080ff;
+  }
+  
+  .screenshot-container .filelens-debug {
+      color: #808080;
+  }
+  
+  .screenshot-container .filelens-timestamp {
+      color: #666666;
+  }
+  
+  .screenshot-container .filelens-level {
+      font-weight: bold;
+  }
+  
+  .screenshot-container .filelens-level.ERROR {
+      color: #ff0000;
+  }
+  
+  .screenshot-container .filelens-level.WARN {
+      color: #ff8c00;
+  }
+  
+  .screenshot-container .filelens-level.INFO {
+      color: #0080ff;
+  }
+  
+  .screenshot-container .filelens-level.DEBUG {
+      color: #808080;
+  }
 
-.screenshot-container .log-string {
-    color: #008000;
-}
-
-.screenshot-container .log-number {
-    color: #ff6600;
-}
-
-.screenshot-container .log-comment {
-    color: #808080;
-    font-style: italic;
-}
-
-.screenshot-container .log-error {
-    color: #ff0000;
-    font-weight: bold;
-}
-
-.screenshot-container .log-warning {
-    color: #ff8c00;
-}
-
-.screenshot-container .log-info {
-    color: #0080ff;
-}
-
-.screenshot-container .log-debug {
-    color: #808080;
-}
-
-.screenshot-container .log-timestamp {
-    color: #666666;
-}
-
-.screenshot-container .log-level {
-    font-weight: bold;
-}
-
-.screenshot-container .log-level.ERROR {
-    color: #ff0000;
-}
-
-.screenshot-container .log-level.WARN {
-    color: #ff8c00;
-}
-
-.screenshot-container .log-level.INFO {
-    color: #0080ff;
-}
-
-.screenshot-container .log-level.DEBUG {
-    color: #808080;
-}
-
-.screenshot-container mark.log-hit {
+.screenshot-container mark.search-hit {
     background-color: #ffeb3b;
     padding: 0 2px;
     border-radius: 2px;

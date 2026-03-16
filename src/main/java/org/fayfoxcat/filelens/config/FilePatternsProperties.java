@@ -1,4 +1,4 @@
-package org.fayfoxcat.log.config;
+package org.fayfoxcat.filelens.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 日志模式配置属性类
+ * 文件模式配置属性类
  * 从 patterns.yml 和 application.yml 中读取合并后的 patterns 配置
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
-@ConfigurationProperties(prefix = "logs.patterns")
-public class LogPatternsProperties {
+@ConfigurationProperties(prefix = "filelens.patterns")
+public class FilePatternsProperties {
 
     /**
      * 高亮/搜索规则集合（有序）

@@ -1,4 +1,4 @@
-package org.fayfoxcat.log.config;
+package org.fayfoxcat.filelens.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
@@ -14,8 +14,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 日志查看器通用权限绕过过滤器
- * 当 enable-auth=false 时，为日志查看器请求设置标记，供各种权限框架识别
+ * FileLens文件查看器通用权限绕过过滤器
+ * 当 enable-auth=false 时，为文件查看器请求设置标记，供各种权限框架识别
  * 适用于：
  * - Spring Security
  * - 自定义 Filter/Interceptor
@@ -28,13 +28,13 @@ import java.io.IOException;
  * @version 0.0.1
  */
 @Component
-@ConditionalOnProperty(prefix = "logs.viewer", name = "enable-auth", havingValue = "false")
+@ConditionalOnProperty(prefix = "filelens.viewer", name = "enable-auth", havingValue = "false")
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class LogViewerUniversalFilter extends OncePerRequestFilter {
+public class FileLensUniversalFilter extends OncePerRequestFilter {
 
-    private final LogViewerProperties properties;
+    private final FileLensProperties properties;
 
-    public LogViewerUniversalFilter(LogViewerProperties properties) {
+    public FileLensUniversalFilter(FileLensProperties properties) {
         this.properties = properties;
     }
 
@@ -52,25 +52,25 @@ public class LogViewerUniversalFilter extends OncePerRequestFilter {
 
         String endpoint = properties.getEndpoint();
 
-        // 判断是否是日志查看器的请求
-        if (isLogViewerPath(requestURI, endpoint)) {
+        // 判断是否是文件查看器的请求
+        if (isFileLensPath(requestURI, endpoint)) {
             // 设置多个标记，供不同的权限框架识别
-            request.setAttribute("LOGS_VIEWER_SKIP_AUTH", Boolean.TRUE);
+            request.setAttribute("FILELENS_SKIP_AUTH", Boolean.TRUE);
             request.setAttribute("SKIP_AUTH", Boolean.TRUE);
             request.setAttribute("NO_AUTH_REQUIRED", Boolean.TRUE);
 
             // 设置一个自定义 Header，供 Filter 识别
-            request.setAttribute("X-Logs-Viewer-Bypass", "true");
+            request.setAttribute("X-FileLens-Bypass", "true");
         }
 
         filterChain.doFilter(request, response);
     }
 
     /**
-     * 判断请求路径是否属于日志查看器
+     * 判断请求路径是否属于文件查看器
      */
-    private boolean isLogViewerPath(String requestURI, String endpoint) {
-        // 精确匹配或前缀匹配日志查看器端点
+    private boolean isFileLensPath(String requestURI, String endpoint) {
+        // 精确匹配或前缀匹配文件查看器端点
         return requestURI.equals(endpoint) || requestURI.startsWith(endpoint + "/");
     }
 }

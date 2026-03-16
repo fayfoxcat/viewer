@@ -1,16 +1,16 @@
-# 日志查看器 (Log Viewer)
+# FileLens - 文件查看器
 
-[![Release Build](https://github.com/fayfoxcat/logs/workflows/Release%20Build/badge.svg)](https://github.com/fayfoxcat/logs/actions)
+[![Release Build](https://github.com/fayfoxcat/filelens/workflows/Release%20Build/badge.svg)](https://github.com/fayfoxcat/filelens/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-8%2B-blue.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7.18-brightgreen.svg)](https://spring.io/projects/spring-boot)
 
-一个现代化的在线日志查看组件，基于 Spring Boot 构建，提供强大的日志浏览、搜索和管理功能。支持多种压缩格式、智能语法高亮、正则表达式搜索，以及灵活的认证机制。
+一个现代化的在线文件查看组件，基于 Spring Boot 构建，提供强大的文件浏览、搜索和管理功能。支持多种压缩格式、智能语法高亮、正则表达式搜索，以及灵活的认证机制。
 
 ## ✨ 核心特性
 
 ### 📁 文件管理
-- **多目录支持**: 配置多个日志目录，统一管理
+- **多目录支持**: 配置多个文件目录，统一管理
 - **文件树浏览**: 直观的树形结构，支持展开/折叠
 - **压缩包支持**: 原生支持 `.zip`、`.jar`、`.gz` 格式
 - **批量操作**: 多选下载，Ctrl/Shift 快捷选择
@@ -41,7 +41,7 @@
 ```xml
 <dependency>
     <groupId>org.fayfoxcat</groupId>
-    <artifactId>logs</artifactId>
+    <artifactId>filelens</artifactId>
     <version>0.0.1</version>
 </dependency>
 ```
@@ -50,7 +50,7 @@
 
 **最简配置（开发环境）**：
 ```yaml
-logs:
+filelens:
   viewer:
     enable-auth: false  # 禁用认证
     paths:
@@ -60,11 +60,11 @@ logs:
 
 **生产环境配置**：
 ```yaml
-logs:
+filelens:
   viewer:
     enable-auth: true
     secret-key: "your-secure-password-here"
-    endpoint: /admin/logs
+    endpoint: /admin/filelens
     paths:
       - /var/log/application
       - /opt/app/logs
@@ -72,13 +72,13 @@ logs:
 
 ### 3. 启动访问
 
-启动应用后访问：`http://localhost:1098/logs`
+启动应用后访问：`http://localhost:1098/filelens`
 
 ## 📦 部署场景
 
 ### 场景1：作为依赖集成到现有项目
 
-适用于已有 Spring Boot 项目，需要添加日志查看功能。
+适用于已有 Spring Boot 项目，需要添加文件查看功能。
 
 1. 添加 Maven 依赖（见上方）
 2. 在 `application.yml` 中配置
@@ -86,15 +86,15 @@ logs:
 
 ### 场景2：独立运行
 
-适用于需要独立部署的日志查看服务。
+适用于需要独立部署的文件查看服务。
 
 ```bash
 # 下载可执行 JAR
-wget https://github.com/fayfoxcat/logs/releases/download/v0.0.1/logs-0.0.1-exec.jar
+wget https://github.com/fayfoxcat/filelens/releases/download/v0.0.1/filelens-0.0.1-exec.jar
 
 # 创建配置文件
 cat > application.yml << EOF
-logs:
+filelens:
   viewer:
     enable-auth: true
     secret-key: "MySecurePassword123"
@@ -104,7 +104,7 @@ logs:
 EOF
 
 # 启动服务
-java -jar logs-0.0.1-exec.jar
+java -jar filelens-0.0.1-exec.jar
 ```
 
 ## 📖 详细配置
@@ -113,17 +113,17 @@ java -jar logs-0.0.1-exec.jar
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `logs.viewer.endpoint` | String | `/logs` | 访问端点路径 |
-| `logs.viewer.enable-auth` | Boolean | `true` | 是否启用认证保护 |
-| `logs.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
-| `logs.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
+| `filelens.viewer.endpoint` | String | `/filelens` | 访问端点路径 |
+| `filelens.viewer.enable-auth` | Boolean | `true` | 是否启用认证保护 |
+| `filelens.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
+| `filelens.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
 
 ### 日志高亮配置
 
 系统支持通过 `patterns.yml` 配置文件自定义日志高亮规则：
 
 ```yaml
-logs:
+filelens:
   patterns:
     rules:
       error:
@@ -155,7 +155,7 @@ logs:
 
 #### 🔓 开发模式（禁用认证）
 ```yaml
-logs:
+filelens:
   viewer:
     enable-auth: false
 ```
@@ -165,7 +165,7 @@ logs:
 
 **固定密钥**（推荐生产环境）：
 ```yaml
-logs:
+filelens:
   viewer:
     enable-auth: true
     secret-key: "MySecurePassword123!"
@@ -173,7 +173,7 @@ logs:
 
 **临时密钥**（快速测试）：
 ```yaml
-logs:
+filelens:
   viewer:
     enable-auth: true
     # 不配置 secret-key，系统自动生成并输出到控制台
@@ -182,7 +182,7 @@ logs:
 ### 路径配置示例
 
 ```yaml
-logs:
+filelens:
   viewer:
     paths:
       # 绝对路径
@@ -206,14 +206,14 @@ logs:
 
 ```bash
 # 克隆项目
-git clone https://github.com/fayfoxcat/logs.git
-cd logs
+git clone https://github.com/fayfoxcat/filelens.git
+cd filelens
 
 # 启动开发服务器
 mvn spring-boot:run
 
 # 访问应用
-open http://localhost:1098/logs
+open http://localhost:1098/filelens
 ```
 
 ### 构建部署
@@ -223,11 +223,11 @@ open http://localhost:1098/logs
 mvn clean package
 
 # 生成文件
-# target/logs-0.0.1.jar        - 库文件（集成使用）
-# target/logs-0.0.1-exec.jar   - 可执行文件（独立运行）
+# target/filelens-0.0.1.jar        - 库文件（集成使用）
+# target/filelens-0.0.1-exec.jar   - 可执行文件（独立运行）
 
 # 独立运行
-java -jar target/logs-0.0.1-exec.jar
+java -jar target/filelens-0.0.1-exec.jar
 ```
 
 ## 📊 技术架构
@@ -235,31 +235,31 @@ java -jar target/logs-0.0.1-exec.jar
 ### 项目结构
 
 ```
-logs/
-├── src/main/java/org/fayfoxcat/log/
+filelens/
+├── src/main/java/org/fayfoxcat/filelens/
 │   ├── config/                          # 配置层
 │   │   ├── AuthInterceptor.java         # 认证拦截器
-│   │   ├── LogPatternsProperties.java   # 日志高亮规则配置
-│   │   ├── LogViewerAutoConfiguration.java  # 自动配置类
-│   │   ├── LogViewerProperties.java     # 核心配置属性
-│   │   ├── LogViewerSecurityConfig.java # 安全配置
-│   │   ├── LogViewerUniversalFilter.java # 通用过滤器
+│   │   ├── FilePatternsProperties.java  # 文件高亮规则配置
+│   │   ├── FileLensAutoConfiguration.java  # 自动配置类
+│   │   ├── FileLensProperties.java      # 核心配置属性
+│   │   ├── FileLensSecurityConfig.java  # 安全配置
+│   │   ├── FileLensUniversalFilter.java # 通用过滤器
 │   │   └── WebConfig.java               # Web配置
 │   ├── controller/                      # 控制层
-│   │   └── LogViewerController.java     # 主控制器（REST API）
+│   │   └── FileLensController.java      # 主控制器（REST API）
 │   ├── service/                         # 服务层
 │   │   ├── AuthService.java             # 认证服务
 │   │   ├── DownloadService.java         # 文件下载服务
 │   │   ├── FileIndexCache.java          # 文件索引缓存
-│   │   └── LogViewerService.java        # 核心业务逻辑
-│   └── LogViewerApplication.java        # 应用入口
+│   │   └── FileLensService.java         # 核心业务逻辑
+│   └── FileLensApplication.java         # 应用入口
 ├── src/main/resources/
 │   ├── static/                          # 前端静态资源
 │   │   ├── css/                         # 样式文件
 │   │   │   ├── common.css               # 通用样式
 │   │   │   ├── content-mgmt.css         # 内容管理样式
 │   │   │   ├── directory.css            # 目录树样式
-│   │   │   ├── log-area.css             # 日志显示区样式
+│   │   │   ├── content-area.css             # 日志显示区样式
 │   │   │   ├── login.css                # 登录页样式
 │   │   │   ├── notification.css         # 通知组件样式
 │   │   │   ├── search-panel.css         # 搜索面板样式
@@ -278,9 +278,9 @@ logs/
 │   │       │   ├── file-operations.js   # 文件操作
 │   │       │   ├── file-tree.js         # 文件树组件
 │   │       │   └── selection-manager.js # 选择管理
-│   │       ├── log-area/                # 日志显示模块
+│   │       ├── content-area/                # 日志显示模块
 │   │       │   ├── content-renderer.js  # 内容渲染
-│   │       │   └── log-highlighter.js   # 语法高亮
+│   │       │   └── context-highlighter.js   # 语法高亮
 │   │       ├── search-results/          # 搜索模块
 │   │       │   └── search.js            # 搜索功能
 │   │       └── app.js                   # 应用主入口
@@ -293,7 +293,7 @@ logs/
 
 ### 核心功能模块
 
-#### 1. 文件管理服务 (LogViewerService)
+#### 1. 文件管理服务 (FileLensService)
 - 文件列表获取与递归搜索
 - 多格式压缩包支持（ZIP、JAR、GZ）
 - 大文件智能截取（尾部读取）
@@ -346,9 +346,9 @@ logs/
 
 ## 🔗 相关链接
 
-- [项目主页](https://github.com/fayfoxcat/logs)
-- [问题反馈](https://github.com/fayfoxcat/logs/issues)
-- [版本发布](https://github.com/fayfoxcat/logs/releases)
+- [项目主页](https://github.com/fayfoxcat/filelens)
+- [问题反馈](https://github.com/fayfoxcat/filelens/issues)
+- [版本发布](https://github.com/fayfoxcat/filelens/releases)
 - [更新日志](CHANGELOG.md)
 
 ## ⭐ 支持项目

@@ -1,13 +1,13 @@
 /**
  * 主入口协调器
- * 协调【目录区】【内容管理区】【日志区】【搜索结果区】四个区域
+ * 协调【目录区】【内容管理区】【内容区】【搜索结果区】四个区域
  */
 $(document).ready(function () {
     'use strict';
 
     const apiBase = window.location.pathname.replace(/\/$/, "");
 
-    if (!window.LogViewerAuth.init(apiBase)) {
+    if (!window.FileLensAuth.init(apiBase)) {
         return;
     }
 
@@ -19,9 +19,9 @@ $(document).ready(function () {
     let loadPageDebounceTimer = null;
 
     // ========== 初始化各区域模块 ==========
-    window.LogViewerFileTree.init(apiBase);
-    window.LogViewerFileOperations.init(apiBase);
-    window.LogViewerContextMenu.init();
+    window.FileLensFileTree.init(apiBase);
+    window.FileLensFileOperations.init(apiBase);
+    window.FileLensContextMenu.init();
 
     // 暴露给其他模块的上下文接口
     const appContext = {
@@ -29,7 +29,7 @@ $(document).ready(function () {
         loadPage: loadPage
     };
 
-    window.LogViewerApp = {
+    window.FileLensApp = {
         onFileModified: handleFileModified,
         refreshCurrentPage: refreshCurrentPage,
         handlePageChange: handlePageChange
@@ -44,7 +44,7 @@ $(document).ready(function () {
      * @param {Object} _info - 文件变更信息（未使用，保留以匹配接口）
      */
     function handleFileModified(_info) {
-        window.LogViewerNotification.showFileModified();
+        window.FileLensNotification.showFileModified();
         setTimeout(() => refreshCurrentPage(), 500);
     }
 
@@ -55,10 +55,10 @@ $(document).ready(function () {
     async function refreshCurrentPage() {
         if (!activeId) return;
         try {
-            const currentPage = window.LogViewerPagination.getCurrentPage();
-            const data = await window.LogViewerPageCache.getPage(currentPage);
-            window.LogViewerContentRenderer.renderLogContent(data.lines, null, 1, data.startLine);
-            window.LogViewerPagination.updatePagination(data.totalLines);
+            const currentPage = window.FileLensPagination.getCurrentPage();
+            const data = await window.FileLensPageCache.getPage(currentPage);
+            window.FileLensContentRenderer.renderLogContent(data.lines, null, 1, data.startLine);
+            window.FileLensPagination.updatePagination(data.totalLines);
         } catch (error) {
             console.error('[App] Refresh page error:', error);
         }
@@ -76,10 +76,10 @@ $(document).ready(function () {
      */
     async function loadPage(page, autoScroll = false) {
         // 立即更新页码显示，给用户即时反馈
-        window.LogViewerPagination.setCurrentPage(page);
+        window.FileLensPagination.setCurrentPage(page);
         // 只在非自动滚动时显示页码指示器（避免实时刷新时一直显示）
         if (!autoScroll) {
-            window.LogViewerContentRenderer.showPageIndicator(page);
+            window.FileLensContentRenderer.showPageIndicator(page);
         }
 
         // 清除之前的防抖定时器
@@ -105,13 +105,13 @@ $(document).ready(function () {
         const requestId = ++loadPageRequestId;
 
         try {
-            window.LogViewerContentRenderer.showLoading();
+            window.FileLensContentRenderer.showLoading();
 
-            const data = await window.LogViewerPageCache.getPage(page);
+            const data = await window.FileLensPageCache.getPage(page);
 
             // 请求被取消，不做任何处理
             if (data === null) {
-                window.LogViewerContentRenderer.hideLoading();
+                window.FileLensContentRenderer.hideLoading();
                 return;
             }
 
@@ -120,9 +120,9 @@ $(document).ready(function () {
                 return;
             }
 
-            window.LogViewerPageCache.setCurrentPage(page);
+            window.FileLensPageCache.setCurrentPage(page);
 
-            const matches = window.LogViewerSearch.getCurrentMatches();
+            const matches = window.FileLensSearch.getCurrentMatches();
             let highlightMap = null;
             if (matches.length > 0) {
                 highlightMap = new Map();
@@ -134,13 +134,13 @@ $(document).ready(function () {
                 });
             }
 
-            window.LogViewerContentRenderer.renderLogContent(data.lines, highlightMap, 1, data.startLine);
-            window.LogViewerPagination.updatePagination(data.totalLines);
-            window.LogViewerUIState.setEmptyHintVisible(false);
-            window.LogViewerContentRenderer.hideLoading();
+            window.FileLensContentRenderer.renderLogContent(data.lines, highlightMap, 1, data.startLine);
+            window.FileLensPagination.updatePagination(data.totalLines);
+            window.FileLensUIState.setEmptyHintVisible(false);
+            window.FileLensContentRenderer.hideLoading();
 
             if (autoScroll) {
-                window.LogViewerContentRenderer.scrollToBottom(true);
+                window.FileLensContentRenderer.scrollToBottom(true);
             }
         } catch (error) {
             // 只有最新的请求才显示错误
@@ -167,11 +167,11 @@ $(document).ready(function () {
     async function onFileLoadSuccess(metadata, fileId) {
         activeId = fileId;
         currentFileMetadata = metadata;
-        window.LogViewerUIState.setActiveFileName(fileId);
+        window.FileLensUIState.setActiveFileName(fileId);
 
         // 清除之前文件的标记
-        if (window.LogViewerContextMenu) {
-            window.LogViewerContextMenu.clearMarks();
+        if (window.FileLensContextMenu) {
+            window.FileLensContextMenu.clearMarks();
         }
 
         const $refreshBtn = $("#refresh-btn");
@@ -181,9 +181,9 @@ $(document).ready(function () {
             $refreshBtn.prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
         }
 
-        window.LogViewerSearch.clearSearchResults();
+        window.FileLensSearch.clearSearchResults();
         $("#content-search").val("");
-        window.LogViewerPageCache.init(fileId, metadata);
+        window.FileLensPageCache.init(fileId, metadata);
         await loadPage(1);
     }
 
@@ -194,9 +194,9 @@ $(document).ready(function () {
      * @param {string} message - 错误信息
      */
     function onFileLoadError(message) {
-        window.LogViewerContentRenderer.hideLoading();
-        $("#log-content-actual").html(`<div class="text-center text-danger p-5">${message}</div>`);
-        $("#log-content-actual").show();
+        window.FileLensContentRenderer.hideLoading();
+        $("#content-actual").html(`<div class="text-center text-danger p-5">${message}</div>`);
+        $("#content-actual").show();
     }
 
     // ========== 页面切换 ==========
@@ -212,17 +212,17 @@ $(document).ready(function () {
     async function handlePageChange(targetPage, lineNumber, scrollPosition) {
         await loadPage(targetPage);
         if (scrollPosition) {
-            window.LogViewerContentRenderer.scrollToPosition(scrollPosition);
+            window.FileLensContentRenderer.scrollToPosition(scrollPosition);
         } else if (lineNumber) {
-            setTimeout(() => window.LogViewerContentRenderer.scrollToLine(lineNumber), 50);
+            setTimeout(() => window.FileLensContentRenderer.scrollToLine(lineNumber), 50);
         }
     }
 
     // ========== 【目录区】事件绑定 ==========
 
     $(document).on("click", ".sort-btn", function () {
-        window.LogViewerFileTree.setSortBy($(this).data("sort"), $(this).data("order"));
-        window.LogViewerFileTree.renderRootTree(currentRootPath);
+        window.FileLensFileTree.setSortBy($(this).data("sort"), $(this).data("order"));
+        window.FileLensFileTree.renderRootTree(currentRootPath);
     });
 
     $("#file-search").on("input", function () {
@@ -230,14 +230,14 @@ $(document).ready(function () {
         if (searchTimer) clearTimeout(searchTimer);
 
         if (!keyword) {
-            window.LogViewerFileTree.renderRootTree(currentRootPath);
+            window.FileLensFileTree.renderRootTree(currentRootPath);
             return;
         }
 
         searchTimer = setTimeout(function () {
             $("#file-list").empty().append(`<li class="text-center"><div class="loading-spinner"></div> 搜索中...</li>`);
 
-            window.LogViewerFileOperations.searchFiles(currentRootPath, keyword,
+            window.FileLensFileOperations.searchFiles(currentRootPath, keyword,
                 function (data) {
                     $("#file-list").empty();
                     const list = Array.isArray(data) ? data.slice() : [];
@@ -251,23 +251,23 @@ $(document).ready(function () {
                     list.forEach(function (f) {
                         /** @type {{name?: string, path?: string, size?: number, lastModified?: number, directory?: boolean}} */
                         const file = f || {};
-                        const isArchive = window.LogViewerUtils.isArchiveFileName(file.name || "");
+                        const isArchive = window.FileLensUtils.isArchiveFileName(file.name || "");
                         const $li = $("<li class='file-node selectable'>");
                         $li.attr("data-id", file.path).data("node", file);
 
-                        const selectedIds = window.LogViewerSelectionManager.getSelectedIds();
+                        const selectedIds = window.FileLensSelectionManager.getSelectedIds();
                         if (selectedIds.has(file.path || "")) $li.addClass("selected");
                         if (isArchive) $li.addClass("zip-file");
 
                         $li.html(`
-                          <div class="file-row" title="修改时间: ${window.LogViewerUtils.formatDate(file.lastModified || 0)}">
+                          <div class="file-row" title="修改时间: ${window.FileLensUtils.formatDate(file.lastModified || 0)}">
                             <div class="file-col file-col-name">
                               ${isArchive ? '<button type="button" class="file-expander" data-expander="1">▸</button>' : '<span class="file-expander hidden">▸</span>'}
                               <span class="file-icon">${isArchive ? "📦" : "📄"}</span>
-                              <span class="file-label">${window.LogViewerUtils.escapeHtml(file.name || "")}</span>
+                              <span class="file-label">${window.FileLensUtils.escapeHtml(file.name || "")}</span>
                             </div>
-                            <div class="file-col file-col-time">${window.LogViewerUtils.formatDateShort(file.lastModified || 0)}</div>
-                            <div class="file-col file-col-size">${window.LogViewerUtils.formatFileSize(file.size || 0)}</div>
+                            <div class="file-col file-col-time">${window.FileLensUtils.formatDateShort(file.lastModified || 0)}</div>
+                            <div class="file-col file-col-size">${window.FileLensUtils.formatFileSize(file.size || 0)}</div>
                           </div>
                         `);
 
@@ -287,7 +287,7 @@ $(document).ready(function () {
 
     $("#clear-search-btn").on("click", function () {
         $("#file-search").val("");
-        window.LogViewerFileTree.renderRootTree(currentRootPath);
+        window.FileLensFileTree.renderRootTree(currentRootPath);
     });
 
     $(document).on("click", "#file-list .file-col-name", function (e) {
@@ -298,15 +298,15 @@ $(document).ready(function () {
         if (!node) return;
 
         const isDir = !!(node.directory);
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
+        const isArchive = !isDir && window.FileLensUtils.isArchiveFileName(node.name || "");
         const isZipEntry = $li.hasClass("zip-entry");
 
         if (isDir && !isZipEntry) {
-            window.LogViewerFileTree.expandDirectoryNode($li, node.path);
+            window.FileLensFileTree.expandDirectoryNode($li, node.path);
         } else if (isZipEntry && isDir) {
-            window.LogViewerFileTree.expandZipDirNode($li);
+            window.FileLensFileTree.expandZipDirNode($li);
         } else if (isArchive) {
-            window.LogViewerFileTree.expandArchiveNode($li, node.path);
+            window.FileLensFileTree.expandArchiveNode($li, node.path);
         } else {
             $li.trigger("click");
         }
@@ -319,7 +319,7 @@ $(document).ready(function () {
         if (!node || !!(node.directory)) return;
         if (e.ctrlKey || e.metaKey || e.shiftKey) {
             e.stopPropagation();
-            window.LogViewerSelectionManager.handleSelectionClick(e, $li);
+            window.FileLensSelectionManager.handleSelectionClick(e, $li);
         } else {
             $li.trigger("click");
         }
@@ -332,14 +332,14 @@ $(document).ready(function () {
         const node = $li.data("node");
         if (!node) return;
         const isDir = !!(node.directory);
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
+        const isArchive = !isDir && window.FileLensUtils.isArchiveFileName(node.name || "");
 
         if ($li.hasClass("zip-entry") && isDir) {
-            window.LogViewerFileTree.expandZipDirNode($li);
+            window.FileLensFileTree.expandZipDirNode($li);
         } else if (isDir) {
-            window.LogViewerFileTree.expandDirectoryNode($li, node.path);
+            window.FileLensFileTree.expandDirectoryNode($li, node.path);
         } else if (isArchive) {
-            window.LogViewerFileTree.expandArchiveNode($li, node.path);
+            window.FileLensFileTree.expandArchiveNode($li, node.path);
         }
     });
 
@@ -349,34 +349,34 @@ $(document).ready(function () {
         /** @type {{directory?: boolean, name?: string, path?: string}} */
         const node = $li.data("node") || {};
         const isDir = !!(node.directory);
-        const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(node.name || "");
+        const isArchive = !isDir && window.FileLensUtils.isArchiveFileName(node.name || "");
         const isZipEntry = $li.hasClass("zip-entry");
         const entryName = $li.attr("data-entry");
         const zipPath = $li.attr("data-zip");
 
         if (isDir && !isZipEntry) {
             e.stopPropagation();
-            window.LogViewerFileTree.expandDirectoryNode($li, node.path);
+            window.FileLensFileTree.expandDirectoryNode($li, node.path);
             return;
         }
         if (isZipEntry && isDir) {
             e.stopPropagation();
-            window.LogViewerFileTree.expandZipDirNode($li);
+            window.FileLensFileTree.expandZipDirNode($li);
             return;
         }
         if (isArchive) {
             if (!(e.ctrlKey || e.metaKey || e.shiftKey)) {
                 e.stopPropagation();
-                window.LogViewerFileTree.expandArchiveNode($li, node.path);
+                window.FileLensFileTree.expandArchiveNode($li, node.path);
             } else {
                 e.stopPropagation();
-                window.LogViewerSelectionManager.handleSelectionClick(e, $li);
+                window.FileLensSelectionManager.handleSelectionClick(e, $li);
             }
             return;
         }
         if (e.ctrlKey || e.metaKey || e.shiftKey) {
             e.stopPropagation();
-            window.LogViewerSelectionManager.handleSelectionClick(e, $li);
+            window.FileLensSelectionManager.handleSelectionClick(e, $li);
             return;
         }
 
@@ -385,9 +385,9 @@ $(document).ready(function () {
         $li.addClass("active");
 
         // 切换文件时停止实时刷新
-        window.LogViewerToolbar.stopRefresh();
+        window.FileLensToolbar.stopRefresh();
 
-        window.LogViewerContentRenderer.showLoading();
+        window.FileLensContentRenderer.showLoading();
 
         const filePath = isZipEntry ? zipPath + "!" + entryName : node.path;
 
@@ -413,14 +413,14 @@ $(document).ready(function () {
     });
 
     $("#download-btn").on("click", function () {
-        const selectedIds = window.LogViewerSelectionManager.getSelectedIds();
+        const selectedIds = window.FileLensSelectionManager.getSelectedIds();
         if (selectedIds.size === 0) {
             alert('请先选择要下载的文件');
             return;
         }
         try {
-            window.LogViewerFileOperations.downloadSelectedFiles(selectedIds, apiBase);
-            window.LogViewerSelectionManager.clearAllSelection();
+            window.FileLensFileOperations.downloadSelectedFiles(selectedIds, apiBase);
+            window.FileLensSelectionManager.clearAllSelection();
         } catch (error) {
             console.error('下载失败:', error);
             alert('下载失败: ' + error.message);
@@ -431,21 +431,21 @@ $(document).ready(function () {
 
     $("#search-btn").on("click", async function () {
         if (!activeId) {
-            window.LogViewerUIState.openSearchPanel();
+            window.FileLensUIState.openSearchPanel();
             $("#search-results-list").html(`<div class="text-center text-muted p-3"><div>请先选择一个文件</div></div>`);
             return;
         }
         const keyword = $("#content-search").val().trim();
         if (!keyword) {
-            window.LogViewerSearch.clearSearchResults();
+            window.FileLensSearch.clearSearchResults();
             return;
         }
         try {
-            const result = await window.LogViewerToolbar.performContentSearch(true, appContext);
+            const result = await window.FileLensToolbar.performContentSearch(true, appContext);
             if (result.matches && result.matches.length > 0) {
                 const firstMatch = result.matches[0];
                 await loadPage(firstMatch.page);
-                setTimeout(() => window.LogViewerContentRenderer.scrollToLine(firstMatch.lineNumber), 100);
+                setTimeout(() => window.FileLensContentRenderer.scrollToLine(firstMatch.lineNumber), 100);
             }
         } catch (error) {
             console.error('搜索失败:', error);
@@ -462,14 +462,14 @@ $(document).ready(function () {
     });
 
     $("#content-search").on("keydown", function (e) {
-        const matches = window.LogViewerSearch.getCurrentMatches();
+        const matches = window.FileLensSearch.getCurrentMatches();
         if (!matches.length) return;
         if (e.key === "ArrowDown") {
             e.preventDefault();
-            window.LogViewerSearch.focusMatch(window.LogViewerSearch.getNextMatchIndex(), window.LogViewerPagination.getCurrentPage(), handlePageChange);
+            window.FileLensSearch.focusMatch(window.FileLensSearch.getNextMatchIndex(), window.FileLensPagination.getCurrentPage(), handlePageChange);
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
-            window.LogViewerSearch.focusMatch(window.LogViewerSearch.getPrevMatchIndex(), window.LogViewerPagination.getCurrentPage(), handlePageChange);
+            window.FileLensSearch.focusMatch(window.FileLensSearch.getPrevMatchIndex(), window.FileLensPagination.getCurrentPage(), handlePageChange);
         } else if (e.key === "Enter") {
             e.preventDefault();
             $("#search-btn").trigger("click");
@@ -478,29 +478,29 @@ $(document).ready(function () {
 
     $("#scroll-top-btn").on("click", async function () {
         if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
-        await window.LogViewerToolbar.handleScrollAction('top', appContext);
+        await window.FileLensToolbar.handleScrollAction('top', appContext);
     });
 
     $("#scroll-bottom-btn").on("click", async function () {
         if ($(this).prop("disabled") || $(this).hasClass("disabled")) return;
-        await window.LogViewerToolbar.handleScrollAction('bottom', appContext);
+        await window.FileLensToolbar.handleScrollAction('bottom', appContext);
     });
 
     $("#page-first-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        await window.LogViewerToolbar.handlePaginationClick('first', appContext);
+        await window.FileLensToolbar.handlePaginationClick('first', appContext);
     });
     $("#page-prev-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        await window.LogViewerToolbar.handlePaginationClick('prev', appContext);
+        await window.FileLensToolbar.handlePaginationClick('prev', appContext);
     });
     $("#page-next-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        await window.LogViewerToolbar.handlePaginationClick('next', appContext);
+        await window.FileLensToolbar.handlePaginationClick('next', appContext);
     });
     $("#page-last-btn").on("click", async function () {
         if ($(this).prop("disabled")) return;
-        await window.LogViewerToolbar.handlePaginationClick('last', appContext);
+        await window.FileLensToolbar.handlePaginationClick('last', appContext);
     });
 
     $("#page-jump-input").on("keydown", async function (e) {
@@ -511,25 +511,25 @@ $(document).ready(function () {
                 alert('请输入有效的页码');
                 return;
             }
-            const totalPages = window.LogViewerPagination.getTotalPages();
+            const totalPages = window.FileLensPagination.getTotalPages();
             if (page > totalPages) {
                 alert(`页码不能超过总页数 ${totalPages}`);
                 return;
             }
 
             await loadPage(page);
-            window.LogViewerContentRenderer.showPageIndicator(page);
+            window.FileLensContentRenderer.showPageIndicator(page);
         }
     });
 
     $("#refresh-btn").on("click", async function () {
-        await window.LogViewerToolbar.toggleAutoRefresh(appContext);
+        await window.FileLensToolbar.toggleAutoRefresh(appContext);
     });
 
     // ========== 【搜索结果区】事件绑定 ==========
 
     $("#close-search-btn").on("click", function () {
-        window.LogViewerUIState.closeSearchPanel();
+        window.FileLensUIState.closeSearchPanel();
     });
 
     // ========== 全局事件 ==========
@@ -538,30 +538,30 @@ $(document).ready(function () {
         const newPath = $(this).val();
         if (newPath === currentRootPath) return;
 
-        window.LogViewerToolbar.stopRefresh();
-        window.LogViewerPageCache.clear();
+        window.FileLensToolbar.stopRefresh();
+        window.FileLensPageCache.clear();
 
         currentRootPath = newPath;
-        window.LogViewerSelectionManager.clearAllSelection();
-        window.LogViewerFileTree.clearExpandedState();
+        window.FileLensSelectionManager.clearAllSelection();
+        window.FileLensFileTree.clearExpandedState();
         activeId = null;
         currentFileMetadata = null;
-        window.LogViewerSearch.clearSearchResults();
-        window.LogViewerPagination.reset();
-        window.LogViewerUIState.setActiveFileName(null);
-        window.LogViewerUIState.setEmptyHintVisible(true);
-        window.LogViewerContentRenderer.hideLoading();
+        window.FileLensSearch.clearSearchResults();
+        window.FileLensPagination.reset();
+        window.FileLensUIState.setActiveFileName(null);
+        window.FileLensUIState.setEmptyHintVisible(true);
+        window.FileLensContentRenderer.hideLoading();
         $("#file-search").val("");
         $("#pagination-controls").hide();
 
         $("#refresh-btn").prop("disabled", false).removeClass("disabled").removeAttr("title").css("cursor", "");
         $("#page-first-btn, #page-prev-btn, #page-next-btn, #page-last-btn, #page-jump-input, #scroll-top-btn, #scroll-bottom-btn").prop("disabled", false).css("cursor", "").removeClass("disabled");
 
-        window.LogViewerFileTree.renderRootTree(currentRootPath);
+        window.FileLensFileTree.renderRootTree(currentRootPath);
     });
 
     $("#toggle-sidebar").on("click", function () {
-        window.LogViewerUIState.toggleSidebar();
+        window.FileLensUIState.toggleSidebar();
     });
 
     // 拖动调整宽度
@@ -606,15 +606,15 @@ $(document).ready(function () {
     });
 
     $(window).on("beforeunload", function () {
-        window.LogViewerToolbar.cleanup();
+        window.FileLensToolbar.cleanup();
         if (searchTimer) clearTimeout(searchTimer);
         if (loadPageDebounceTimer) clearTimeout(loadPageDebounceTimer);
-        window.LogViewerPageCache.clear();
+        window.FileLensPageCache.clear();
     });
 
     // ========== 初始化完成 ==========
-    window.LogViewerUIState.setEmptyHintVisible(true);
-    window.LogViewerUIState.updateDownloadButton(window.LogViewerSelectionManager.getSelectedIds());
+    window.FileLensUIState.setEmptyHintVisible(true);
+    window.FileLensUIState.updateDownloadButton(window.FileLensSelectionManager.getSelectedIds());
     $("#toggle-sidebar").text($("#main-row").hasClass("left-collapsed") ? "▶" : "◀");
-    window.LogViewerFileTree.renderRootTree(currentRootPath);
+    window.FileLensFileTree.renderRootTree(currentRootPath);
 });

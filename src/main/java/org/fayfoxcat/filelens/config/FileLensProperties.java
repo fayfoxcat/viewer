@@ -1,4 +1,4 @@
-package org.fayfoxcat.log.config;
+package org.fayfoxcat.filelens.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -9,27 +9,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 日志查看器配置属性类
+ * FileLens文件查看器配置属性类
  * 用于从 application.yml 中读取配置
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
-@ConfigurationProperties(prefix = "logs.viewer")
-public class LogViewerProperties {
+@ConfigurationProperties(prefix = "filelens.viewer")
+public class FileLensProperties {
 
     /**
-     * 允许访问的日志目录列表（白名单）
+     * 允许访问的文件目录列表（白名单）
      * 只有在此列表中的目录才能被访问
      * 如果为空，则默认使用当前jar包运行路径
      */
     private List<String> paths = new ArrayList<>();
 
     /**
-     * 日志查看器的访问端点
-     * 默认为 /logs
+     * 文件查看器的访问端点
+     * 默认为 /filelens
      */
-    private String endpoint = "/logs";
+    private String endpoint = "/filelens";
 
     /**
      * 是否启用权限控制
@@ -108,11 +108,11 @@ public class LogViewerProperties {
     }
 
     /**
-     * 获取有效的日志路径列表
+     * 获取有效的文件路径列表
      * 如果用户配置了路径，则使用用户配置的路径
      * 如果用户没有配置路径，则返回当前jar包运行路径
      *
-     * @return 有效的日志路径列表
+     * @return 有效的文件路径列表
      */
     public List<String> getEffectivePaths() {
         if (paths != null && !paths.isEmpty()) {

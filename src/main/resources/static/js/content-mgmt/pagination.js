@@ -2,7 +2,7 @@
  * 【内容管理区】分页控件模块
  * 负责分页状态管理和分页控件的更新
  */
-window.LogViewerPagination = (function () {
+window.FileLensPagination = (function () {
     'use strict';
 
     let currentPage = 1;
@@ -104,7 +104,6 @@ window.LogViewerPagination = (function () {
 
     return {
         updatePagination,
-        goToPage,
         getCurrentPage,
         getTotalPages,
         reset,

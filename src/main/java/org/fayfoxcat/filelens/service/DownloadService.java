@@ -1,4 +1,4 @@
-package org.fayfoxcat.log.service;
+package org.fayfoxcat.filelens.service;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -26,10 +26,10 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class DownloadService {
 
-    private final LogViewerService logViewerService;
+        private final FileLensService fileLensService;
 
-    public DownloadService(LogViewerService logViewerService) {
-        this.logViewerService = logViewerService;
+    public DownloadService(FileLensService fileLensService) {
+        this.fileLensService = fileLensService;
     }
 
     /**
@@ -50,7 +50,7 @@ public class DownloadService {
         }
 
         File file = new File(id);
-        if (!logViewerService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) {
+        if (!fileLensService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -78,7 +78,7 @@ public class DownloadService {
         String zipPath = id.substring(0, idx);
         String entryName = id.substring(idx + 1).replace('\\', '/');
 
-        if (!logViewerService.isPathAllowedForViewer(zipPath)) {
+        if (!fileLensService.isPathAllowedForViewer(zipPath)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -94,7 +94,7 @@ public class DownloadService {
 
         try (OutputStream os = response.getOutputStream()) {
             if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
-                String content = logViewerService.readFileFromZip(zipPath, entryName);
+                String content = fileLensService.readFileFromZip(zipPath, entryName);
                 os.write(content.getBytes(StandardCharsets.UTF_8));
             } else {
                 try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
@@ -164,7 +164,7 @@ public class DownloadService {
         String zipPath = id.substring(0, idx);
         String entryName = id.substring(idx + 1).replace('\\', '/');
 
-        if (!logViewerService.isPathAllowedForViewer(zipPath)) return;
+        if (!fileLensService.isPathAllowedForViewer(zipPath)) return;
 
         String baseName = entryName.contains("/") ?
                 entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
@@ -174,7 +174,7 @@ public class DownloadService {
         zos.putNextEntry(new java.util.zip.ZipEntry(finalName));
 
         if (zipPath.toLowerCase(Locale.ROOT).endsWith(".gz")) {
-            String content = logViewerService.readFileFromZip(zipPath, entryName);
+            String content = fileLensService.readFileFromZip(zipPath, entryName);
             zos.write(content.getBytes(StandardCharsets.UTF_8));
         } else {
             try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(zipPath)) {
@@ -203,7 +203,7 @@ public class DownloadService {
      */
     private void addFileToArchive(String id, ZipOutputStream zos, Map<String, Integer> nameCounter, byte[] buffer) throws IOException {
         File file = new File(id);
-        if (!logViewerService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) return;
+        if (!fileLensService.isPathAllowedForViewer(id) || !file.exists() || !file.isFile()) return;
 
         String finalName = dedupeName(file.getName(), nameCounter);
         zos.putNextEntry(new java.util.zip.ZipEntry(finalName));

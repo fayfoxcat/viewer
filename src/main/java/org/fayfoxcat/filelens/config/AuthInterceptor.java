@@ -1,6 +1,6 @@
-package org.fayfoxcat.log.config;
+package org.fayfoxcat.filelens.config;
 
-import org.fayfoxcat.log.service.AuthService;
+import org.fayfoxcat.filelens.service.AuthService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -19,9 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final AuthService authService;
-    private final LogViewerProperties properties;
+    private final FileLensProperties properties;
 
-    public AuthInterceptor(AuthService authService, LogViewerProperties properties) {
+    public AuthInterceptor(AuthService authService, FileLensProperties properties) {
         this.authService = authService;
         this.properties = properties;
     }

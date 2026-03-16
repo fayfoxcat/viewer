@@ -1,1 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.fayfoxcat.log.config.LogViewerAutoConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.fayfoxcat.filelens.config.FileLensAutoConfiguration

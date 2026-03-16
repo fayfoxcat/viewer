@@ -1,7 +1,7 @@
 /**
  * 【目录区】文件树渲染模块
  */
-window.LogViewerFileTree = (function () {
+window.FileLensFileTree = (function () {
     'use strict';
 
     let apiBase = '';
@@ -18,14 +18,14 @@ window.LogViewerFileTree = (function () {
         const indentStyle = depth > 0 ? `style="padding-left:${depth * 14}px"` : "";
 
         return `
-          <div class="file-row" title="${window.LogViewerUtils.escapeHtml(opts.tooltip || "")}">
+          <div class="file-row" title="${window.FileLensUtils.escapeHtml(opts.tooltip || "")}">
             <div class="file-col file-col-name" ${indentStyle}>
               ${expanderHtml}
               <span class="file-icon">${opts.icon || ""}</span>
-              <span class="file-label" title="${window.LogViewerUtils.escapeHtml(opts.name || "")}">${window.LogViewerUtils.escapeHtml(opts.name)}</span>
+              <span class="file-label" title="${window.FileLensUtils.escapeHtml(opts.name || "")}">${window.FileLensUtils.escapeHtml(opts.name)}</span>
             </div>
-            <div class="file-col file-col-time" title="${window.LogViewerUtils.escapeHtml(opts.mtime || "-")}">${window.LogViewerUtils.escapeHtml(opts.mtimeShort || "-")}</div>
-            <div class="file-col file-col-size" title="${window.LogViewerUtils.escapeHtml(opts.size || "-")}">${window.LogViewerUtils.escapeHtml(opts.size || "-")}</div>
+            <div class="file-col file-col-time" title="${window.FileLensUtils.escapeHtml(opts.mtime || "-")}">${window.FileLensUtils.escapeHtml(opts.mtimeShort || "-")}</div>
+            <div class="file-col file-col-size" title="${window.FileLensUtils.escapeHtml(opts.size || "-")}">${window.FileLensUtils.escapeHtml(opts.size || "-")}</div>
           </div>
         `;
     }
@@ -73,7 +73,7 @@ window.LogViewerFileTree = (function () {
 
         sortedList.forEach(function (f) {
             const isDir = !!f.directory;
-            const isArchive = !isDir && window.LogViewerUtils.isArchiveFileName(f.name);
+            const isArchive = !isDir && window.FileLensUtils.isArchiveFileName(f.name);
 
             const $li = $("<li class='file-node'>");
             $li.data("node", f);
@@ -82,7 +82,7 @@ window.LogViewerFileTree = (function () {
 
             if (!isDir) {
                 $li.addClass("selectable");
-                const currentSelectedIds = window.LogViewerSelectionManager ? window.LogViewerSelectionManager.getSelectedIds() : new Set();
+                const currentSelectedIds = window.FileLensSelectionManager ? window.FileLensSelectionManager.getSelectedIds() : new Set();
                 if (currentSelectedIds.has(f.path)) $li.addClass("selected");
             }
 
@@ -96,9 +96,9 @@ window.LogViewerFileTree = (function () {
 
             $li.html(buildFileRow({
                 name: f.name,
-                size: isDir ? "-" : window.LogViewerUtils.formatFileSize(f.size),
-                mtime: window.LogViewerUtils.formatDate(f.lastModified),
-                mtimeShort: window.LogViewerUtils.formatDateShort(f.lastModified),
+                size: isDir ? "-" : window.FileLensUtils.formatFileSize(f.size),
+                mtime: window.FileLensUtils.formatDate(f.lastModified),
+                mtimeShort: window.FileLensUtils.formatDateShort(f.lastModified),
                 tooltip: f.name,
                 depth,
                 expander: isDir || isArchive,
@@ -231,16 +231,16 @@ window.LogViewerFileTree = (function () {
 
             if (!isDir) {
                 $li.addClass("selectable");
-                const currentSelectedIds = window.LogViewerSelectionManager ? window.LogViewerSelectionManager.getSelectedIds() : new Set();
+                const currentSelectedIds = window.FileLensSelectionManager ? window.FileLensSelectionManager.getSelectedIds() : new Set();
                 if (currentSelectedIds.has(id)) $li.addClass("selected");
             }
 
             let icon = isDir ? "📁" : "📄";
             $li.html(buildFileRow({
                 name: f.name,
-                size: isDir ? "-" : window.LogViewerUtils.formatFileSize(f.size),
-                mtime: window.LogViewerUtils.formatDate(f.lastModified),
-                mtimeShort: window.LogViewerUtils.formatDateShort(f.lastModified),
+                size: isDir ? "-" : window.FileLensUtils.formatFileSize(f.size),
+                mtime: window.FileLensUtils.formatDate(f.lastModified),
+                mtimeShort: window.FileLensUtils.formatDateShort(f.lastModified),
                 tooltip: f.name,
                 depth,
                 expander: isDir,

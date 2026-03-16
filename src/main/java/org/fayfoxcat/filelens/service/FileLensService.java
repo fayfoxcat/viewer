@@ -1,12 +1,12 @@
-package org.fayfoxcat.log.service;
+package org.fayfoxcat.filelens.service;
 
 
-import org.fayfoxcat.log.config.LogPatternsProperties;
-import org.fayfoxcat.log.config.LogViewerProperties;
-import org.fayfoxcat.log.entity.FileMetadata;
-import org.fayfoxcat.log.entity.PageContent;
-import org.fayfoxcat.log.entity.SearchRequest;
-import org.fayfoxcat.log.entity.SearchResult;
+import org.fayfoxcat.filelens.config.FileLensProperties;
+import org.fayfoxcat.filelens.config.FilePatternsProperties;
+import org.fayfoxcat.filelens.entity.FileMetadata;
+import org.fayfoxcat.filelens.entity.PageContent;
+import org.fayfoxcat.filelens.entity.SearchRequest;
+import org.fayfoxcat.filelens.entity.SearchResult;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -25,17 +25,17 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * 日志查看器服务
+ * FileLens文件查看器服务
  * 提供文件和目录的操作功能，包括文件读取、搜索、压缩包处理等
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
 @Service
-public class LogViewerService {
+public class FileLensService {
 
-    private final LogViewerProperties properties;
-    private final LogPatternsProperties patternsProperties;
+    private final FileLensProperties properties;
+    private final FilePatternsProperties patternsProperties;
 
     // 正则配置缓存
     private Map<String, Object> logPatternsCache = null;
@@ -116,7 +116,7 @@ public class LogViewerService {
         });
     }
 
-    public LogViewerService(LogViewerProperties properties, LogPatternsProperties patternsProperties) {
+    public FileLensService(FileLensProperties properties, FilePatternsProperties patternsProperties) {
         this.properties = properties;
         this.patternsProperties = patternsProperties;
     }
@@ -978,9 +978,9 @@ public class LogViewerService {
         List<String> getLines() throws IOException;
     }
 
-    /**
-     * 获取日志模式配置
-     * 将 LogPatternsProperties 转换为前端可用的格式
+        /**
+     * 获取文件模式配置
+     * 将 FilePatternsProperties 转换为前端可用的格式
      *
      * @return 正则表达式配置
      */

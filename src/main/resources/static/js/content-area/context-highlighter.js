@@ -1,6 +1,6 @@
 /**
- * 【日志区】日志语法高亮器
- * 负责加载高亮规则并对日志内容进行语法高亮处理
+ * 【文件内容区】内容语法高亮器
+ * 负责加载高亮规则并对内容内容进行语法高亮处理
  */
 (function () {
     'use strict';
@@ -29,24 +29,24 @@
      */
     function generateDynamicStyles(patterns) {
         // 移除之前的动态样式
-        const existingStyle = document.getElementById('dynamic-log-styles');
+        const existingStyle = document.getElementById('dynamic-filelens-styles');
         if (existingStyle) {
             existingStyle.remove();
         }
 
         // 创建新的样式元素
         const style = document.createElement('style');
-        style.id = 'dynamic-log-styles';
+        style.id = 'dynamic-filelens-styles';
         style.type = 'text/css';
 
         let css = '';
         Object.entries(patterns).forEach(([key, rule]) => {
             if (rule.highlight && rule.color) {
-                const className = rule.className || `log-${key}`;
+                const className = rule.className || `filelens-${key}`;
 
                 // 基础样式
                 css += `
-                    #log-content-actual .${className} {
+                    #content-actual .${className} {
                         color: ${rule.color};
                         font-weight: bold;
                         background: ${rule.color}15;
@@ -85,7 +85,7 @@
         if (patternsLoaded) return;
 
         try {
-            const endpoint = window.logViewerEndpoint || '/logs';
+            const endpoint = window.fileLensEndpoint || '/filelens';
             const response = await fetch(`${endpoint}/patterns`);
             const data = await response.json();
 
@@ -100,7 +100,7 @@
                             const pattern = new RegExp(rule.regex, 'g');
                             HIGHLIGHT_RULES.push({
                                 pattern: pattern,
-                                className: rule.className || `log-${key}`
+                                className: rule.className || `filelens-${key}`
                             });
                         } catch (e) {
                             console.warn(`Invalid regex for pattern ${key}:`, e);
@@ -116,10 +116,10 @@
     }
 
     /**
-     * 对单行日志内容进行语法高亮
+     * 对单行内容进行语法高亮
      * 根据加载的规则匹配并添加 CSS 类名
      *
-     * @param {string} line - 日志行内容
+     * @param {string} line - 行内容
      * @returns {string} 高亮后的 HTML 字符串
      */
     function highlightLine(line) {
@@ -177,38 +177,8 @@
         return result;
     }
 
-    /**
-     * 对多行日志内容进行语法高亮并生成完整的 HTML
-     * 包含行号和高亮后的内容
-     *
-     * @param {string[]} lines - 日志行数组
-     * @param {number} startLine - 起始行号
-     * @param {number} endLine - 结束行号
-     * @returns {string} 完整的日志 HTML 字符串
-     */
-    function highlightLines(lines, startLine, endLine) {
-        let html = '<div class="log-lines">';
-
-        for (let i = startLine - 1; i < endLine && i < lines.length; i++) {
-            const lineNumber = i + 1;
-            const lineContent = highlightLine(lines[i] || '');
-
-            html += `
-                <div class="log-line" data-line="${lineNumber}">
-                    <span class="log-ln">${lineNumber}</span>
-                    <span class="log-txt">${lineContent}</span>
-                </div>
-            `;
-        }
-
-        html += '</div>';
-        return html;
-    }
-
     window.LogHighlighter = {
         highlightLine,
-        highlightLines,
-        loadPatterns
     };
 
     loadPatterns();

@@ -2,7 +2,7 @@
  * 【内容管理区】页面缓存管理器
  * 负责分页内容的缓存、预加载和文件变更检测
  */
-window.LogViewerPageCache = (function () {
+window.FileLensPageCache = (function () {
     'use strict';
 
     const CONFIG = {
@@ -32,7 +32,7 @@ window.LogViewerPageCache = (function () {
      * @param {string} fileId - 文件标识符
      * @param {Object} metadata - 文件元数据
      */
-    function init(fileId, metadata) {
+            function init(fileId, metadata) {
         cache.fileId = fileId;
         cache.fileVersion = metadata.fileVersion;
         cache.metadata = metadata;
@@ -76,7 +76,7 @@ window.LogViewerPageCache = (function () {
      * @returns {Promise<Object>} 页面数据
      * @throws {Error} 加载失败时抛出错误
      */
-    async function loadPageFromServer(page) {
+        async function loadPageFromServer(page) {
         if (abortControllers.has(page)) {
             abortControllers.get(page).abort();
         }
@@ -86,7 +86,7 @@ window.LogViewerPageCache = (function () {
 
         try {
             const response = await fetch(
-                `${window.LogViewerUtils.getEndpoint()}/file/content/page?` +
+                `${window.FileLensUtils.getEndpoint()}/file/content/page?` +
                 `file=${encodeURIComponent(cache.fileId)}&page=${page}&pageSize=1000`,
                 {signal: controller.signal}
             );
@@ -257,7 +257,7 @@ window.LogViewerPageCache = (function () {
 
         try {
             const response = await fetch(
-                `${window.LogViewerUtils.getEndpoint()}/file/metadata?` +
+                `${window.FileLensUtils.getEndpoint()}/file/metadata?` +
                 `file=${encodeURIComponent(cache.fileId)}`
             );
 
@@ -330,8 +330,8 @@ window.LogViewerPageCache = (function () {
             }
         }
 
-        if (window.LogViewerApp && window.LogViewerApp.onFileAppend) {
-            window.LogViewerApp.onFileAppend({
+        if (window.FileLensApp && window.FileLensApp.onFileAppend) {
+            window.FileLensApp.onFileAppend({
                 oldTotalPages,
                 newTotalPages,
                 newLines
@@ -339,8 +339,8 @@ window.LogViewerPageCache = (function () {
         }
 
         if (cache.currentPage >= oldTotalPages - 1) {
-            if (window.LogViewerApp && window.LogViewerApp.refreshCurrentPage) {
-                window.LogViewerApp.refreshCurrentPage();
+            if (window.FileLensApp && window.FileLensApp.refreshCurrentPage) {
+                window.FileLensApp.refreshCurrentPage();
             }
         }
     }
@@ -359,8 +359,8 @@ window.LogViewerPageCache = (function () {
             cache.fileVersion = newMetadata.fileVersion;
         }
 
-        if (window.LogViewerApp && window.LogViewerApp.onFileModified) {
-            window.LogViewerApp.onFileModified({
+        if (window.FileLensApp && window.FileLensApp.onFileModified) {
+            window.FileLensApp.onFileModified({
                 message: '文件已被修改，正在重新加载...'
             });
         }

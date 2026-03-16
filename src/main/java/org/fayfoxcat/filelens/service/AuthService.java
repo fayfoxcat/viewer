@@ -1,6 +1,6 @@
-package org.fayfoxcat.log.service;
+package org.fayfoxcat.filelens.service;
 
-import org.fayfoxcat.log.config.LogViewerProperties;
+import org.fayfoxcat.filelens.config.FileLensProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * 认证服务
- * 处理日志查看器的认证逻辑，包括密钥验证和会话管理
+ * 处理文件查看器的认证逻辑，包括密钥验证和会话管理
  *
  * @author fayfoxcat
  * @version 0.0.1
@@ -22,21 +22,21 @@ import java.time.format.DateTimeFormatter;
 public class AuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-    private static final String SESSION_AUTH_KEY = "LOG_VIEWER_AUTHENTICATED";
-    private static final String SESSION_KEY_VERSION = "LOG_VIEWER_KEY_VERSION";
-    private static final String SESSION_AUTH_TIME = "LOG_VIEWER_AUTH_TIME";
+    private static final String SESSION_AUTH_KEY = "FILELENS_AUTHENTICATED";
+    private static final String SESSION_KEY_VERSION = "FILELENS_KEY_VERSION";
+    private static final String SESSION_AUTH_TIME = "FILELENS_AUTH_TIME";
 
     // 会话超时时间（毫秒）- 24小时
     private static final long SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000L;
 
-    private final LogViewerProperties properties;
+        private final FileLensProperties properties;
     private final SecureRandom secureRandom = new SecureRandom();
 
     private String effectiveAuthKey;
     private String keyVersion;
     private long keyGeneratedTime;
 
-    public AuthService(LogViewerProperties properties) {
+    public AuthService(FileLensProperties properties) {
         this.properties = properties;
     }
 
@@ -47,15 +47,15 @@ public class AuthService {
                 effectiveAuthKey = properties.getSecretKey().trim();
                 keyVersion = "config:" + effectiveAuthKey.hashCode();
                 keyGeneratedTime = System.currentTimeMillis();
-                logger.info("日志查看器认证已启用，使用配置的密钥");
+                logger.info("FileLens文件查看器认证已启用，使用配置的密钥");
             } else {
                 effectiveAuthKey = generateSecureTemporaryKey();
                 keyVersion = "temp:" + keyGeneratedTime;
-                logger.warn("日志查看器认证已启用，但未配置密钥，已生成临时密钥：{}", effectiveAuthKey);
-                logger.warn("建议在配置文件中设置 logs.viewer.secret-key 以使用固定密钥");
+                                logger.warn("FileLens文件查看器认证已启用，但未配置密钥，已生成临时密钥：{}", effectiveAuthKey);
+                logger.warn("建议在配置文件中设置 filelens.viewer.secret-key 以使用固定密钥");
             }
         } else {
-            logger.info("日志查看器认证已禁用");
+            logger.info("FileLens文件查看器认证已禁用");
         }
     }
 

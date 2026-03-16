@@ -2,7 +2,7 @@ server:
   port: 1098
 logging:
   level:
-    org.fayfoxcat.log: INFO        # 日志查看器组件日志级别
+    org.fayfoxcat.filelens: INFO   # FileLens组件日志级别
     root: INFO                     # 根日志级别
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -26,9 +26,9 @@ spring:
           cache-public: true        # 允许公共缓存
   config:
     import: classpath:patterns.yml
-logs:
+filelens:
   viewer:
-    endpoint: /logs                 # 访问端点，默认 /logs
+    endpoint: /filelens             # 访问端点，默认 /filelens
     enable-auth: false              # 是否启用认证，默认 true
     secret-key:                     # 认证密钥，留空则自动生成
     max-file-size-mb: 100           # 大文件阈值（MB），超过此大小只显示尾部，默认 10MB
@@ -40,7 +40,7 @@ logs:
       wiscom-java-file:
         name: 自定义类高亮
         regex: "(?<=com\\.wiscom.*?)[A-Za-z][A-Za-z0-9_]*\\.java:\\d+"
-        class-name: log-wiscom-java-file
+        class-name: filelens-wiscom-java-file
         color: "#42a5f5"
         description: 匹配自定义包java类
         highlight: true

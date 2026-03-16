@@ -2,7 +2,7 @@
  * UI状态管理模块
  * 负责管理界面各部分的显示状态和交互
  */
-window.LogViewerUIState = (function () {
+window.FileLensUIState = (function () {
     'use strict';
 
     /**
@@ -13,11 +13,11 @@ window.LogViewerUIState = (function () {
      */
     function setEmptyHintVisible(visible) {
         if (visible) {
-            $("#log-content-empty").show();
-            $("#log-content-actual").hide().empty();
+            $("#content-empty").show();
+            $("#content-actual").hide().empty();
         } else {
-            $("#log-content-empty").hide();
-            $("#log-content-actual").show();
+            $("#content-empty").hide();
+            $("#content-actual").show();
         }
     }
 
@@ -32,7 +32,7 @@ window.LogViewerUIState = (function () {
         if (name && name !== "未选择文件" && name !== null) {
             $pathValue.text(name).removeClass("placeholder");
         } else {
-            $pathValue.text("请选择日志文件").addClass("placeholder");
+            $pathValue.text("请选择文件").addClass("placeholder");
         }
     }
 
@@ -44,7 +44,7 @@ window.LogViewerUIState = (function () {
     function getActiveFileName() {
         const $pathValue = $("#current-file-path");
         const text = $pathValue.text();
-        if (text === "请选择日志文件" || $pathValue.hasClass("placeholder")) {
+        if (text === "请选择文件" || $pathValue.hasClass("placeholder")) {
             return null;
         }
         return text;

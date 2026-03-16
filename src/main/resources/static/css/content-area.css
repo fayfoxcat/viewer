@@ -1,5 +1,5 @@
 /**
- * 【日志区】日志内容显示样式
+ * 【内容区】文件内容显示样式
  */
 
 /* 内容主体 */
@@ -10,7 +10,7 @@
 }
 
 /* 空状态提示 */
-#log-content-empty {
+#content-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -21,7 +21,7 @@
     user-select: none;
 }
 
-#log-content-empty h4 {
+#content-empty h4 {
     color: var(--ant-text-color-secondary);
     font-weight: 400;
     font-size: 16px;
@@ -29,15 +29,15 @@
     user-select: none;
 }
 
-#log-content-empty p {
+#content-empty p {
     color: var(--ant-text-color-tertiary);
     line-height: 1.8;
     max-width: 500px;
     user-select: none;
 }
 
-/* 日志内容显示 */
-#log-content-actual {
+/* 文件内容显示 */
+#content-actual {
     background: #2b2b2b;
     color: #e0e0e0;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
@@ -49,12 +49,12 @@
     min-height: 200px;
 }
 
-/* 日志行 */
-.log-lines {
+/* 内容行 */
+.content-lines {
     padding: 12px 0;
 }
 
-.log-line {
+.content-line {
     display: flex;
     gap: 16px;
     padding: 2px 16px;
@@ -62,7 +62,7 @@
     min-height: 25px;
 }
 
-.log-line:hover {
+.content-line:hover {
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -78,12 +78,12 @@
     top: 0;
 }
 
-.virtual-scroll-container .log-line {
+.virtual-scroll-container .content-line {
     height: 25px;
     box-sizing: border-box;
 }
 
-.log-ln {
+.line-number {
     width: 60px;
     text-align: right;
     color: #999999;
@@ -91,14 +91,14 @@
     flex: 0 0 auto;
 }
 
-.log-txt {
+.line-text {
     flex: 1 1 auto;
     min-width: 0;
     word-break: break-word;
 }
 
 /* 搜索高亮 */
-mark.log-hit {
+mark.search-hit {
     background: var(--ant-warning-color);
     color: #000;
     padding: 2px 4px;
@@ -106,7 +106,7 @@ mark.log-hit {
     font-weight: 500;
 }
 
-mark.log-hit.log-hit-current {
+mark.search-hit.search-hit-current {
     background: var(--ant-error-color);
     color: #fff;
     font-weight: 600;
@@ -173,28 +173,28 @@ mark.log-hit.log-hit-current {
     user-select: none;
 }
 
-/* 日志内容滚动条 */
-#log-content-actual::-webkit-scrollbar {
+/* 内容区滚动条 */
+#content-actual::-webkit-scrollbar {
     width: 12px;
     height: 12px;
 }
 
-#log-content-actual::-webkit-scrollbar-track {
+#content-actual::-webkit-scrollbar-track {
     background: #353535;
     border-radius: 6px;
 }
 
-#log-content-actual::-webkit-scrollbar-thumb {
+#content-actual::-webkit-scrollbar-thumb {
     background: #555555;
     border-radius: 6px;
     border: 2px solid #353535;
 }
 
-#log-content-actual::-webkit-scrollbar-thumb:hover {
+#content-actual::-webkit-scrollbar-thumb:hover {
     background: #666666;
     border-color: #353535;
 }
 
-#log-content-actual::-webkit-scrollbar-thumb:active {
+#content-actual::-webkit-scrollbar-thumb:active {
     background: #777777;
 }

@@ -2,7 +2,7 @@
  * 【目录区】选择管理模块
  * 负责文件选择状态的管理，支持单选、多选和范围选择
  */
-window.LogViewerSelectionManager = (function () {
+window.FileLensSelectionManager = (function () {
     'use strict';
 
     let selectedIds = new Set();
@@ -36,7 +36,7 @@ window.LogViewerSelectionManager = (function () {
     function toggleSelectionById(id) {
         if (selectedIds.has(id)) selectedIds.delete(id);
         else selectedIds.add(id);
-        window.LogViewerUIState.updateDownloadButton(selectedIds);
+        window.FileLensUIState.updateDownloadButton(selectedIds);
     }
 
     /**
@@ -46,7 +46,7 @@ window.LogViewerSelectionManager = (function () {
     function clearAllSelection() {
         selectedIds.clear();
         $("#file-list li.file-node").removeClass("selected");
-        window.LogViewerUIState.updateDownloadButton(selectedIds);
+        window.FileLensUIState.updateDownloadButton(selectedIds);
     }
 
     /**
@@ -84,7 +84,7 @@ window.LogViewerSelectionManager = (function () {
                 selectedIds.add(nid);
                 setLiSelected($n, true);
             });
-            window.LogViewerUIState.updateDownloadButton(selectedIds);
+            window.FileLensUIState.updateDownloadButton(selectedIds);
         }
     }
 
