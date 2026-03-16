@@ -74,10 +74,9 @@ $(document).ready(function () {
      * @param {number} page - 页码（从1开始）
      * @param {boolean} [autoScroll=false] - 是否自动滚动到底部
      */
-    async function loadPage(page, autoScroll = false) {
+        async function loadPage(page, autoScroll = false) {
         // 立即更新页码显示，给用户即时反馈
         window.LogViewerPagination.setCurrentPage(page);
-        window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
         window.LogViewerContentRenderer.showPageIndicator(page);
 
         // 清除之前的防抖定时器

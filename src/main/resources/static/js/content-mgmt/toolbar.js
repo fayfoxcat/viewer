@@ -162,13 +162,12 @@ window.LogViewerToolbar = (function () {
             clearInterval(refreshTimer);
             refreshTimer = null;
 
-            $btn.removeClass("refreshing");
+                        $btn.removeClass("refreshing");
             $icon.show();
             $text.text("实时刷新");
             $loading.hide();
 
             window.LogViewerPagination.setAutoRefreshEnabled(false);
-            window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", false).css("cursor", "").removeClass("disabled");
             return;
         }
@@ -183,13 +182,12 @@ window.LogViewerToolbar = (function () {
             const lastPage = metadata.totalPages;
             await appContext.loadPage(lastPage, true);
 
-            $btn.addClass("refreshing");
+                        $btn.addClass("refreshing");
             $icon.hide();
             $text.text("停止刷新");
             $loading.show();
 
             window.LogViewerPagination.setAutoRefreshEnabled(true);
-            window.LogViewerPagination.updatePagination(window.LogViewerPagination.getTotalPages() * 1000);
             $("#scroll-top-btn, #scroll-bottom-btn, #page-jump-input").prop("disabled", true).css("cursor", "not-allowed").addClass("disabled");
 
             refreshTimer = setInterval(async function () {
