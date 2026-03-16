@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>在线日志查看器</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
-        <!-- 公共样式 -->
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <!-- 公共样式 -->
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <link rel="stylesheet" th:href="@{/css/utilities.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
@@ -21,192 +22,209 @@
     <link rel="stylesheet" th:href="@{/css/search-panel.css}">
 </head>
 <body th:attr="data-endpoint=${endpoint},data-auth-enabled=${authEnabled},data-authenticated=${authenticated}">
-    <!-- 登录遮罩层 -->
-    <div id="login-overlay" class="login-overlay" style="display: none;">
-        <div class="login-box">
-            <div class="login-header">
-                <div class="login-icon">📋</div>
-                <h3 class="login-title">日志查看器</h3>
-                <p class="login-subtitle">请输入认证密钥以继续</p>
-            </div>
-            <div class="login-form">
-                <div class="login-form-item">
-                    <label class="login-form-label" for="auth-key-input">认证密钥</label>
-                    <div class="login-form-input">
-                        <input type="password" id="auth-key-input" class="ant-input" placeholder="请输入认证密钥" autocomplete="off">
-                    </div>
+<!-- 登录遮罩层 -->
+<div id="login-overlay" class="login-overlay" style="display: none;">
+    <div class="login-box">
+        <div class="login-header">
+            <div class="login-icon">📋</div>
+            <h3 class="login-title">日志查看器</h3>
+            <p class="login-subtitle">请输入认证密钥以继续</p>
+        </div>
+        <div class="login-form">
+            <div class="login-form-item">
+                <label class="login-form-label" for="auth-key-input">认证密钥</label>
+                <div class="login-form-input">
+                    <input type="password" id="auth-key-input" class="ant-input" placeholder="请输入认证密钥"
+                           autocomplete="off">
                 </div>
-                <div class="login-form-item">
-                    <button id="login-btn" class="ant-btn ant-btn-primary w-100 login-form-button">登录</button>
-                </div>
-                <div id="login-error" class="login-error" style="display: none;"></div>
             </div>
-            <div class="login-footer">
-                <span class="login-footer-icon">🔐</span>
-                <span>安全认证保护</span>
+            <div class="login-form-item">
+                <button id="login-btn" class="ant-btn ant-btn-primary w-100 login-form-button">登录</button>
             </div>
+            <div id="login-error" class="login-error" style="display: none;"></div>
+        </div>
+        <div class="login-footer">
+            <span class="login-footer-icon">🔐</span>
+            <span>安全认证保护</span>
         </div>
     </div>
-    
-    <div class="container-fluid p-0">
-        <div id="main-row" class="right-collapsed">
-            <!-- 折叠按钮触发区域（仅保留左侧） -->
-            <div class="edge-hotspot edge-left" aria-hidden="true"></div>
-            <div class="separator-hotspot sep-left" aria-hidden="true"></div>
-            <button id="toggle-sidebar" class="panel-toggle panel-toggle-left" type="button" aria-label="折叠/展开左侧栏">▶</button>
+</div>
 
-            <!-- 左侧栏 -->
-            <div class="sidebar" id="sidebar">
-                <div class="resize-handle resize-handle-right"></div>
-                <div class="sidebar-header">
-                    <div class="logo-title">
-                        <span class="logo-icon">📋</span>
-                        <span class="logo-text">日志查看器</span>
-                    </div>
-                    <div class="select-wrapper mb-2">
-                        <select id="path-select" class="ant-select">
-                            <option th:each="path : ${paths}" th:value="${path}" th:text="${path}"></option>
-                        </select>
-                    </div>
-                    <div class="ant-input-group mb-2">
-                        <input type="text" id="file-search" class="ant-input" placeholder="搜索文件...">
-                        <button id="clear-search-btn" class="ant-btn ant-btn-sm ant-btn-icon-only" title="清除搜索">✕</button>
-                    </div>
+<div class="container-fluid p-0">
+    <div id="main-row" class="right-collapsed">
+        <!-- 折叠按钮触发区域（仅保留左侧） -->
+        <div class="edge-hotspot edge-left" aria-hidden="true"></div>
+        <div class="separator-hotspot sep-left" aria-hidden="true"></div>
+        <button id="toggle-sidebar" class="panel-toggle panel-toggle-left" type="button" aria-label="折叠/展开左侧栏">
+            ▶
+        </button>
+
+        <!-- 左侧栏 -->
+        <div class="sidebar" id="sidebar">
+            <div class="resize-handle resize-handle-right"></div>
+            <div class="sidebar-header">
+                <div class="logo-title">
+                    <span class="logo-icon">📋</span>
+                    <span class="logo-text">日志查看器</span>
                 </div>
-                <div class="sidebar-content">
-                    <div class="file-list-header">
-                        <div class="file-col file-col-name">
-                            <span>名称</span>
-                            <div class="sort-buttons">
-                                <button id="sort-name-asc" class="sort-btn" title="按名称升序" data-sort="name" data-order="asc">↑</button>
-                                <button id="sort-name-desc" class="sort-btn" title="按名称降序" data-sort="name" data-order="desc">↓</button>
-                            </div>
-                        </div>
-                        <div class="file-col file-col-time">
-                            <span>时间</span>
-                            <div class="sort-buttons">
-                                <button id="sort-time-asc" class="sort-btn" title="按时间升序" data-sort="time" data-order="asc">↑</button>
-                                <button id="sort-time-desc" class="sort-btn" title="按时间降序" data-sort="time" data-order="desc">↓</button>
-                            </div>
-                        </div>
-                        <div class="file-col file-col-size">
-                            <span>大小</span>
-                            <div class="sort-buttons">
-                                <button id="sort-size-asc" class="sort-btn" title="按大小升序" data-sort="size" data-order="asc">↑</button>
-                                <button id="sort-size-desc" class="sort-btn" title="按大小降序" data-sort="size" data-order="desc">↓</button>
-                            </div>
-                        </div>
-                    </div>
-                    <ul id="file-list" class="file-list"></ul>
+                <div class="select-wrapper mb-2">
+                    <select id="path-select" class="ant-select">
+                        <option th:each="path : ${paths}" th:value="${path}" th:text="${path}"></option>
+                    </select>
                 </div>
-                <div class="p-2 border-top">
-                    <button id="download-btn" class="ant-btn ant-btn-success w-100" disabled>
-                        <span>下载选中文件</span>
-                        <span id="selected-count" class="ant-badge-count ms-1" style="display: none;">0</span>
+                <div class="ant-input-group mb-2">
+                    <input type="text" id="file-search" class="ant-input" placeholder="搜索文件...">
+                    <button id="clear-search-btn" class="ant-btn ant-btn-sm ant-btn-icon-only" title="清除搜索">✕
                     </button>
                 </div>
             </div>
+            <div class="sidebar-content">
+                <div class="file-list-header">
+                    <div class="file-col file-col-name">
+                        <span>名称</span>
+                        <div class="sort-buttons">
+                            <button id="sort-name-asc" class="sort-btn" title="按名称升序" data-sort="name"
+                                    data-order="asc">↑
+                            </button>
+                            <button id="sort-name-desc" class="sort-btn" title="按名称降序" data-sort="name"
+                                    data-order="desc">↓
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-col file-col-time">
+                        <span>时间</span>
+                        <div class="sort-buttons">
+                            <button id="sort-time-asc" class="sort-btn" title="按时间升序" data-sort="time"
+                                    data-order="asc">↑
+                            </button>
+                            <button id="sort-time-desc" class="sort-btn" title="按时间降序" data-sort="time"
+                                    data-order="desc">↓
+                            </button>
+                        </div>
+                    </div>
+                    <div class="file-col file-col-size">
+                        <span>大小</span>
+                        <div class="sort-buttons">
+                            <button id="sort-size-asc" class="sort-btn" title="按大小升序" data-sort="size"
+                                    data-order="asc">↑
+                            </button>
+                            <button id="sort-size-desc" class="sort-btn" title="按大小降序" data-sort="size"
+                                    data-order="desc">↓
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <ul id="file-list" class="file-list"></ul>
+            </div>
+            <div class="p-2 border-top">
+                <button id="download-btn" class="ant-btn ant-btn-success w-100" disabled>
+                    <span>下载选中文件</span>
+                    <span id="selected-count" class="ant-badge-count ms-1" style="display: none;">0</span>
+                </button>
+            </div>
+        </div>
 
-            <!-- 中间内容区 -->
-            <div class="content" id="content">
-                <div class="content-header d-flex align-items-center flex-wrap justify-content-between">
-                    <div class="d-flex align-items-center flex-wrap gap-2 flex-grow-1">
-                        <div class="content-search-wrapper me-2">
-                            <input type="text" id="content-search" class="ant-input ant-input-sm" placeholder="搜索内容（支持正则表达式）...">
-                            <div class="ant-checkbox-wrapper search-regex-checkbox">
+        <!-- 中间内容区 -->
+        <div class="content" id="content">
+            <div class="content-header d-flex align-items-center flex-wrap justify-content-between">
+                <div class="d-flex align-items-center flex-wrap gap-2 flex-grow-1">
+                    <div class="content-search-wrapper me-2">
+                        <input type="text" id="content-search" class="ant-input ant-input-sm"
+                               placeholder="搜索内容（支持正则表达式）...">
+                        <div class="ant-checkbox-wrapper search-regex-checkbox">
                                 <span class="ant-checkbox">
                                     <input class="ant-checkbox-input" type="checkbox" id="use-regex">
                                     <span class="ant-checkbox-inner"></span>
                                 </span>
-                                <label for="use-regex">正则</label>
-                            </div>
-                            <button id="search-btn" class="ant-btn ant-btn-primary ant-btn-sm search-btn-inline">🔍</button>
+                            <label for="use-regex">正则</label>
                         </div>
-                        <button id="page-first-btn" class="ant-btn ant-btn-sm" title="第一页">⟪</button>
-                        <button id="page-prev-btn" class="ant-btn ant-btn-sm" title="上一页">◀</button>
-                        <span class="pagination-info d-flex align-items-center gap-1" id="pagination-controls">
+                        <button id="search-btn" class="ant-btn ant-btn-primary ant-btn-sm search-btn-inline">🔍</button>
+                    </div>
+                    <button id="page-first-btn" class="ant-btn ant-btn-sm" title="第一页">⟪</button>
+                    <button id="page-prev-btn" class="ant-btn ant-btn-sm" title="上一页">◀</button>
+                    <span class="pagination-info d-flex align-items-center gap-1" id="pagination-controls">
                             <input type="number" id="page-jump-input" class="ant-input ant-input-sm" min="1" value="1"> 
                             <span class="page-total">/ <span id="page-total-count">1</span> 页</span>
                             <span class="pagination-total-info small">(<span id="total-lines">0</span> 行)</span>
                         </span>
-                        <button id="page-next-btn" class="ant-btn ant-btn-sm" title="下一页">▶</button>
-                        <button id="page-last-btn" class="ant-btn ant-btn-sm me-2" title="最后一页">⟫</button>
-                        <button id="scroll-top-btn" class="ant-btn ant-btn-sm me-2">顶部</button>
-                        <button id="scroll-bottom-btn" class="ant-btn ant-btn-sm">底部</button>
-                    </div>
-                    <div class="d-flex align-items-center ms-auto">
-                        <button id="refresh-btn" class="ant-btn ant-btn-sm refresh-btn">
+                    <button id="page-next-btn" class="ant-btn ant-btn-sm" title="下一页">▶</button>
+                    <button id="page-last-btn" class="ant-btn ant-btn-sm me-2" title="最后一页">⟫</button>
+                    <button id="scroll-top-btn" class="ant-btn ant-btn-sm me-2">顶部</button>
+                    <button id="scroll-bottom-btn" class="ant-btn ant-btn-sm">底部</button>
+                </div>
+                <div class="d-flex align-items-center ms-auto">
+                    <button id="refresh-btn" class="ant-btn ant-btn-sm refresh-btn">
                             <span class="refresh-btn-icon">
                                 <svg class="refresh-icon" viewBox="0 0 1024 1024" width="14" height="14">
                                     <path d="M909.1 209.3l-56.4 44.1C775.8 155.1 656.2 92 521.9 92 290 92 102.3 279.5 102 511.5 101.7 743.7 289.8 932 521.9 932c181.3 0 335.8-115 394.6-276.1 1.5-4.2-.7-8.9-4.9-10.3l-41.6-15.3c-4.2-1.5-8.9.7-10.3 4.9C823.1 776.4 682.2 870 521.9 870c-192.9 0-349.9-157.3-349.2-350.4.7-191.2 156.1-349.3 347.2-349.3 121.8 0 235.5 49.3 314.6 139.3L785 361.3c-2.5 2.1-2.7 5.8-.5 8.2l64.2 69.2c1.9 2.1 5.2 2.3 7.3.4L972.7 355c2.1-1.9 2.3-5.2.4-7.3L909.1 209.3z"/>
                                 </svg>
                             </span>
-                            <span class="refresh-btn-text">实时刷新</span>
-                            <span class="refresh-btn-loading" style="display: none;">
+                        <span class="refresh-btn-text">实时刷新</span>
+                        <span class="refresh-btn-loading" style="display: none;">
                                 <svg class="loading-icon" viewBox="0 0 1024 1024" width="14" height="14">
                                     <path d="M988 548c-19.9 0-36-16.1-36-36 0-59.4-11.6-117-34.6-171.3a440.45 440.45 0 00-94.3-139.9 437.71 437.71 0 00-139.9-94.3C637 83.6 579.4 72 520 72s-117 11.6-171.3 34.6a440.45 440.45 0 00-139.9 94.3 437.71 437.71 0 00-94.3 139.9C91.6 395 80 452.6 80 512s11.6 117 34.6 171.3a440.45 440.45 0 0094.3 139.9 437.71 437.71 0 00139.9 94.3C395 940.4 452.6 952 512 952c59.4 0 117-11.6 171.3-34.6a440.45 440.45 0 00139.9-94.3 437.71 437.71 0 0094.3-139.9C940.4 629 952 571.4 952 512c0-19.9 16.1-36 36-36s36 16.1 36 36c0 141.4-55.1 274.4-155.1 374.4S653.4 1042 512 1042 237.6 986.9 137.6 886.9 -18 653.4 -18 512s55.1-274.4 155.1-374.4S370.6-18 512-18s274.4 55.1 374.4 155.1S1042 370.6 1042 512c0 19.9-16.1 36-36 36z"/>
                                 </svg>
                             </span>
-                        </button>
-                    </div>
-                </div>
-                <div class="log-file-path" id="log-file-path">
-                    <span class="path-label">日志位置：</span>
-                    <span class="path-value placeholder" id="current-file-path">请选择日志文件</span>
-                </div>
-                <div class="content-body p-0">
-                    <div id="log-content-empty" class="text-center py-5">
-                        <h4>请选择日志文件</h4>
-                        <p class="mt-4">
-                            使用提示：<br><br>
-                            • 左侧选择目录/压缩包并展开，点击文件查看内容<br>
-                            • Ctrl 多选、Shift 范围多选（用于下载）<br>
-                            • 支持实时刷新、关键字/正则搜索、高亮与方向键切换结果
-                        </p>
-                    </div>
-                    <div id="log-content-actual" style="display: none; height: 100%; overflow: auto; position: relative;">
-                    </div>
-                    <!-- 页码提示框 -->
-                    <div id="page-indicator" class="page-indicator" style="display: none;">
-                        <span id="page-indicator-text">第 1 页</span>
-                    </div>
+                    </button>
                 </div>
             </div>
-
-            <!-- 右侧搜索结果 -->
-            <div class="search-results" id="search-results-panel">
-                <div class="search-results-header">
-                    <h5>搜索结果</h5>
-                    <button id="close-search-btn" class="ant-btn ant-btn-sm ant-btn-icon-only">✕</button>
+            <div class="log-file-path" id="log-file-path">
+                <span class="path-label">日志位置：</span>
+                <span class="path-value placeholder" id="current-file-path">请选择日志文件</span>
+            </div>
+            <div class="content-body p-0">
+                <div id="log-content-empty" class="text-center py-5">
+                    <h4>请选择日志文件</h4>
+                    <p class="mt-4">
+                        使用提示：<br><br>
+                        • 左侧选择目录/压缩包并展开，点击文件查看内容<br>
+                        • Ctrl 多选、Shift 范围多选（用于下载）<br>
+                        • 支持实时刷新、关键字/正则搜索、高亮与方向键切换结果
+                    </p>
                 </div>
-                <div class="search-results-body">
-                    <div id="search-results-list"></div>
+                <div id="log-content-actual" style="display: none; height: 100%; overflow: auto; position: relative;">
+                </div>
+                <!-- 页码提示框 -->
+                <div id="page-indicator" class="page-indicator" style="display: none;">
+                    <span id="page-indicator-text">第 1 页</span>
                 </div>
             </div>
         </div>
-    </div>
 
-        <script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}"></script>
-    <!-- 公共模块 -->
-    <script th:src="@{/js/common/utils.js}"></script>
-    <script th:src="@{/js/common/auth.js}"></script>
-    <script th:src="@{/js/common/notification.js}"></script>
-    <script th:src="@{/js/common/ui-state.js}"></script>
-    <!-- 【日志区】 -->
-    <script th:src="@{/js/log-area/log-highlighter.js}"></script>
-    <script th:src="@{/js/log-area/content-renderer.js}"></script>
-    <script th:src="@{/js/log-area/context-menu.js}"></script>
-    <!-- 【目录区】 -->
-    <script th:src="@{/js/directory/selection-manager.js}"></script>
-    <script th:src="@{/js/directory/file-operations.js}"></script>
-    <script th:src="@{/js/directory/file-tree.js}"></script>
-    <!-- 【内容管理区】 -->
-    <script th:src="@{/js/content-mgmt/pagination.js}"></script>
-    <script th:src="@{/js/content-mgmt/page-cache-manager.js}"></script>
-    <script th:src="@{/js/content-mgmt/toolbar.js}"></script>
-    <!-- 【搜索结果区】 -->
-    <script th:src="@{/js/search-results/search.js}"></script>
-    <!-- 主入口协调器 -->
-    <script th:src="@{/js/app.js}"></script>
+        <!-- 右侧搜索结果 -->
+        <div class="search-results" id="search-results-panel">
+            <div class="search-results-header">
+                <h5>搜索结果</h5>
+                <button id="close-search-btn" class="ant-btn ant-btn-sm ant-btn-icon-only">✕</button>
+            </div>
+            <div class="search-results-body">
+                <div id="search-results-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/webjars/jquery/3.6.4/jquery.min.js}"></script>
+<!-- 公共模块 -->
+<script th:src="@{/js/common/utils.js}"></script>
+<script th:src="@{/js/common/auth.js}"></script>
+<script th:src="@{/js/common/notification.js}"></script>
+<script th:src="@{/js/common/ui-state.js}"></script>
+<!-- 【日志区】 -->
+<script th:src="@{/js/log-area/log-highlighter.js}"></script>
+<script th:src="@{/js/log-area/content-renderer.js}"></script>
+<script th:src="@{/js/log-area/context-menu.js}"></script>
+<!-- 【目录区】 -->
+<script th:src="@{/js/directory/selection-manager.js}"></script>
+<script th:src="@{/js/directory/file-operations.js}"></script>
+<script th:src="@{/js/directory/file-tree.js}"></script>
+<!-- 【内容管理区】 -->
+<script th:src="@{/js/content-mgmt/pagination.js}"></script>
+<script th:src="@{/js/content-mgmt/page-cache-manager.js}"></script>
+<script th:src="@{/js/content-mgmt/toolbar.js}"></script>
+<!-- 【搜索结果区】 -->
+<script th:src="@{/js/search-results/search.js}"></script>
+<!-- 主入口协调器 -->
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

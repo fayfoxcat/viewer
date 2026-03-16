@@ -262,8 +262,12 @@
 }
 
 @keyframes refresh-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .refresh-btn::after {
@@ -282,18 +286,38 @@
 }
 
 @keyframes refresh-shimmer {
-    0% { left: -100%; }
-    50% { left: 100%; }
-    100% { left: 100%; }
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: 100%;
+    }
 }
 
 @media (max-width: 768px) {
-    .refresh-btn .refresh-btn-text { display: none; }
-    .refresh-btn { width: 36px; padding: 0; }
-    .refresh-btn-loading { margin-left: 0; }
+    .refresh-btn .refresh-btn-text {
+        display: none;
+    }
+
+    .refresh-btn {
+        width: 36px;
+        padding: 0;
+    }
+
+    .refresh-btn-loading {
+        margin-left: 0;
+    }
 }
 
 @media (prefers-color-scheme: dark) {
-    .refresh-btn:hover { background: rgba(24, 144, 255, 0.1); }
-    .refresh-btn::after { background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent); }
+    .refresh-btn:hover {
+        background: rgba(24, 144, 255, 0.1);
+    }
+
+    .refresh-btn::after {
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
 }

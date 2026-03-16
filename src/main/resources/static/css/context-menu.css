@@ -78,7 +78,7 @@ mark.log-highlight {
     padding: 1px 3px;
     color: #2d5016;
     font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* 截图容器样式 */
@@ -135,24 +135,68 @@ mark.log-highlight {
     padding: 1px 3px;
     color: #2d5016;
     font-weight: 500;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 /* 截图容器中的语法高亮样式 */
-.screenshot-container .log-keyword { color: #0000ff; font-weight: bold; }
-.screenshot-container .log-string { color: #008000; }
-.screenshot-container .log-number { color: #ff6600; }
-.screenshot-container .log-comment { color: #808080; font-style: italic; }
-.screenshot-container .log-error { color: #ff0000; font-weight: bold; }
-.screenshot-container .log-warning { color: #ff8c00; }
-.screenshot-container .log-info { color: #0080ff; }
-.screenshot-container .log-debug { color: #808080; }
-.screenshot-container .log-timestamp { color: #666666; }
-.screenshot-container .log-level { font-weight: bold; }
-.screenshot-container .log-level.ERROR { color: #ff0000; }
-.screenshot-container .log-level.WARN { color: #ff8c00; }
-.screenshot-container .log-level.INFO { color: #0080ff; }
-.screenshot-container .log-level.DEBUG { color: #808080; }
+.screenshot-container .log-keyword {
+    color: #0000ff;
+    font-weight: bold;
+}
+
+.screenshot-container .log-string {
+    color: #008000;
+}
+
+.screenshot-container .log-number {
+    color: #ff6600;
+}
+
+.screenshot-container .log-comment {
+    color: #808080;
+    font-style: italic;
+}
+
+.screenshot-container .log-error {
+    color: #ff0000;
+    font-weight: bold;
+}
+
+.screenshot-container .log-warning {
+    color: #ff8c00;
+}
+
+.screenshot-container .log-info {
+    color: #0080ff;
+}
+
+.screenshot-container .log-debug {
+    color: #808080;
+}
+
+.screenshot-container .log-timestamp {
+    color: #666666;
+}
+
+.screenshot-container .log-level {
+    font-weight: bold;
+}
+
+.screenshot-container .log-level.ERROR {
+    color: #ff0000;
+}
+
+.screenshot-container .log-level.WARN {
+    color: #ff8c00;
+}
+
+.screenshot-container .log-level.INFO {
+    color: #0080ff;
+}
+
+.screenshot-container .log-level.DEBUG {
+    color: #808080;
+}
 
 .screenshot-container mark.log-hit {
     background-color: #ffeb3b;
@@ -167,23 +211,23 @@ mark.log-highlight {
         border-color: #434343;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
-    
+
     .context-menu-item {
         color: rgba(255, 255, 255, 0.85);
     }
-    
+
     .context-menu-item:hover {
         background-color: #2a2a2a;
     }
-    
+
     .context-menu-item:active {
         background-color: #1890ff;
     }
-    
+
     .context-menu-item.disabled {
         color: rgba(255, 255, 255, 0.25);
     }
-    
+
     .context-menu-divider {
         background-color: #434343;
     }

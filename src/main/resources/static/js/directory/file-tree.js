@@ -1,7 +1,7 @@
 /**
  * 【目录区】文件树渲染模块
  */
-window.LogViewerFileTree = (function() {
+window.LogViewerFileTree = (function () {
     'use strict';
 
     let apiBase = '';
@@ -34,7 +34,7 @@ window.LogViewerFileTree = (function() {
         return list.slice().sort(function (a, b) {
             if (a.directory && !b.directory) return -1;
             if (!a.directory && b.directory) return 1;
-            
+
             let result = 0;
             if (sortBy === 'name') {
                 result = String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
@@ -47,14 +47,14 @@ window.LogViewerFileTree = (function() {
                 const timeB = b.lastModified || 0;
                 result = timeA - timeB;
             }
-            
+
             return sortOrder === 'desc' ? -result : result;
         });
     }
 
     function renderRootTree(rootPath) {
         $("#file-list").empty().append(`<li class="text-center"><div class="loading-spinner"></div> 加载中...</li>`);
-        $.get(apiBase + "/files", { path: rootPath }, function (data) {
+        $.get(apiBase + "/files", {path: rootPath}, function (data) {
             $("#file-list").empty();
             renderDirectoryChildren($("#file-list"), data, 0, expandedPaths, expandedZipPaths);
         }).fail(function () {
@@ -90,7 +90,7 @@ window.LogViewerFileTree = (function() {
             if (isDir) icon = "📁";
             else if (isArchive) icon = "📦";
 
-            const isExpanded = isDir 
+            const isExpanded = isDir
                 ? (expandedPathsSet && expandedPathsSet.has(f.path))
                 : (isArchive && expandedZipPathsSet && expandedZipPathsSet.has(f.path));
 
@@ -126,7 +126,7 @@ window.LogViewerFileTree = (function() {
     function loadDirectoryChildren($li, dirPath, $childUl, depth, expandedPathsSet, expandedZipPathsSet) {
         $childUl.show();
         $li.find(".file-expander[data-expander='1']").first().text("▾");
-        $.get(apiBase + "/files", { path: dirPath }, function (data) {
+        $.get(apiBase + "/files", {path: dirPath}, function (data) {
             $childUl.empty();
             renderDirectoryChildren($childUl, data, depth + 1, expandedPathsSet, expandedZipPathsSet);
             $childUl.data("loaded", true);
@@ -138,7 +138,7 @@ window.LogViewerFileTree = (function() {
     function loadArchiveChildren($li, zipPath, $childUl, depth) {
         $childUl.show();
         $li.find(".file-expander[data-expander='1']").first().text("▾");
-        $.get(apiBase + "/zip/files", { zipPath: zipPath, prefix: "" }, function (data) {
+        $.get(apiBase + "/zip/files", {zipPath: zipPath, prefix: ""}, function (data) {
             $childUl.empty();
             renderZipChildren($childUl, zipPath, "", data, depth + 1);
             $childUl.data("loaded", true);
@@ -167,7 +167,7 @@ window.LogViewerFileTree = (function() {
         if (alreadyLoaded) return;
 
         $childUl.empty().append(`<li class="text-center"><div class="loading-spinner"></div> 加载中...</li>`);
-        $.get(apiBase + "/files", { path: dirPath }, function (data) {
+        $.get(apiBase + "/files", {path: dirPath}, function (data) {
             $childUl.empty();
             renderDirectoryChildren($childUl, data, Number($li.attr("data-depth") || 0) + 1, expandedPaths, expandedZipPaths);
             $childUl.data("loaded", true);
@@ -196,7 +196,7 @@ window.LogViewerFileTree = (function() {
         if (alreadyLoaded) return;
 
         $childUl.empty().append(`<li class="text-center"><div class="loading-spinner"></div> 加载中...</li>`);
-        $.get(apiBase + "/zip/files", { zipPath: zipPath, prefix: "" }, function (data) {
+        $.get(apiBase + "/zip/files", {zipPath: zipPath, prefix: ""}, function (data) {
             $childUl.empty();
             renderZipChildren($childUl, zipPath, "", data, Number($li.attr("data-depth") || 0) + 1);
             $childUl.data("loaded", true);
@@ -274,7 +274,7 @@ window.LogViewerFileTree = (function() {
         if (alreadyLoaded) return;
 
         $childUl.empty().append(`<li class="text-center"><div class="loading-spinner"></div> 加载中...</li>`);
-        $.get(apiBase + "/zip/files", { zipPath: zipPath, prefix: entryPrefix }, function (data) {
+        $.get(apiBase + "/zip/files", {zipPath: zipPath, prefix: entryPrefix}, function (data) {
             $childUl.empty();
             renderZipChildren($childUl, zipPath, entryPrefix, data, Number($li.attr("data-depth") || 0) + 1);
             $childUl.data("loaded", true);

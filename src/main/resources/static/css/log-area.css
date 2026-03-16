@@ -134,8 +134,13 @@ mark.log-hit.log-hit-current {
     user-select: none;
 }
 
-.page-indicator.show { opacity: 0.7; }
-.page-indicator.hide { opacity: 0; }
+.page-indicator.show {
+    opacity: 0.7;
+}
+
+.page-indicator.hide {
+    opacity: 0;
+}
 
 /* 加载中遮罩层 */
 .loading-overlay {

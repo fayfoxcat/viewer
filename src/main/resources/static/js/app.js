@@ -74,7 +74,7 @@ $(document).ready(function () {
      * @param {number} page - 页码（从1开始）
      * @param {boolean} [autoScroll=false] - 是否自动滚动到底部
      */
-            async function loadPage(page, autoScroll = false) {
+    async function loadPage(page, autoScroll = false) {
         // 立即更新页码显示，给用户即时反馈
         window.LogViewerPagination.setCurrentPage(page);
         // 只在非自动滚动时显示页码指示器（避免实时刷新时一直显示）
@@ -174,7 +174,7 @@ $(document).ready(function () {
             window.LogViewerContextMenu.clearMarks();
         }
 
-                const $refreshBtn = $("#refresh-btn");
+        const $refreshBtn = $("#refresh-btn");
         if (metadata.zipEntry || metadata.isZipEntry) {
             $refreshBtn.prop("disabled", true).addClass("disabled").attr("title", "压缩包文件不支持实时刷新").css("cursor", "not-allowed");
         } else {
@@ -380,13 +380,13 @@ $(document).ready(function () {
             return;
         }
 
-                e.stopPropagation();
+        e.stopPropagation();
         $("#file-list li.file-node").removeClass("active");
         $li.addClass("active");
-        
+
         // 切换文件时停止实时刷新
         window.LogViewerToolbar.stopRefresh();
-        
+
         window.LogViewerContentRenderer.showLoading();
 
         const filePath = isZipEntry ? zipPath + "!" + entryName : node.path;

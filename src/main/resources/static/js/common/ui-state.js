@@ -2,13 +2,13 @@
  * UI状态管理模块
  * 负责管理界面各部分的显示状态和交互
  */
-window.LogViewerUIState = (function() {
+window.LogViewerUIState = (function () {
     'use strict';
 
     /**
      * 设置空提示的可见性
      * 控制"请选择文件"提示的显示/隐藏
-     * 
+     *
      * @param {boolean} visible - 是否显示空提示
      */
     function setEmptyHintVisible(visible) {
@@ -24,7 +24,7 @@ window.LogViewerUIState = (function() {
     /**
      * 设置当前活动文件名
      * 更新顶部显示的当前文件路径
-     * 
+     *
      * @param {string|null} name - 文件名或路径，null 表示未选择
      */
     function setActiveFileName(name) {
@@ -38,7 +38,7 @@ window.LogViewerUIState = (function() {
 
     /**
      * 获取当前活动文件名
-     * 
+     *
      * @returns {string|null} 当前文件名或路径，未选择时返回 null
      */
     function getActiveFileName() {
@@ -53,7 +53,7 @@ window.LogViewerUIState = (function() {
     /**
      * 更新下载按钮状态
      * 根据选中文件数量更新按钮状态和徽章显示
-     * 
+     *
      * @param {Set<string>} selectedIds - 选中的文件 ID 集合
      */
     function updateDownloadButton(selectedIds) {

@@ -11,7 +11,7 @@
     /**
      * HTML 转义函数
      * 防止 XSS 攻击
-     * 
+     *
      * @param {string} text - 需要转义的文本
      * @returns {string} 转义后的 HTML 文本
      */
@@ -24,7 +24,7 @@
     /**
      * 动态生成CSS样式
      * 根据配置的颜色和样式生成对应的CSS规则
-     * 
+     *
      * @param {Object} patterns - 高亮规则配置
      */
     function generateDynamicStyles(patterns) {
@@ -46,28 +46,28 @@
 
                 // 基础样式
                 css += `
-#log-content-actual .${className} {
-    color: ${rule.color};
-    font-weight: bold;
-    background: ${rule.color}15;
-    padding: 1px 3px;
-    border-radius: 2px;
-`;
+                    #log-content-actual .${className} {
+                        color: ${rule.color};
+                        font-weight: bold;
+                        background: ${rule.color}15;
+                        padding: 1px 3px;
+                        border-radius: 2px;
+                    `;
 
                 // 特殊样式处理
                 if (className === 'log-url') {
                     css += `    text-decoration: underline;
-    cursor: pointer;
-`;
+                        cursor: pointer;
+                    `;
                 }
 
                 if (className === 'log-exception') {
                     css += `    font-style: italic;
-`;
+                    `;
                 }
 
                 css += `}
-`;
+                    `;
             }
         });
 
@@ -78,7 +78,7 @@
     /**
      * 从服务器加载高亮规则配置
      * 只加载一次，后续调用直接返回
-     * 
+     *
      * @returns {Promise<void>}
      */
     async function loadPatterns() {
@@ -118,7 +118,7 @@
     /**
      * 对单行日志内容进行语法高亮
      * 根据加载的规则匹配并添加 CSS 类名
-     * 
+     *
      * @param {string} line - 日志行内容
      * @returns {string} 高亮后的 HTML 字符串
      */
@@ -180,7 +180,7 @@
     /**
      * 对多行日志内容进行语法高亮并生成完整的 HTML
      * 包含行号和高亮后的内容
-     * 
+     *
      * @param {string[]} lines - 日志行数组
      * @param {number} startLine - 起始行号
      * @param {number} endLine - 结束行号

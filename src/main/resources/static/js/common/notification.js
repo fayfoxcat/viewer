@@ -2,7 +2,7 @@
  * 通知组件
  * 用于显示各种提示信息，支持自定义图标、类型和操作按钮
  */
-window.LogViewerNotification = (function() {
+window.LogViewerNotification = (function () {
     'use strict';
 
     let notificationContainer = null;
@@ -21,7 +21,7 @@ window.LogViewerNotification = (function() {
 
     /**
      * 显示通知
-     * 
+     *
      * @param {Object} options - 通知选项
      * @param {string} [options.icon='ℹ️'] - 通知图标
      * @param {string} [options.message=''] - 通知消息
@@ -65,7 +65,7 @@ window.LogViewerNotification = (function() {
             close(id);
         });
 
-        $notification.find('.notification-btn').on('click', function() {
+        $notification.find('.notification-btn').on('click', function () {
             const actionIndex = $(this).data('action');
             if (actions[actionIndex] && actions[actionIndex].onClick) {
                 actions[actionIndex].onClick();
@@ -90,7 +90,7 @@ window.LogViewerNotification = (function() {
 
     /**
      * 关闭通知
-     * 
+     *
      * @param {number} id - 通知 ID
      */
     function close(id) {
@@ -103,7 +103,7 @@ window.LogViewerNotification = (function() {
 
     /**
      * 显示文件修改通知
-     * 
+     *
      * @returns {number} 通知 ID
      */
     function showFileModified() {

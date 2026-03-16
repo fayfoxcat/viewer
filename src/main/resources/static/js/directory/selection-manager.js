@@ -2,7 +2,7 @@
  * 【目录区】选择管理模块
  * 负责文件选择状态的管理，支持单选、多选和范围选择
  */
-window.LogViewerSelectionManager = (function() {
+window.LogViewerSelectionManager = (function () {
     'use strict';
 
     let selectedIds = new Set();
@@ -10,7 +10,7 @@ window.LogViewerSelectionManager = (function() {
 
     /**
      * 获取可见的可选择列表项
-     * 
+     *
      * @returns {jQuery} 可见的文件节点列表
      */
     function getVisibleSelectableLis() {
@@ -19,7 +19,7 @@ window.LogViewerSelectionManager = (function() {
 
     /**
      * 设置列表项的选中状态
-     * 
+     *
      * @param {jQuery} $li - 列表项元素
      * @param {boolean} selected - 是否选中
      */
@@ -30,7 +30,7 @@ window.LogViewerSelectionManager = (function() {
 
     /**
      * 切换指定 ID 的选中状态
-     * 
+     *
      * @param {string} id - 文件 ID
      */
     function toggleSelectionById(id) {
@@ -52,7 +52,7 @@ window.LogViewerSelectionManager = (function() {
     /**
      * 处理选择点击事件
      * 支持 Ctrl/Cmd 多选和 Shift 范围选择
-     * 
+     *
      * @param {Event} e - 鼠标事件对象
      * @param {jQuery} $li - 被点击的列表项
      */
@@ -90,7 +90,7 @@ window.LogViewerSelectionManager = (function() {
 
     /**
      * 获取选中的文件 ID 集合
-     * 
+     *
      * @returns {Set<string>} 选中的文件 ID 集合
      */
     function getSelectedIds() {
