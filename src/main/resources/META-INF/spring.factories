@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.fayfoxcat.viewer.config.ViewerAutoConfiguration
-org.springframework.boot.env.EnvironmentPostProcessor=org.fayfoxcat.viewer.config.PatternsEnvironmentPostProcessor
+org.springframework.boot.env.EnvironmentPostProcessor=org.fayfoxcat.viewer.config.CustomEnvironmentPostProcessor

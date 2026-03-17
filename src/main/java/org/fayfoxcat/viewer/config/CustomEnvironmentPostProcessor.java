@@ -15,13 +15,13 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Patterns 配置环境后处理器
- * 自动加载所有 patterns*.yml 配置文件
+ * 配置环境后处理器
+ * 自动加载所有 *.yml 配置文件
  *
  * @author fayfoxcat
  * @version 0.0.1
  */
-public class PatternsEnvironmentPostProcessor implements EnvironmentPostProcessor {
+public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
     private final YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
 
@@ -32,13 +32,13 @@ public class PatternsEnvironmentPostProcessor implements EnvironmentPostProcesso
                     application.getClassLoader()
             );
             
-            // 扫描所有 patterns*.yml 文件
-            Resource[] resources = resolver.getResources("classpath*:patterns*.yml");
+            // 扫描所有 *.yml 文件
+            Resource[] resources = resolver.getResources("classpath*:*.yml");
             
-            System.out.println("[Viewer] Found " + resources.length + " patterns*.yml files");
+            System.out.println("[Viewer] Found " + resources.length + " *.yml files");
             
             if (resources.length == 0) {
-                System.out.println("[Viewer] No patterns*.yml files found, trying fallback...");
+                System.out.println("[Viewer] No *.yml files found, trying fallback...");
                 // 尝试直接加载 patterns.yml
                 try {
                     Resource fallback = resolver.getResource("classpath:patterns.yml");
@@ -88,7 +88,6 @@ public class PatternsEnvironmentPostProcessor implements EnvironmentPostProcesso
                     }
                 } catch (Exception e) {
                     System.err.println("[Viewer] Failed to load: " + resource.getFilename() + ", error: " + e.getMessage());
-                    e.printStackTrace();
                 }
             }
 
@@ -100,7 +99,6 @@ public class PatternsEnvironmentPostProcessor implements EnvironmentPostProcesso
 
         } catch (Exception e) {
             System.err.println("[Viewer] Failed to scan patterns files: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }
