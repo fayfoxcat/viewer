@@ -31,12 +31,3 @@ viewer:
     secret-key:                     # 认证密钥，留空则自动生成
     paths:
       - C:/Users/root/Desktop/logs  # 示例：桌面日志目录
-  patterns:
-    rules:
-      wiscom-java-file:
-        name: 自定义类高亮
-        regex: "(?<=com\\.wiscom.*?)[A-Za-z][A-Za-z0-9_]*\\.java:\\d+"
-        class-name: viewer-wiscom-java-file
-        color: "#42a5f5"
-        description: 匹配自定义包java类
-        highlight: true
