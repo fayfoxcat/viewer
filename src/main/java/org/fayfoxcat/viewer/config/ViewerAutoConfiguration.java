@@ -11,7 +11,6 @@ import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
 import org.springframework.lang.NonNull;
 
-import javax.annotation.PostConstruct;
 import java.util.Properties;
 
 /**
@@ -27,19 +26,6 @@ import java.util.Properties;
 @ComponentScan(basePackages = "org.fayfoxcat.viewer")
 @PropertySource(value = "classpath:patterns.yml", factory = ViewerAutoConfiguration.YamlPropertySourceFactory.class)
 public class ViewerAutoConfiguration {
-
-    private final FilePatternsProperties patternsProperties;
-
-    public ViewerAutoConfiguration(FilePatternsProperties patternsProperties) {
-        this.patternsProperties = patternsProperties;
-    }
-
-    @PostConstruct
-    public void init() {
-        int rulesCount = patternsProperties.getRules() != null ? patternsProperties.getRules().size() : 0;
-        int presetsCount = patternsProperties.getPresets() != null ? patternsProperties.getPresets().size() : 0;
-        System.out.println("[Viewer] 加载模式配置: " + rulesCount + " 规则, " + presetsCount + " 预设");
-    }
 
     /**
      * YAML 属性源工厂
