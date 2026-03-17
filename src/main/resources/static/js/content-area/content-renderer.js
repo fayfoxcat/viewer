@@ -86,10 +86,10 @@ window.ViewerContentRenderer = (function () {
             const ranges = map.get(ln) || [];
 
             let textHtml;
-            if (ranges.length && window.LogHighlighter) {
+            if (ranges.length && window.ViewerHighlighter) {
                 textHtml = applySyntaxAndSearchHighlight(raw, ranges);
-            } else if (window.LogHighlighter) {
-                textHtml = window.LogHighlighter.highlightLine(raw);
+            } else if (window.ViewerHighlighter) {
+                textHtml = window.ViewerHighlighter.highlightLine(raw);
             } else {
                 textHtml = ranges.length ? applyRangesToText(raw, ranges) : window.ViewerUtils.escapeHtml(raw);
             }
@@ -120,7 +120,7 @@ window.ViewerContentRenderer = (function () {
      * @returns {string} 高亮后的 HTML
      */
     function applySyntaxAndSearchHighlight(text, searchRanges) {
-        const syntaxHtml = window.LogHighlighter.highlightLine(text);
+        const syntaxHtml = window.ViewerHighlighter.highlightLine(text);
         const $temp = $('<div>').html(syntaxHtml);
 
         searchRanges.forEach(range => {

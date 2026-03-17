@@ -14,7 +14,7 @@
     <groupId>org.fayfoxcat</groupId>
         <artifactId>viewer</artifactId>
     <version>0.0.1</version>
-    <name>Viewer</name>
+    <name>viewer</name>
     <description>在线文件查看器</description>
 
     <properties>

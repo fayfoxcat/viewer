@@ -58,12 +58,12 @@ jobs:
         files: |
           target/logs-*.jar
         body: |
-          ## Log Viewer ${{ steps.get_version.outputs.VERSION }}
+          ## Viewer ${{ steps.get_version.outputs.VERSION }}
           
           ### 📦 下载说明
           
-          - `logs-${{ steps.get_version.outputs.VERSION }}.jar` - 库文件，用于集成到其他项目
-          - `logs-${{ steps.get_version.outputs.VERSION }}-exec.jar` - 可执行文件，可独立运行
+          - `viewer-${{ steps.get_version.outputs.VERSION }}.jar` - 库文件，用于集成到其他项目
+          - `viewer-${{ steps.get_version.outputs.VERSION }}-exec.jar` - 可执行文件，可独立运行
           
           ### 🚀 使用方法
           
@@ -82,32 +82,32 @@ jobs:
           在 `application.yml` 中配置：
           
           ```yaml
-          logs:
-            viewer:
+          viewer:
+             config:
               enable-auth: true
-              endpoint: /logs
+              endpoint: /viewer
               paths:
-                - /var/log/myapp
+                - /var/viewer/myapp
           ```
           
           #### 独立运行
           
           ```bash
           # 下载 jar 文件
-          wget https://github.com/fayfoxcat/logs/releases/download/v${{ steps.get_version.outputs.VERSION }}/logs-${{ steps.get_version.outputs.VERSION }}-exec.jar
+          wget https://github.com/fayfoxcat/viewer/releases/download/v${{ steps.get_version.outputs.VERSION }}/viewer-${{ steps.get_version.outputs.VERSION }}-exec.jar
           
           # 运行
-          java -jar logs-${{ steps.get_version.outputs.VERSION }}-exec.jar
+          java -jar viewer-${{ steps.get_version.outputs.VERSION }}-exec.jar
           
           # 访问
-          # http://localhost:1098/logs
+          # http://localhost:1098/viewer
           ```
           
           ### 📚 文档
           
-          - [快速开始](https://github.com/fayfoxcat/logs#快速开始)
-          - [完整文档](https://github.com/fayfoxcat/logs/blob/main/README.md)
-          - [更新日志](https://github.com/fayfoxcat/logs/blob/main/CHANGELOG.md)
+          - [快速开始](https://github.com/fayfoxcat/viewer#快速开始)
+          - [完整文档](https://github.com/fayfoxcat/viewer/blob/main/README.md)
+          - [更新日志](https://github.com/fayfoxcat/viewer/blob/main/CHANGELOG.md)
           
           ### ✨ 主要特性
           

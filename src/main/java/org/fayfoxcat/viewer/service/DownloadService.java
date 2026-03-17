@@ -85,7 +85,7 @@ public class DownloadService {
         String downloadName = entryName.contains("/") ?
                 entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
         if (downloadName.trim().isEmpty()) {
-            downloadName = "download.log";
+            downloadName = "download.txt";
         }
 
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
@@ -168,7 +168,7 @@ public class DownloadService {
 
         String baseName = entryName.contains("/") ?
                 entryName.substring(entryName.lastIndexOf("/") + 1) : entryName;
-        if (baseName.trim().isEmpty()) baseName = "download.log";
+        if (baseName.trim().isEmpty()) baseName = "download.txt";
 
         String finalName = dedupeName(baseName, nameCounter);
         zos.putNextEntry(new java.util.zip.ZipEntry(finalName));

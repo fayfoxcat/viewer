@@ -42,13 +42,13 @@
                     `;
 
                 // 特殊样式处理
-                if (className === 'log-url') {
+                if (className === 'viewer-url') {
                     css += `    text-decoration: underline;
                         cursor: pointer;
                     `;
                 }
 
-                if (className === 'log-exception') {
+                if (className === 'viewer-exception') {
                     css += `    font-style: italic;
                     `;
                 }
@@ -97,7 +97,7 @@
             }
             patternsLoaded = true;
         } catch (error) {
-            console.error('Failed to load log patterns:', error);
+            console.error('Failed to load highlight patterns:', error);
             patternsLoaded = true;
         }
     }
@@ -164,7 +164,7 @@
         return result;
     }
 
-    window.LogHighlighter = {
+    window.ViewerHighlighter = {
         highlightLine,
     };
 

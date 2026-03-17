@@ -287,8 +287,8 @@ window.ViewerContextMenu = (function () {
         const $line = $(`.content-line[data-line="${currentLineNumber}"]`);
         if ($line.length === 0) return;
 
-        const $logTxt = $line.find('.line-text');
-        let html = $logTxt.html();
+        const $lineText = $line.find('.line-text');
+        let html = $lineText.html();
 
         // 移除之前的自定义高亮
         html = html.replace(/<mark class="custom-highlight"[^>]*>([^<]*)<\/mark>/g, '$1');
@@ -298,7 +298,7 @@ window.ViewerContextMenu = (function () {
         const regex = new RegExp(`(${escapedText})`, 'gi');
         html = html.replace(regex, '<mark class="custom-highlight">$1</mark>');
 
-        $logTxt.html(html);
+        $lineText.html(html);
 
         if (window.ViewerNotification) {
             // 移除高亮通知
@@ -682,7 +682,7 @@ window.ViewerContextMenu = (function () {
      */
     function getFileName() {
         const filePath = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
-        if (!filePath) return 'log';
+        if (!filePath) return 'file';
 
         // 提取文件名（去除路径和扩展名）
         const parts = filePath.split(/[/\\]/);

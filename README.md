@@ -54,20 +54,20 @@ viewer:
   viewer:
     enable-auth: false  # 禁用认证
     paths:
-      - ./logs          # 项目日志目录
-      - /var/log/app    # 系统日志目录
+      - ./files         # 项目文件目录
+      - /var/data/app   # 系统数据目录
 ```
 
 **生产环境配置**：
 ```yaml
 viewer:
-  viewer:
+  config:
     enable-auth: true
     secret-key: "your-secure-password-here"
     endpoint: /admin/viewer
     paths:
-      - /var/log/application
-      - /opt/app/logs
+      - /var/data/application
+      - /opt/app/files
 ```
 
 ### 3. 启动访问
@@ -95,12 +95,12 @@ wget https://github.com/fayfoxcat/viewer/releases/download/v0.0.1/viewer-0.0.1-e
 # 创建配置文件
 cat > application.yml << EOF
 viewer:
-  viewer:
+  config:
     enable-auth: true
     secret-key: "MySecurePassword123"
     paths:
-      - /var/log
-      - /opt/app/logs
+      - /var/data
+      - /opt/app/files
 EOF
 
 # 启动服务
@@ -118,20 +118,20 @@ java -jar viewer-0.0.1-exec.jar
 | `viewer.viewer.secret-key` | String | `null` | 认证密钥（留空自动生成） |
 | `viewer.viewer.paths` | List | `[]` | 允许访问的目录白名单 |
 
-### 日志高亮配置
+### 内容高亮配置
 
-系统支持通过 `patterns.yml` 配置文件自定义日志高亮规则：
+系统支持通过 `patterns.yml` 配置文件自定义内容高亮规则：
 
 ```yaml
 viewer:
   patterns:
     rules:
       error:
-        name: 错误日志
+        name: 错误级别
         regex: "\\b(ERROR|FATAL|SEVERE)\\b"
-        class-name: log-error
+        class-name: viewer-error
         color: "#f44336"
-        description: 匹配错误级别日志
+        description: 匹配错误级别标识
         highlight: true
     presets:
       java-exception:
@@ -140,12 +140,12 @@ viewer:
           - error
           - exception
           - date
-        description: Java异常日志组合
+        description: Java异常内容组合
 ```
 
 内置高亮规则包括：
 - 日期时间格式
-- 日志级别（ERROR、WARN、INFO、DEBUG）
+- 日志级别标识（ERROR、WARN、INFO、DEBUG）
 - 异常类名
 - IP地址、URL、邮箱
 - 字符串、数字、UUID
@@ -183,21 +183,21 @@ viewer:
 
 ```yaml
 viewer:
-  viewer:
+  config:
     paths:
       # 绝对路径
-      - /var/log/application
-      - C:\logs\app
+      - /var/data/application
+      - C:\data\app
       
       # 相对路径
-      - ./logs
-      - ../shared-logs
+      - ./files
+      - ../shared-data
       
       # 网络路径（Windows）
-      - \\server\share\logs
+      - \\server\share\files
       
       # 多环境配置
-      - ${LOG_DIR:/opt/app/logs}  # 环境变量，默认值
+      - ${DATA_DIR:/opt/app/files}  # 环境变量，默认值
 ```
 
 ## 🔧 开发指南
@@ -259,7 +259,7 @@ viewer/
 │   │   │   ├── common.css               # 通用样式
 │   │   │   ├── content-mgmt.css         # 内容管理样式
 │   │   │   ├── directory.css            # 目录树样式
-│   │   │   ├── content-area.css             # 日志显示区样式
+│   │   │   ├── content-area.css         # 内容显示区样式
 │   │   │   ├── login.css                # 登录页样式
 │   │   │   ├── notification.css         # 通知组件样式
 │   │   │   ├── search-panel.css         # 搜索面板样式
@@ -278,7 +278,7 @@ viewer/
 │   │       │   ├── file-operations.js   # 文件操作
 │   │       │   ├── file-tree.js         # 文件树组件
 │   │       │   └── selection-manager.js # 选择管理
-│   │       ├── content-area/                # 日志显示模块
+│   │       ├── content-area/            # 内容显示模块
 │   │       │   ├── content-renderer.js  # 内容渲染
 │   │       │   └── context-highlighter.js   # 语法高亮
 │   │       ├── search-results/          # 搜索模块
@@ -287,7 +287,7 @@ viewer/
 │   ├── templates/
 │   │   └── index.html                   # 主页面模板
 │   ├── application.yml                  # 应用配置
-│   └── patterns.yml                     # 日志高亮规则配置
+│   └── patterns.yml                     # 内容高亮规则配置
 └── pom.xml                              # Maven项目配置
 ```
 
