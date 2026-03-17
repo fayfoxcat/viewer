@@ -15,8 +15,8 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * 配置环境后处理器
- * 自动加载所有 *.yml 配置文件
+ * Patterns 配置环境后处理器
+ * 自动加载所有 patterns*.yml 配置文件
  *
  * @author fayfoxcat
  * @version 0.0.1
@@ -32,14 +32,19 @@ public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor 
                     application.getClassLoader()
             );
             
-            // 扫描所有 *.yml 文件
-            Resource[] resources = resolver.getResources("classpath*:*.yml");
+            // 扫描所有 patterns*.yml 文件
+            Resource[] resources = resolver.getResources("classpath*:patterns*.yml");
+
+            System.out.println("[Viewer] Found " + resources.length + " patterns*.yml files");
 
             if (resources.length == 0) {
+                System.out.println("[Viewer] No patterns*.yml files found, trying fallback...");
+                // 尝试直接加载 patterns.yml
                 try {
                     Resource fallback = resolver.getResource("classpath:patterns.yml");
                     if (fallback.exists()) {
                         resources = new Resource[]{fallback};
+                        System.out.println("[Viewer] Loaded fallback patterns.yml");
                     }
                 } catch (Exception e) {
                     System.err.println("[Viewer] Fallback also failed: " + e.getMessage());
@@ -83,6 +88,7 @@ public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor 
                     }
                 } catch (Exception e) {
                     System.err.println("[Viewer] Failed to load: " + resource.getFilename() + ", error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
 
@@ -94,6 +100,7 @@ public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor 
 
         } catch (Exception e) {
             System.err.println("[Viewer] Failed to scan patterns files: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
