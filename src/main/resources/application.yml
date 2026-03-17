@@ -24,8 +24,6 @@ spring:
         cachecontrol:
           max-age: 3600             # 静态资源缓存时间（秒）
           cache-public: true        # 允许公共缓存
-  config:
-    import: classpath:patterns.yml
 viewer:
   config:
     endpoint: /viewer               # 访问端点，默认 /viewer
