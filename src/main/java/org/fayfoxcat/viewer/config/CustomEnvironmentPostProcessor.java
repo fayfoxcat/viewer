@@ -34,17 +34,12 @@ public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor 
             
             // 扫描所有 *.yml 文件
             Resource[] resources = resolver.getResources("classpath*:*.yml");
-            
-            System.out.println("[Viewer] Found " + resources.length + " *.yml files");
-            
+
             if (resources.length == 0) {
-                System.out.println("[Viewer] No *.yml files found, trying fallback...");
-                // 尝试直接加载 patterns.yml
                 try {
                     Resource fallback = resolver.getResource("classpath:patterns.yml");
                     if (fallback.exists()) {
                         resources = new Resource[]{fallback};
-                        System.out.println("[Viewer] Loaded fallback patterns.yml");
                     }
                 } catch (Exception e) {
                     System.err.println("[Viewer] Fallback also failed: " + e.getMessage());
