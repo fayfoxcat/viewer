@@ -8,6 +8,9 @@ window.ViewerSearch = (function () {
     let currentMatches = [];
     let currentMatchIndex = -1;
     let serverSearchMode = false;
+    let displayedCount = 0;
+    const INITIAL_DISPLAY = 1000;
+    const LOAD_MORE_COUNT = 500;
 
     /**
      * 设置服务端搜索结果
@@ -130,7 +133,7 @@ window.ViewerSearch = (function () {
 
     /**
      * 渲染搜索结果列表
-     * 在搜索结果面板中显示所有匹配项
+     * 在搜索结果面板中显示所有匹配项（支持懒加载）
      */
     function renderSearchResults() {
         const $list = $("#search-results-list");
@@ -141,19 +144,37 @@ window.ViewerSearch = (function () {
             return;
         }
 
-        const MAX_RESULTS_DISPLAY = 1000;
-        const displayCount = Math.min(currentMatches.length, MAX_RESULTS_DISPLAY);
-
+        // 显示头部信息
         let headerText = `找到 ${currentMatches.length} 条结果`;
-        if (currentMatches.length > MAX_RESULTS_DISPLAY) {
-            headerText += ` (显示前 ${MAX_RESULTS_DISPLAY} 条)`;
-        }
-
         $list.append(`<div class="p-2 bg-light border-bottom"><strong>${headerText}</strong></div>`);
+
+        // 创建结果容器
+        const $resultsContainer = $('<div id="search-results-container"></div>');
+        $list.append($resultsContainer);
+
+        // 初始显示
+        displayedCount = 0;
+        loadMoreResults();
+
+        // 绑定滚动事件实现懒加载
+        setupLazyLoading();
+    }
+
+    /**
+     * 加载更多搜索结果
+     */
+    function loadMoreResults() {
+        const $container = $("#search-results-container");
+        if (!$container.length) return;
+
+        const startIdx = displayedCount;
+        const endIdx = Math.min(displayedCount + LOAD_MORE_COUNT, currentMatches.length);
+
+        if (startIdx >= currentMatches.length) return;
 
         const fragment = document.createDocumentFragment();
 
-        for (let idx = 0; idx < displayCount; idx++) {
+        for (let idx = startIdx; idx < endIdx; idx++) {
             const m = currentMatches[idx];
             const $item = $(`<div class="search-result-item" data-idx="${idx}"></div>`);
             $item.html(`<span class="search-result-number">行 ${m.lineNumber}</span><div class="search-result-line">${m.previewHtml}</div>`);
@@ -165,7 +186,61 @@ window.ViewerSearch = (function () {
             fragment.appendChild($item[0]);
         }
 
-        $list.append(fragment);
+        $container.append(fragment);
+        displayedCount = endIdx;
+
+        // 更新加载提示
+        updateLoadingIndicator();
+    }
+
+    /**
+     * 更新加载提示
+     */
+    function updateLoadingIndicator() {
+        const $list = $("#search-results-list");
+        $list.find("#loading-more-indicator").remove();
+
+        if (displayedCount < currentMatches.length) {
+            const remaining = currentMatches.length - displayedCount;
+            const $indicator = $(`
+                <div id="loading-more-indicator" class="text-center p-3" style="color: #999; font-size: 12px;">
+                    已显示 ${displayedCount} 条，还有 ${remaining} 条
+                    <div style="margin-top: 8px; color: #666;">向下滚动加载更多...</div>
+                </div>
+            `);
+            $list.append($indicator);
+        } else if (displayedCount > 0) {
+            const $indicator = $(`
+                <div id="loading-more-indicator" class="text-center p-3" style="color: #999; font-size: 12px;">
+                    已显示全部 ${displayedCount} 条结果
+                </div>
+            `);
+            $list.append($indicator);
+        }
+    }
+
+    /**
+     * 设置懒加载滚动监听
+     */
+    function setupLazyLoading() {
+        const $resultsBody = $(".search-results-body");
+
+        // 移除之前的滚动监听
+        $resultsBody.off("scroll.lazyload");
+
+        // 添加新的滚动监听
+        $resultsBody.on("scroll.lazyload", function () {
+            const scrollTop = $resultsBody.scrollTop();
+            const scrollHeight = $resultsBody[0].scrollHeight;
+            const clientHeight = $resultsBody.height();
+
+            // 距离底部100px时触发加载
+            if (scrollTop + clientHeight >= scrollHeight - 100) {
+                if (displayedCount < currentMatches.length) {
+                    loadMoreResults();
+                }
+            }
+        });
     }
 
     /**
@@ -253,6 +328,11 @@ window.ViewerSearch = (function () {
         currentMatches = [];
         currentMatchIndex = -1;
         serverSearchMode = false;
+        displayedCount = 0;
+
+        // 移除滚动监听
+        $(".search-results-body").off("scroll.lazyload");
+
         $("#search-results-list").empty();
     }
 

@@ -112,7 +112,7 @@ window.ViewerToolbar = (function () {
                     useRegex: useRegex,
                     caseSensitive: false,
                     contextLines: 0,
-                    maxResults: 10000
+                    maxResults: 100000
                 })
             });
 

@@ -38,9 +38,18 @@
 
 /* 搜索结果主体 */
 .search-results-body {
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
     padding: 8px;
+    position: relative;
+}
+
+/* 搜索结果容器 */
+#search-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 /* 搜索结果项 */

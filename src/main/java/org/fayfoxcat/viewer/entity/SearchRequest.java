@@ -49,7 +49,7 @@ public class SearchRequest {
         this.useRegex = false;
         this.caseSensitive = false;
         this.contextLines = 2;
-        this.maxResults = 500;
+        this.maxResults = 100000;
     }
 
     public SearchRequest(String filePath, String keyword) {
