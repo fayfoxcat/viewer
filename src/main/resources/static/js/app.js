@@ -6,6 +6,9 @@ $(document).ready(function () {
     'use strict';
 
     const apiBase = window.location.pathname.replace(/\/$/, "");
+    
+    // 设置全局 endpoint，供其他模块使用
+    window.viewerEndpoint = apiBase;
 
     if (!window.ViewerAuth.init(apiBase)) {
         return;

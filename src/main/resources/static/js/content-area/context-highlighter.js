@@ -72,7 +72,7 @@
         if (patternsLoaded) return;
 
         try {
-            const endpoint = window.viewerEndpoint || '/viewer';
+            const endpoint = window.viewerEndpoint || window.location.pathname.replace(/\/$/, "");
             const response = await fetch(`${endpoint}/patterns`);
             const data = await response.json();
 
