@@ -10,7 +10,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Viewer 配置环境后处理器
@@ -26,47 +28,24 @@ public class CustomEnvironmentPostProcessor implements EnvironmentPostProcessor 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(application.getClassLoader());
-        loadApplicationViewer(resolver, environment);
-        loadPatterns(resolver, environment);
+        List<String> propertiesList = Arrays.asList("application-viewer.yml", "patterns.yml");
+        loadPatterns(resolver, environment, propertiesList);
     }
 
     /**
      * 加载 application-viewer.yml 配置文件
      */
-    private void loadApplicationViewer(ResourcePatternResolver resolver, ConfigurableEnvironment environment) {
+    private void loadPatterns(ResourcePatternResolver resolver, ConfigurableEnvironment environment, List<String> configs) {
         try {
-            Resource resource = resolver.getResource("classpath:application-viewer.yml");
-            if (resource.exists()) {
-                MutablePropertySources sources = environment.getPropertySources();
-                List<PropertySource<?>> propertySources = loader.load("application-viewer.yml", resource);
-                propertySources.forEach(sources::addLast);
-            }
-        } catch (Exception e) {
-            System.err.println("[Viewer]加载 application-viewer.yml文件失败：" + e.getMessage());
-        }
-    }
-
-    /**
-     * 加载 patterns*.yml 配置文件
-     */
-    private void loadPatterns(ResourcePatternResolver resolver, ConfigurableEnvironment environment) {
-        try {
-            Resource[] resources = resolver.getResources("classpath*:patterns*.yml");
-
-            if (resources.length == 0) {
-                Resource fallback = resolver.getResource("classpath:patterns.yml");
-                if (fallback.exists()) {
-                    resources = new Resource[]{fallback};
-                }
-            }
-
             MutablePropertySources sources = environment.getPropertySources();
+            List<Resource> resources = configs.stream().map(config->
+                    resolver.getResource("classpath:"+config)).collect(Collectors.toList());
             for (Resource resource : resources) {
                 List<PropertySource<?>> propertySources = loader.load(resource.getFilename(), resource);
                 propertySources.forEach(sources::addLast);
             }
         } catch (Exception e) {
-            System.err.println("[Viewer] 加载 patterns* 配置失败：" + e.getMessage());
+            System.err.println("[Viewer] 加载配置失败：" + e.getMessage());
         }
     }
 }
