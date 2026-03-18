@@ -56,7 +56,7 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          target/logs-*.jar
+          target/viewer-*.jar
         body: |
           ## Viewer ${{ steps.get_version.outputs.VERSION }}
           
@@ -74,7 +74,7 @@ jobs:
           ```xml
           <dependency>
               <groupId>org.fayfoxcat</groupId>
-              <artifactId>logs</artifactId>
+              <artifactId>viewer</artifactId>
               <version>${{ steps.get_version.outputs.VERSION }}</version>
           </dependency>
           ```
