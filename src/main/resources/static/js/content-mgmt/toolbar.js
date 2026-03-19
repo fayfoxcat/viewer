@@ -6,6 +6,7 @@ window.ViewerToolbar = (function () {
     'use strict';
 
     let refreshTimer = null;
+    let isRefreshing = false; // 标志位：是否正在刷新中
 
     /**
      * 统一的分页按钮处理
@@ -161,6 +162,7 @@ window.ViewerToolbar = (function () {
             // 停止刷新
             clearInterval(refreshTimer);
             refreshTimer = null;
+            isRefreshing = false; // 重置标志位
 
             $btn.removeClass("refreshing");
             $icon.show();
@@ -197,14 +199,22 @@ window.ViewerToolbar = (function () {
                     return;
                 }
 
+                // 如果上一次刷新还在进行中，跳过本次刷新
+                if (isRefreshing) {
+                    return;
+                }
+
                 try {
+                    isRefreshing = true;
                     const metadata = window.ViewerPageCache.getStatus().metadata;
                     const lastPage = metadata.totalPages;
                     await appContext.loadPage(lastPage, true);
                 } catch (error) {
                     console.error('[Refresh] 刷新跳转失败:', error);
+                } finally {
+                    isRefreshing = false;
                 }
-            }, 500);
+            }, 150);
 
         } catch (error) {
             console.error('启动实时刷新失败:', error);
@@ -230,6 +240,7 @@ window.ViewerToolbar = (function () {
         if (refreshTimer) {
             clearInterval(refreshTimer);
             refreshTimer = null;
+            isRefreshing = false;
         }
     }
 

@@ -98,7 +98,25 @@ window.ViewerPageCache = (function () {
             const result = await response.json();
 
             if (result.fileVersion !== cache.fileVersion) {
-                handleFileChange(result.fileVersion);
+                // 构建新的元数据对象
+                const newMetadata = {
+                    fileVersion: result.fileVersion,
+                    totalLines: result.totalLines,
+                    totalPages: result.totalPages,
+                    fileSize: cache.metadata.fileSize, // 从fileVersion中提取
+                    lastModified: cache.metadata.lastModified,
+                    zipEntry: result.zipEntry,
+                    isZipEntry: result.zipEntry
+                };
+                
+                // 尝试从fileVersion中提取fileSize和lastModified
+                const versionParts = result.fileVersion.split('-');
+                if (versionParts.length >= 2) {
+                    newMetadata.lastModified = parseInt(versionParts[0], 10);
+                    newMetadata.fileSize = parseInt(versionParts[1], 10);
+                }
+                
+                handleFileChange(result.fileVersion, newMetadata);
             }
 
             abortControllers.delete(page);
@@ -305,39 +323,41 @@ window.ViewerPageCache = (function () {
     function isAppendOnly(oldMeta, newMeta) {
         if (!oldMeta || !newMeta) return false;
 
-        return newMeta.fileSize > oldMeta.fileSize &&
-            newMeta.totalLines > oldMeta.totalLines &&
-            newMeta.lastModified > oldMeta.lastModified;
+        // 追加操作的特征：
+        // 1. 文件大小只增不减
+        // 2. 行数只增不减（追加内容可能不包含换行符，所以行数可能相等）
+        // 3. 修改时间更新
+        const fileSizeIncreased = newMeta.fileSize >= oldMeta.fileSize;
+        const linesNotDecreased = newMeta.totalLines >= oldMeta.totalLines;
+        const timeUpdated = newMeta.lastModified >= oldMeta.lastModified;
+
+        // 只有当文件大小或行数真正增加时，才认为是追加操作
+        const hasActualChange = newMeta.fileSize > oldMeta.fileSize || newMeta.totalLines > oldMeta.totalLines;
+
+        return fileSizeIncreased && linesNotDecreased && timeUpdated && hasActualChange;
     }
 
     /**
      * 处理文件追加
-     * 只失效受影响的页面缓存
+     * 只失效受影响的页面缓存，不显示提示
      *
      * @param {Object} newMetadata - 新的文件元数据
      */
     function handleAppend(newMetadata) {
         const oldTotalPages = cache.metadata.totalPages;
         const newTotalPages = newMetadata.totalPages;
-        const newLines = newMetadata.totalLines - cache.metadata.totalLines;
 
         cache.metadata = newMetadata;
         cache.fileVersion = newMetadata.fileVersion;
 
+        // 只失效最后几页的缓存（因为追加可能影响最后一页的内容）
         for (let page = oldTotalPages - 1; page <= newTotalPages; page++) {
             if (cache.pages.has(page)) {
                 cache.pages.get(page).valid = false;
             }
         }
 
-        if (window.ViewerApp && window.ViewerApp.onFileAppend) {
-            window.ViewerApp.onFileAppend({
-                oldTotalPages,
-                newTotalPages,
-                newLines
-            });
-        }
-
+        // 如果当前在最后一页或倒数第二页，自动刷新以显示新内容
         if (cache.currentPage >= oldTotalPages - 1) {
             if (window.ViewerApp && window.ViewerApp.refreshCurrentPage) {
                 window.ViewerApp.refreshCurrentPage();

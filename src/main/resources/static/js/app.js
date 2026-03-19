@@ -20,6 +20,7 @@ $(document).ready(function () {
     let searchTimer = null;
     let loadPageRequestId = 0;
     let loadPageDebounceTimer = null;
+    let isLoadingPage = false; // 全局加载锁，防止并发加载
 
     // ========== 初始化各区域模块 ==========
     window.ViewerFileTree.init(apiBase);
@@ -57,13 +58,28 @@ $(document).ready(function () {
      */
     async function refreshCurrentPage() {
         if (!activeId) return;
+        
+        // 如果正在加载页面，跳过本次刷新
+        if (isLoadingPage) {
+            return;
+        }
+        
         try {
+            isLoadingPage = true;
             const currentPage = window.ViewerPagination.getCurrentPage();
             const data = await window.ViewerPageCache.getPage(currentPage);
+            
+            // 请求被取消，不做任何处理
+            if (data === null) {
+                return;
+            }
+            
             window.ViewerContentRenderer.renderLogContent(data.lines, null, 1, data.startLine);
             window.ViewerPagination.updatePagination(data.totalLines);
         } catch (error) {
             console.error('[App] Refresh page error:', error);
+        } finally {
+            isLoadingPage = false;
         }
     }
 
@@ -85,6 +101,12 @@ $(document).ready(function () {
             window.ViewerContentRenderer.showPageIndicator(page);
         }
 
+        // 自动刷新模式：立即执行，不使用防抖
+        if (autoScroll) {
+            await loadPageImmediate(page, autoScroll);
+            return;
+        }
+
         // 清除之前的防抖定时器
         if (loadPageDebounceTimer) {
             clearTimeout(loadPageDebounceTimer);
@@ -104,10 +126,16 @@ $(document).ready(function () {
      * @param {boolean} [autoScroll=false] - 是否自动滚动到底部
      */
     async function loadPageImmediate(page, autoScroll = false) {
+        // 如果正在加载页面，跳过本次加载（避免并发）
+        if (isLoadingPage) {
+            return;
+        }
+        
         // 生成新的请求ID
         const requestId = ++loadPageRequestId;
 
         try {
+            isLoadingPage = true;
             window.ViewerContentRenderer.showLoading();
 
             const data = await window.ViewerPageCache.getPage(page);
@@ -151,6 +179,8 @@ $(document).ready(function () {
                 console.error('[App] Load page error:', error);
                 onFileLoadError('加载失败: ' + error.message);
             }
+        } finally {
+            isLoadingPage = false;
         }
     }
 
