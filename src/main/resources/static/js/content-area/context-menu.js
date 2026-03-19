@@ -264,17 +264,49 @@ window.ViewerContextMenu = (function () {
     function performCopy() {
         if (!currentSelection) return;
 
-        navigator.clipboard.writeText(currentSelection).then(() => {
-            // 静默复制，不显示通知
-        }).catch(err => {
-            console.error('复制失败:', err);
+        // 检查 Clipboard API 是否可用
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(currentSelection).then(() => {
+                // 静默复制，不显示通知
+            }).catch(err => {
+                console.error('复制失败:', err);
+                fallbackCopy(currentSelection);
+            });
+        } else {
+            // 使用降级方案
+            fallbackCopy(currentSelection);
+        }
+    }
+
+    /**
+     * 降级复制方案（使用 execCommand）
+     */
+    function fallbackCopy(text) {
+        try {
+            const $temp = $('<textarea>');
+            $temp.val(text);
+            $temp.css({
+                position: 'fixed',
+                top: '-9999px',
+                left: '-9999px'
+            });
+            $('body').append($temp);
+            $temp.select();
+            const successful = document.execCommand('copy');
+            $temp.remove();
+
+            if (!successful) {
+                throw new Error('execCommand 复制失败');
+            }
+        } catch (err) {
+            console.error('降级复制失败:', err);
             if (window.ViewerNotification) {
                 window.ViewerNotification.show({
-                    message: '复制失败',
+                    message: '复制失败，请手动复制',
                     type: 'error'
                 });
             }
-        });
+        }
     }
 
     /**
@@ -394,22 +426,61 @@ window.ViewerContextMenu = (function () {
         const filePath = window.ViewerUIState ? window.ViewerUIState.getActiveFileName() : null;
         if (!filePath) return;
 
-        navigator.clipboard.writeText(filePath).then(() => {
-            if (window.ViewerNotification) {
-                window.ViewerNotification.show({
-                    message: '已复制文件路径',
-                    type: 'success'
-                });
+        // 检查 Clipboard API 是否可用
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(filePath).then(() => {
+                if (window.ViewerNotification) {
+                    window.ViewerNotification.show({
+                        message: '已复制文件路径',
+                        type: 'success'
+                    });
+                }
+            }).catch(err => {
+                console.error('复制失败:', err);
+                fallbackCopyPath(filePath);
+            });
+        } else {
+            // 使用降级方案
+            fallbackCopyPath(filePath);
+        }
+    }
+
+    /**
+     * 降级复制文件路径方案
+     */
+    function fallbackCopyPath(filePath) {
+        try {
+            const $temp = $('<textarea>');
+            $temp.val(filePath);
+            $temp.css({
+                position: 'fixed',
+                top: '-9999px',
+                left: '-9999px'
+            });
+            $('body').append($temp);
+            $temp.select();
+            const successful = document.execCommand('copy');
+            $temp.remove();
+
+            if (successful) {
+                if (window.ViewerNotification) {
+                    window.ViewerNotification.show({
+                        message: '已复制文件路径',
+                        type: 'success'
+                    });
+                }
+            } else {
+                throw new Error('execCommand 复制失败');
             }
-        }).catch(err => {
-            console.error('复制失败:', err);
+        } catch (err) {
+            console.error('降级复制失败:', err);
             if (window.ViewerNotification) {
                 window.ViewerNotification.show({
-                    message: '复制失败',
+                    message: '复制失败，请手动复制',
                     type: 'error'
                 });
             }
-        });
+        }
     }
 
     /**
@@ -465,9 +536,12 @@ window.ViewerContextMenu = (function () {
             // 复制到剪贴板
             canvas.toBlob(async (blob) => {
                 try {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({'image/png': blob})
-                    ]);
+                    // 检查 Clipboard API 是否可用
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({'image/png': blob})
+                        ]);
+                    }
 
                     // 同时下载
                     const url = canvas.toDataURL('image/png');
